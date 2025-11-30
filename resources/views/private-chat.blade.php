@@ -329,7 +329,7 @@
                                                 @if($msg->image_path)
                                                     <div class="mb-2">
                                                         @php
-                                                            $imageUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($msg->image_path);
+                                                            $imageUrl =Storage::disk('s3')->url($msg->image_path);
                                                         @endphp
                                                         <img src="{{ $imageUrl }}" 
                                                              alt="Shared image" 
