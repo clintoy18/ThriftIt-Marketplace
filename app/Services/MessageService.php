@@ -129,6 +129,7 @@ class MessageService
             'status' => $product->status,
             'image_url' => $product->first_image,
             'url' => route('products.show', $product->id),
+            'category' => $product->category->name ?? 'No Category',
         ];
 
         $message->setAttribute('product_preview', $preview);

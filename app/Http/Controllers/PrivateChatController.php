@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Services\MessageService;
 
 class PrivateChatController extends Controller
@@ -75,9 +76,10 @@ class PrivateChatController extends Controller
             $message->load('user');
         }
         
-        // Add image_url for easy access
+        // Add image_url for easy access using Storage facade for proper URL generation
+        // Chat images are stored on the 'public' disk, so we need to specify it explicitly
         $message->setAttribute('image_url', $message->image_path
-            ? asset('storage/' . $message->image_path)
+            ? Storage::disk('public')->url($message->image_path)
             : null);
 
         // Return message as resource/array for JSON serialization
@@ -202,5 +204,40 @@ class PrivateChatController extends Controller
             'success' => true,
             'message' => 'User unblocked successfully.'
         ]);
+    }
+
+    /**
+     * Proxy endpoint to fetch images from S3 (avoids CORS issues)
+     */
+    public function proxyImage(Request $request)
+    {
+        $request->validate([
+            'url' => 'required|url'
+        ]);
+
+        $imageUrl = $request->input('url');
+        
+        try {
+            // Fetch the image from the URL
+            $imageContent = file_get_contents($imageUrl);
+            
+            if ($imageContent === false) {
+                return response()->json(['error' => 'Failed to fetch image'], 400);
+            }
+
+            // Determine content type from URL or default to jpeg
+            $contentType = 'image/jpeg';
+            if (preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $imageUrl, $matches)) {
+                $ext = strtolower($matches[1]);
+                $contentType = 'image/' . ($ext === 'jpg' ? 'jpeg' : $ext);
+            }
+
+            return response($imageContent, 200)
+                ->header('Content-Type', $contentType)
+                ->header('Access-Control-Allow-Origin', '*')
+                ->header('Cache-Control', 'public, max-age=3600');
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch image: ' . $e->getMessage()], 500);
+        }
     }
 }

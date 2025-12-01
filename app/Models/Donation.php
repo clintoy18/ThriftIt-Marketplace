@@ -95,8 +95,17 @@ class Donation extends Model
 
     public function getFirstImageAttribute()
     {
-        $firstImage = $this->donationImages()->first();
-        return $firstImage ? $firstImage->image : null;
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $s3 */
+        $s3 = Storage::disk('s3');
+
+        $firstImage = $this->donationImages->first()?->image;
+
+        if ($firstImage) {
+            return $s3->url($firstImage); // use $s3 variable instead of calling Storage::disk again
+        }
+
+        // Default placeholder image (inline SVG to avoid 404 errors)
+        return 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\'  height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' font-family=\'sans-serif\' font-size=\'14\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dominant-baseline=\'middle\'%3EDonation%3C/text%3E%3C/svg%3E';
     }
 }
 

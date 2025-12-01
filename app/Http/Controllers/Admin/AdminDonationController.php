@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ApprovalStatusDonationUpdateRequest;
 use App\Models\Donation;
+use App\Models\Notification;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use App\Services\DonationService;
+use App\Events\DonationStatusNotification;
 
 class AdminDonationController extends Controller
 {
@@ -43,7 +45,28 @@ class AdminDonationController extends Controller
     public function update(ApprovalStatusDonationUpdateRequest $request, Donation $donation): RedirectResponse
     {
         $validated = $request->validated();
+        $oldStatus = $donation->approval_status;
         $donation->update($validated);
+        $donation->refresh(); // Refresh to get latest data
+
+        // Send notification if approval status changed
+        if (isset($validated['approval_status']) && $validated['approval_status'] !== $oldStatus) {
+            // Save notification in DB
+            Notification::create([
+                'user_id' => $donation->user_id,
+                'type' => 'donation_status',
+                'data' => [
+                    'status' => $validated['approval_status'],
+                    'donation_id' => $donation->id,
+                    'message' => $validated['approval_status'] === 'approved' 
+                        ? 'Your donation has been approved!' 
+                        : 'Your donation has been rejected.'
+                ],
+            ]);
+
+            // Broadcast real-time notification
+            broadcast(new DonationStatusNotification($donation, $donation->user_id, $validated['approval_status']))->toOthers();
+        }
 
         return redirect()->route('admin.donations.index')
             ->with('success', 'Donation approval status updated successfully.');
@@ -67,6 +90,21 @@ class AdminDonationController extends Controller
     public function approve(Donation $donation): RedirectResponse
     {
         $this->donationService->updateDonation($donation, ['approval_status' => 'approved']);
+        $donation->refresh(); // Refresh to get latest data
+
+        // Save notification in DB
+        Notification::create([
+            'user_id' => $donation->user_id,
+            'type' => 'donation_status',
+            'data' => [
+                'status' => 'approved',
+                'donation_id' => $donation->id,
+                'message' => 'Your donation has been approved!'
+            ],
+        ]);
+
+        // Broadcast real-time notification
+        broadcast(new DonationStatusNotification($donation, $donation->user_id, 'approved'))->toOthers();
 
         return redirect()->route('admin.donations.index')
             ->with('success', 'Donation approved successfully.');
@@ -75,6 +113,21 @@ class AdminDonationController extends Controller
     public function reject(Donation $donation): RedirectResponse
     {
         $this->donationService->updateDonation($donation, ['approval_status' => 'rejected']);
+        $donation->refresh(); // Refresh to get latest data
+
+        // Save notification in DB
+        Notification::create([
+            'user_id' => $donation->user_id,
+            'type' => 'donation_status',
+            'data' => [
+                'status' => 'rejected',
+                'donation_id' => $donation->id,
+                'message' => 'Your donation has been rejected.'
+            ],
+        ]);
+
+        // Broadcast real-time notification
+        broadcast(new DonationStatusNotification($donation, $donation->user_id, 'rejected'))->toOthers();
 
         return redirect()->route('admin.donations.index')
             ->with('success', 'Donation rejected successfully.');

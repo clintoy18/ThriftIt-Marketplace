@@ -172,6 +172,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/users/{user}/block', [PrivateChatController::class, 'block'])->name('users.block');
     Route::get('/users/blocked', [PrivateChatController::class, 'getBlockedUsers'])->name('users.blocked');
     Route::post('/users/{user}/unblock', [PrivateChatController::class, 'unblock'])->name('users.unblock');
+    Route::get('/proxy-image', [PrivateChatController::class, 'proxyImage'])->name('proxy.image');
     
     // // Call invitation routes
     // Route::post('/api/call/invite', function (Request $request) {

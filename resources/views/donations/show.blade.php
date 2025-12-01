@@ -82,6 +82,29 @@
                                 </div>
                             @endif
 
+                            <!-- Message Seller - Only show to buyers, not to the owner -->
+                            @if (Auth::check() && Auth::id() !== $donation->user_id && $donation->status === 'available')
+                                <div
+                                    class="w-full max-w-sm mt-4 bg-[#f8f4f0] dark:bg-gray-800 dark:text-gray-200 text-gray-800 p-4 rounded-lg shadow-md mx-auto border border-[#d9cbb6]">
+                                    <div class="flex items-center gap-2 mb-2 dark:bg-gray-800 dark:text-gray-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.8" stroke="#B59F84" class="w-5 h-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M8.625 12h6.75m-6.75 3h4.125M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span class="font-semibold text-sm text-[#5c4a3e] dark:text-gray-200">Send
+                                            donor a message</span>
+                                    </div>
+                                    <textarea
+                                        class="w-full bg-white border border-[#d9cbb6] dark:bg-gray-800 dark:text-gray-200 text-gray-700 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#B59F84] resize-none"
+                                        rows="2" readonly>Hi {{ $donation->user->fname }}, is this still available?</textarea>
+                                    <a href="{{ route('private.chat', $donation->user->id) }}?auto_message=1&donation_id={{ $donation->id }}&donation_name={{ urlencode($donation->name) }}&donation_image={{ urlencode($donation->first_image) }}"
+                                        class="block w-full bg-[#B59F84] text-white text-center py-2.5 rounded-md font-medium hover:bg-[#a08e77] transition-all duration-300">
+                                        Send
+                                    </a>
+                                </div>
+                            @endif
+
                             <!-- Modal (Include Once Per Page) -->
                             <div id="proofModal"
                                 class="fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -534,9 +557,9 @@
                                             Donation
                                         </div>
                                         <div class="relative aspect-square overflow-hidden">
-                                            <img src="{{ Storage::disk('s3')->url($image->image) }}"
-                                                alt="{{ $donationItem->name }}" class="w-full h-full object-cover">
-                                            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                                            <img src="{{ $donationItem->first_image }}"
+                                                alt="{{ $donationItem->name }}"
+                                                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
 
                                             <div
                                                 class="absolute inset-0 bg-gray-800 bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">

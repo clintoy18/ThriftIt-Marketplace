@@ -113,8 +113,8 @@ class Product extends Model
             return $s3->url($firstImage); // use $s3 variable instead of calling Storage::disk again
         }
 
-        // Default placeholder image (hosted locally)
-        return asset('images/default-placeholder.png');
+        // Default placeholder image (inline SVG to avoid 404 errors)
+        return 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' font-family=\'sans-serif\' font-size=\'14\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dominant-baseline=\'middle\'%3EProduct%3C/text%3E%3C/svg%3E';
     }
 
     public function orders()

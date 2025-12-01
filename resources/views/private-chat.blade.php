@@ -328,103 +328,190 @@
                                             <div class="px-4 py-3 rounded-2xl text-sm {{ $bubbleClasses }}">
                                                 @if($msg->image_path)
                                                     <div class="mb-2">
-                                                        <img src="{{ asset('storage/' . $msg->image_path) }}" alt="Shared image" class="max-w-full h-auto rounded-lg shadow-sm">
+                                                        @php
+                                                            $imageUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($msg->image_path);
+                                                        @endphp
+                                                        <img src="{{ $imageUrl }}" 
+                                                             alt="Shared image" 
+                                                             class="max-w-full h-auto rounded-lg shadow-sm"
+                                                             onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' font-family=\'sans-serif\' font-size=\'14\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dominant-baseline=\'middle\'%3EImage%3C/text%3E%3C/svg%3E'; this.alt='Image failed to load';">
                                                     </div>
                                                 @endif
                                                 @if($msg->message && trim($msg->message))
-                                                    @php
-                                                        $escapedMessage = e($msg->message);
-                                                        $processedMessage = nl2br($escapedMessage);
-                                                        $messageText = preg_replace('/https?:\/\/[^\s]+\/products\/\d+/', '', $processedMessage);
-                                                        $textClasses = 'text-sm whitespace-pre-line break-words';
-                                                        if ($isUnread) {
-                                                            $textClasses .= ' font-bold';
-                                                        }
-                                                    @endphp
+                                                @php
+                                                    $escapedMessage = e($msg->message);
+                                                    $processedMessage = nl2br($escapedMessage);
+                                                    // Remove both product and donation URLs from the message text
+                                                    $messageText = preg_replace('/https?:\/\/[^\s]+\/(products|donations)\/\d+/', '', $processedMessage);
+                                                    $textClasses = 'text-sm whitespace-pre-line break-words';
+                                                    if ($isUnread) {
+                                                        $textClasses .= ' font-bold';
+                                                    }
+                                                @endphp
+                                             
                                                     <div class="{{ $textClasses }}">{!! $messageText !!}</div>
                                                 @endif
                                                 
-                                                <!-- Product Preview Card (if message contains product link) -->
-                                                @php
-                                                    $productUrlPattern = '/\/products\/(\d+)/';
-                                                    preg_match($productUrlPattern, $msg->message, $matches);
-                                                    $productId = $matches[1] ?? null;
-                                                @endphp
-                                                
-                                                @if($productId)
-                                                    @php
-                                                        $product = \App\Models\Product::find($productId);
-                                                    @endphp
-                                                    @if($product)
-                                                        <div class="mt-3 p-3 bg-white bg-opacity-95 rounded-xl border border-white border-opacity-40 shadow-lg group hover:bg-opacity-100 transition-all duration-200">
-                                                            <div class="flex gap-3">
-                                                                <!-- Product Image -->
-                                                                <div class="relative flex-shrink-0">
-                                                                    @if($product->first_image)
-                                                                       <img src="{{ $product->first_image }}"
-                                                                             alt="{{ $product->name }}" 
-                                                                             class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg shadow-sm">
-                                                                    @else
-                                                                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-lg flex items-center justify-center">
-                                                                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                                                            </svg>
-                                                                        </div>
-                                                                    @endif
-                                                                    <!-- Status Badge -->
-                                                                    @if($product->listingtype === 'for donation')
-                                                                        <div class="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
-                                                                            FREE
-                                                                        </div>
-                                                                    @endif
-                                                                </div>
-                                                                
-                                                                <!-- Product Details -->
-                                                                <div class="flex-1 min-w-0">
-                                                                    <div class="flex items-start justify-between mb-1">
-                                                                        <h4 class="font-semibold text-sm sm:text-base text-gray-900 truncate pr-2">{{ $product->name }}</h4>
-                                                                        <div class="flex-shrink-0">
-                                                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                                                            </svg>
-                                                                        </div>
-                                                                    </div>
-                                                                    
-                                                                    <p class="text-xs text-gray-600 mb-2 flex items-center">
-                                                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                                                                        </svg>
-                                                                        {{ $product->category->name ?? 'No Category' }}
-                                                                    </p>
-                                                                    
-                                                                    <div class="flex items-center justify-between">
-                                                                        @if($product->listingtype !== 'for donation')
-                                                                            <p class="text-sm font-bold text-[#634600]">₱{{ number_format($product->price, 2) }}</p>
-                                                                        @else
-                                                                            <p class="text-sm font-bold text-green-600 flex items-center">
-                                                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                                                                </svg>
-                                                                                For Donation
-                                                                            </p>
-                                                                        @endif
-                                                                        
-                                                                        <!-- View Product Link -->
-                                                                        <a href="{{ route('products.show', $product->id) }}" 
-                                                                           target="_blank" 
-                                                                           class="text-xs text-[#634600] hover:text-[#56432C] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center">
-                                                                            <span>View</span>
-                                                                            <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                                                            </svg>
-                                                                        </a>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @endif
-                                                @endif
-                                            </div>
+           <!-- Product/Donation Preview Card (if message contains product or donation link) -->
+@php
+    $productUrlPattern = '/\/products\/(\d+)/';
+    $donationUrlPattern = '/\/donations\/(\d+)/';
+    
+    preg_match($productUrlPattern, $msg->message, $productMatches);
+    preg_match($donationUrlPattern, $msg->message, $donationMatches);
+    
+    $productId = $productMatches[1] ?? null;
+    $donationId = $donationMatches[1] ?? null;
+@endphp
+
+@if($productId)
+    @php
+        $product = \App\Models\Product::find($productId);
+    @endphp
+    @if($product)
+        <div class="mt-3 p-3 bg-white bg-opacity-95 rounded-xl border border-white border-opacity-40 shadow-lg group hover:bg-opacity-100 transition-all duration-200">
+            <div class="flex gap-3">
+                <!-- Product Image -->
+                <div class="relative flex-shrink-0">
+                    @if($product->first_image)
+                       <img src="{{ $product->first_image }}"
+                             alt="{{ $product->name }}" 
+                             class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg shadow-sm"
+                             onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' font-family=\'sans-serif\' font-size=\'14\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dominant-baseline=\'middle\'%3EProduct%3C/text%3E%3C/svg%3E'; this.alt='Image failed to load';">
+                    @else
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                    @endif
+                    <!-- Status Badge -->
+                    @if($product->listingtype === 'for donation')
+                        <div class="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
+                            FREE
+                        </div>
+                    @endif
+                </div>
+                
+                <!-- Product Details -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between mb-1">
+                        <h4 class="font-semibold text-sm sm:text-base text-gray-900 truncate pr-2">{{ $product->name }}</h4>
+                        <div class="flex-shrink-0">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <p class="text-xs text-gray-600 mb-2 flex items-center">
+                        <svg class="w-3 h-3 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                        {{ $product->category->name ?? 'No Category' }}
+                    </p>
+                    
+                    <div class="flex items-center justify-between">
+                        @if($product->listingtype !== 'for donation')
+                            <p class="text-sm font-bold text-[#634600] flex items-center">
+                                <svg class="w-3 h-3 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
+                                ₱{{ number_format($product->price, 2) }}
+                            </p>
+                        @else
+                            <p class="text-sm font-bold text-green-600 flex items-center">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
+                                Free
+                            </p>
+                        @endif
+                        
+                        <!-- View Product Link -->
+                        <a href="{{ route('products.show', $product->id) }}" 
+                           target="_blank" 
+                           class="text-xs text-[#634600] hover:text-[#56432C] font-medium flex items-center">
+                            <span>View</span>
+                            <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+@endif
+
+<!-- Donation Preview Card -->
+<!-- Donation Preview Card -->
+@if($donationId)
+    @php
+        $donation = \App\Models\Donation::find($donationId);
+    @endphp
+    @if($donation)
+        <div class="mt-3 p-3 bg-white bg-opacity-95 rounded-xl border border-white border-opacity-40 shadow-lg group hover:bg-opacity-100 transition-all duration-200">
+            <div class="flex gap-3">
+                <!-- Donation Image -->
+                <div class="relative flex-shrink-0">
+                    @if($donation->first_image)
+                        <img src="{{ $donation->first_image }}"
+                             alt="{{ $donation->name }}" 
+                             class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg shadow-sm"
+                             onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' font-family=\'sans-serif\' font-size=\'14\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dominant-baseline=\'middle\'%3EDonation%3C/text%3E%3C/svg%3E'; this.alt='Image failed to load';">
+                    @else
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                        </div>
+                    @endif
+                    <!-- Donation Badge -->
+                    <div class="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
+                        FREE
+                    </div>
+                </div>
+                
+                <!-- Donation Details -->
+                <div class="flex-1 min-w-0">
+                    <div class="mb-1">
+                        <h4 class="font-semibold text-sm sm:text-base text-gray-900 truncate">{{ $donation->name }}</h4>
+                    </div>
+                    
+                    <p class="text-xs text-gray-600 mb-2 flex items-center">
+                        <svg class="w-3 h-3 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                        For Donation
+                    </p>
+                    
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-bold text-green-600 flex items-center">
+                            <svg class="w-3 h-3 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                            Free
+                        </p>
+                        
+                        <!-- View Donation Link -->
+                        <a href="{{ route('donations.show', $donation->id) }}" 
+                           target="_blank" 
+                           class="text-xs text-[#634600] hover:text-[#56432C] font-medium flex items-center">
+                            <span>View</span>
+                            <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+@endif
+        </div>
+
+
                                             <!-- Timestamp - Moved outside the bubble -->
                                             <div class="mt-1 {{ $msg->user_id === auth()->id() ? 'text-right' : 'text-left' }}">
                                                 <span class="text-xs text-gray-500 lg:text-[#786126] px-2">{{ $msg->created_at->diffForHumans() }}</span>
@@ -1334,9 +1421,14 @@ document.addEventListener('DOMContentLoaded', function() {
             // Handle image (check both image_path and image_url)
             if (data.message.image_path || data.message.image_url) {
                 const imageSrc = data.message.image_url || `/storage/${data.message.image_path}`;
+                // Use inline SVG as fallback instead of external image
+                const fallbackSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23ddd' width='200' height='200'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='14' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3EImage%3C/text%3E%3C/svg%3E";
                 messageContent += `
                     <div class="mb-2">
-                        <img src="${imageSrc}" alt="Shared image" class="max-w-full h-auto rounded-lg shadow-sm">
+                        <img src="${imageSrc}" 
+                             alt="Shared image" 
+                             class="max-w-full h-auto rounded-lg shadow-sm"
+                             onerror="this.onerror=null; this.src='${fallbackSvg}'; this.alt='Image failed to load'; console.error('Failed to load image:', '${imageSrc}');">
                     </div>
                 `;
             }
@@ -1357,7 +1449,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let productPreviewHtml = '';
             const preview = data.message.product_preview || null;
             if (preview && preview.id) {
-                const previewImage = preview.image_url || '{{ asset('images/default-placeholder.png') }}';
+                const previewImage = preview.image_url || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' font-family=\'sans-serif\' font-size=\'14\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dominant-baseline=\'middle\'%3EProduct%3C/text%3E%3C/svg%3E';
                 const isDonation = preview.listingtype === 'for donation';
                 const priceLabel = isDonation
                     ? 'For Donation'
@@ -1368,8 +1460,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="flex gap-3">
                             <!-- Product Image -->
                             <div class="relative flex-shrink-0">
-                                <img src="${previewImage}" alt="${escapeHtml(preview.name || 'Product')}"
-                                     class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg shadow-sm">
+                                <img src="${previewImage}" 
+                                     alt="${escapeHtml(preview.name || 'Product')}"
+                                     class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg shadow-sm"
+                                     onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' font-family=\'sans-serif\' font-size=\'14\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dominant-baseline=\'middle\'%3EProduct%3C/text%3E%3C/svg%3E'; this.alt='Image failed to load';">
                                 ${isDonation ? `
                                     <div class="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
                                         FREE
@@ -1387,13 +1481,27 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </svg>
                                     </div>
                                 </div>
+                                <p class="text-xs text-gray-600 mb-2 flex items-center">
+                                    <svg class="w-3 h-3 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                    </svg>
+                                    ${preview.category || 'Product'}
+                                </p>
                                 <div class="flex items-center justify-between">
-                                    <p class="text-sm font-bold ${isDonation ? 'text-green-600' : 'text-[#634600]'}">
-                                        ${priceLabel}
+                                    <p class="text-sm font-bold ${isDonation ? 'text-green-600' : 'text-[#634600]'} flex items-center">
+                                        ${isDonation ? `
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                            </svg>
+                                            Free` : `
+                                            <svg class="w-3 h-3 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                            </svg>
+                                            ${priceLabel}`}
                                     </p>
                                     ${preview.url ? `
                                         <a href="${preview.url}" target="_blank"
-                                           class="text-xs text-[#634600] hover:text-[#56432C] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center">
+                                           class="text-xs text-[#634600] hover:text-[#56432C] font-medium flex items-center">
                                             <span>View</span>
                                             <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
@@ -1471,116 +1579,194 @@ document.addEventListener('DOMContentLoaded', function() {
             .replace(/'/g, '&#039;');
     }
 
-    // Override global createMessageBubble from Echo bundle so avatars persist without rebuild
-    window.createMessageBubble = function(message, sender, isOwnMessage) {
-        const containerJustify = isOwnMessage ? 'justify-end' : 'justify-start';
-        const rowDirection = isOwnMessage ? 'flex-row-reverse' : 'flex-row';
-        const avatarSpacing = isOwnMessage ? 'ml-1 sm:ml-2' : 'mr-1 sm:mr-2';
-        const bubbleAlignment = isOwnMessage ? 'items-end' : 'items-start';
-        const fallbackGradient = isOwnMessage ? 'from-[#634600] to-[#B59F84]' : 'from-[#B59F84] to-[#786126]';
-        const bubbleClasses = isOwnMessage
-            ? 'bg-gradient-to-r from-[#634600] to-[#B59F84] text-white rounded-br-md'
-            : 'bg-white text-[#634600] rounded-bl-md shadow-sm border border-[#B59F84]';
+ // Override global createMessageBubble from Echo bundle so avatars persist without rebuild
+window.createMessageBubble = function(message, sender, isOwnMessage) {
+    const containerJustify = isOwnMessage ? 'justify-end' : 'justify-start';
+    const rowDirection = isOwnMessage ? 'flex-row-reverse' : 'flex-row';
+    const avatarSpacing = isOwnMessage ? 'ml-1 sm:ml-2' : 'mr-1 sm:mr-2';
+    const bubbleAlignment = isOwnMessage ? 'items-end' : 'items-start';
+    const fallbackGradient = isOwnMessage ? 'from-[#634600] to-[#B59F84]' : 'from-[#B59F84] to-[#786126]';
+    const bubbleClasses = isOwnMessage
+        ? 'bg-gradient-to-r from-[#634600] to-[#B59F84] text-white rounded-br-md'
+        : 'bg-white text-[#634600] rounded-bl-md shadow-sm border border-[#B59F84]';
 
-        const avatarUrl = sender?.profile_pic_url || sender?.profile_pic || sender?.profileImageUrl || '';
-        const initials = `${(sender?.fname || '?').charAt(0)}${(sender?.lname || '?').charAt(0)}`.toUpperCase();
-        const avatarInner = avatarUrl
-            ? `<img src="${avatarUrl}" alt="${sender?.fname || ''} ${sender?.lname || ''}" class="w-full h-full object-cover rounded-full">`
-            : `<div class="w-full h-full bg-gradient-to-r ${fallbackGradient} rounded-full flex items-center justify-center">
-                    <span class="text-white text-xs font-semibold">${initials}</span>
-               </div>`;
+    const avatarUrl = sender?.profile_pic_url || sender?.profile_pic || sender?.profileImageUrl || '';
+    const initials = `${(sender?.fname || '?').charAt(0)}${(sender?.lname || '?').charAt(0)}`.toUpperCase();
+    const avatarInner = avatarUrl
+        ? `<img src="${avatarUrl}" alt="${sender?.fname || ''} ${sender?.lname || ''}" class="w-full h-full object-cover rounded-full">`
+        : `<div class="w-full h-full bg-gradient-to-r ${fallbackGradient} rounded-full flex items-center justify-center">
+                <span class="text-white text-xs font-semibold">${initials}</span>
+           </div>`;
 
-        const imageSrc = message?.image_url
-            || (message?.image_path ? `/storage/${message.image_path}` : '');
-        const imageHTML = imageSrc
-            ? `<div class="mb-2"><img src="${imageSrc}" alt="Shared image" class="max-w-full h-auto rounded-lg shadow-sm"></div>`
-            : '';
+    const imageSrc = message?.image_url
+        || (message?.image_path ? `/storage/${message.image_path}` : '');
+    // Use inline SVG as fallback instead of external image
+    const fallbackSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23ddd' width='200' height='200'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='14' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3EImage%3C/text%3E%3C/svg%3E";
+    const imageHTML = imageSrc
+        ? `<div class="mb-2">
+            <img src="${imageSrc}" 
+                 alt="Shared image" 
+                 class="max-w-full h-auto rounded-lg shadow-sm"
+                 onerror="this.onerror=null; this.src='${fallbackSvg}'; this.alt='Image failed to load'; console.error('Failed to load image:', '${imageSrc}');">
+           </div>`
+        : '';
 
-        // Strip raw product links from message text (we render a card instead) and escape HTML
-        function stripProductLinks(text) {
-            if (!text) return '';
-            return text.replace(/https?:\/\/[^\s]+\/products\/\d+/g, '').trim();
-        }
+    // Strip raw product and donation links from message text (we render cards instead) and escape HTML
+    function stripLinks(text) {
+        if (!text) return '';
+        return text.replace(/https?:\/\/[^\s]+\/(products|donations)\/\d+/g, '').trim();
+    }
 
-        const rawMessageText = message?.message || '';
-        const cleanedMessageText = stripProductLinks(rawMessageText);
-        const safeMessage = cleanedMessageText
-            ? escapeHtml(cleanedMessageText).replace(/\n/g, '<br>')
-            : '';
+    const rawMessageText = message?.message || '';
+    const cleanedMessageText = stripLinks(rawMessageText);
+    const safeMessage = cleanedMessageText && cleanedMessageText.trim() !== ''
+        ? escapeHtml(cleanedMessageText).replace(/\n/g, '<br>')
+        : '';
 
-        // Product preview card (for realtime Echo messages)
-        let productPreviewHtml = '';
-        const preview = message?.product_preview || null;
-        if (preview && preview.id) {
-            const previewImage = preview.image_url || '{{ asset('images/default-placeholder.png') }}';
-            const isDonation = preview.listingtype === 'for donation';
-            const priceLabel = isDonation
-                ? 'For Donation'
-                : `₱${Number(preview.price || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    // Product preview card (for realtime Echo messages)
+    let productPreviewHtml = '';
+    const preview = message?.product_preview || null;
+    if (preview && preview.id) {
+        const previewImage = preview.image_url || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' font-family=\'sans-serif\' font-size=\'14\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dominant-baseline=\'middle\'%3EProduct%3C/text%3E%3C/svg%3E';
+        const isDonation = preview.listingtype === 'for donation';
+        const priceLabel = isDonation
+            ? 'For Donation'
+            : `₱${Number(preview.price || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-            productPreviewHtml = `
-                <div class="mt-3 p-3 bg-white bg-opacity-95 rounded-xl border border-white border-opacity-40 shadow-lg group hover:bg-opacity-100 transition-all duration-200">
-                    <div class="flex gap-3">
-                        <!-- Product Image -->
-                        <div class="relative flex-shrink-0">
-                            <img src="${previewImage}" alt="${escapeHtml(preview.name || 'Product')}"
-                                 class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg shadow-sm">
-                            ${isDonation ? `
-                                <div class="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
-                                    FREE
-                                </div>` : ''}
+        productPreviewHtml = `
+            <div class="mt-3 p-3 bg-white bg-opacity-95 rounded-xl border border-white border-opacity-40 shadow-lg group hover:bg-opacity-100 transition-all duration-200">
+                <div class="flex gap-3">
+                    <!-- Product Image -->
+                    <div class="relative flex-shrink-0">
+                        <img src="${previewImage}" 
+                             alt="${escapeHtml(preview.name || 'Product')}"
+                             class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg shadow-sm"
+                             onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' font-family=\'sans-serif\' font-size=\'14\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dominant-baseline=\'middle\'%3EProduct%3C/text%3E%3C/svg%3E'; this.alt='Image failed to load';">
+                        ${isDonation ? `
+                            <div class="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
+                                FREE
+                            </div>` : ''}
+                    </div>
+                    <!-- Product Details -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-1">
+                            <h4 class="font-semibold text-sm sm:text-base text-gray-900 truncate pr-2">
+                                ${escapeHtml(preview.name || 'Product')}
+                            </h4>
+                            <div class="flex-shrink-0">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </div>
                         </div>
-                        <!-- Product Details -->
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between mb-1">
-                                <h4 class="font-semibold text-sm sm:text-base text-gray-900 truncate pr-2">
-                                    ${escapeHtml(preview.name || 'Product')}
-                                </h4>
-                                <div class="flex-shrink-0">
-                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        <p class="text-xs text-gray-600 mb-2 flex items-center">
+                            <svg class="w-3 h-3 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                            ${preview.category || 'Product'}
+                        </p>
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-bold ${isDonation ? 'text-green-600' : 'text-[#634600]'} flex items-center">
+                                ${isDonation ? `
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                     </svg>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <p class="text-sm font-bold ${isDonation ? 'text-green-600' : 'text-[#634600]'}">
-                                    ${priceLabel}
-                                </p>
-                                ${preview.url ? `
-                                    <a href="${preview.url}" target="_blank"
-                                       class="text-xs text-[#634600] hover:text-[#56432C] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center">
-                                        <span>View</span>
-                                        <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                        </svg>
-                                    </a>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        return `
-            <div class="flex ${containerJustify} message-item">
-                <div class="flex max-w-[85%] sm:max-w-xs lg:max-w-md ${rowDirection} items-end space-x-2">
-                    <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0 ${avatarSpacing}">
-                        ${avatarInner}
-                    </div>
-                    <div class="flex flex-col ${bubbleAlignment}">
-                        <div class="px-4 py-3 rounded-2xl text-sm ${bubbleClasses}">
-                            ${imageHTML}
-                            ${safeMessage ? `<div class="text-sm whitespace-pre-line break-words">${safeMessage}</div>` : ''}
-                            ${productPreviewHtml}
-                        </div>
-                        <div class="mt-1 ${isOwnMessage ? 'text-right' : 'text-left'}">
-                            <span class="text-xs text-gray-500 lg:text-[#786126] px-2">just now</span>
+                                    Free` : `
+                                    <svg class="w-3 h-3 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                    </svg>
+                                    ${priceLabel}`}
+                            </p>
+                            ${preview.url ? `
+                                <a href="${preview.url}" target="_blank"
+                                   class="text-xs text-[#634600] hover:text-[#56432C] font-medium flex items-center">
+                                    <span>View</span>
+                                    <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                </a>` : ''}
                         </div>
                     </div>
                 </div>
             </div>
         `;
-    };
+    }
+
+    // Donation preview card (for realtime Echo messages with donation links)
+   // Add this to your createMessageBubble function or update the existing one
+// Donation preview card for realtime Echo messages
+// Donation preview card (for realtime Echo messages with donation links)
+let donationPreviewHtml = '';
+const donationUrlPattern = /\/donations\/(\d+)/;
+const donationMatch = rawMessageText.match(donationUrlPattern);
+const donationId = donationMatch ? donationMatch[1] : null;
+
+if (donationId) {
+    const donationPlaceholderSvg = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' font-family=\'sans-serif\' font-size=\'14\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dominant-baseline=\'middle\'%3EDonation%3C/text%3E%3C/svg%3E';
+    donationPreviewHtml = `
+        <div class="mt-3 p-3 bg-white bg-opacity-95 rounded-xl border border-white border-opacity-40 shadow-lg group hover:bg-opacity-100 transition-all duration-200">
+            <div class="flex gap-3">
+                <div class="relative flex-shrink-0">
+                    <img src="${donationPlaceholderSvg}" 
+                         alt="Donation Item"
+                         class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg shadow-sm"
+                         onerror="this.onerror=null; this.src='${donationPlaceholderSvg}'; this.alt='Image failed to load';">
+                    <div class="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
+                        FREE
+                    </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="mb-1">
+                        <h4 class="font-semibold text-sm sm:text-base text-gray-900 truncate">Donation Item</h4>
+                    </div>
+                    <p class="text-xs text-gray-600 mb-2 flex items-center">
+                        <svg class="w-3 h-3 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                        For Donation
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-bold text-green-600 flex items-center">
+                            <svg class="w-3 h-3 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                            Free
+                        </p>
+                        <a href="/donations/${donationId}" target="_blank" 
+                           class="text-xs text-[#634600] hover:text-[#56432C] font-medium flex items-center">
+                            <span>View</span>
+                            <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+    return `
+        <div class="flex ${containerJustify} message-item">
+            <div class="flex max-w-[85%] sm:max-w-xs lg:max-w-md ${rowDirection} items-end space-x-2">
+                <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0 ${avatarSpacing}">
+                    ${avatarInner}
+                </div>
+                <div class="flex flex-col ${bubbleAlignment}">
+                    <div class="px-4 py-3 rounded-2xl text-sm ${bubbleClasses}">
+                        ${imageHTML}
+                        ${safeMessage ? `<div class="text-sm whitespace-pre-line break-words">${safeMessage}</div>` : ''}
+                        ${productPreviewHtml}
+                        ${donationPreviewHtml}
+                    </div>
+                    <div class="mt-1 ${isOwnMessage ? 'text-right' : 'text-left'}">
+                        <span class="text-xs text-gray-500 lg:text-[#786126] px-2">just now</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+};
 
     function showTypingIndicator() {
     const messagesContainer = document.getElementById('private-messages-container');
@@ -1841,29 +2027,169 @@ document.addEventListener('DOMContentLoaded', function() {
         // Check for auto-message parameter and send message automatically
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('auto_message') === '1') {
-            setTimeout(() => {
+            setTimeout(async () => {
                 const messageInput = document.getElementById('message-input');
                 const form = document.getElementById('private-chat-form');
+                const imageUpload = document.getElementById('image-upload');
                 
                 if (messageInput && form) {
                     const productId = urlParams.get('product_id');
                     const productName = urlParams.get('product_name');
                     const productImage = urlParams.get('product_image');
                     
+                    const donationId = urlParams.get('donation_id');
+                    const donationName = urlParams.get('donation_name');
+                    const donationImage = urlParams.get('donation_image');
+                    
+                    // Handle product auto-message
                     if (productId && productName) {
                         const productUrl = `${window.location.origin}/products/${productId}`;
                         let message = `Is this available?\n\n📦 ${decodeURIComponent(productName)}\n🔗 ${productUrl}`;
                         
-                        if (productImage) {
-                            message += ``;
-                        }
-                        
                         messageInput.value = message;
+                        
+                        // Upload product image if provided
+                        if (productImage && imageUpload) {
+                            try {
+                                // Decode the URL properly
+                                const decodedImageUrl = decodeURIComponent(productImage);
+                                console.log('Loading product image from:', decodedImageUrl);
+                                
+                                // Use proxy endpoint to avoid CORS issues
+                                const proxyUrl = '{{ route("proxy.image") }}?url=' + encodeURIComponent(decodedImageUrl);
+                                console.log('Fetching via proxy:', proxyUrl);
+                                
+                                const response = await fetch(proxyUrl);
+                                if (!response.ok) {
+                                    throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+                                }
+                                const blob = await response.blob();
+                                
+                                if (!blob || blob.size === 0) {
+                                    throw new Error('Received empty blob');
+                                }
+                                
+                                console.log('Blob received:', { size: blob.size, type: blob.type });
+                                
+                                const file = new File([blob], 'product-image.jpg', { type: blob.type || 'image/jpeg' });
+                                const dataTransfer = new DataTransfer();
+                                dataTransfer.items.add(file);
+                                imageUpload.files = dataTransfer.files;
+                                
+                                console.log('File set in input:', {
+                                    fileCount: imageUpload.files.length,
+                                    fileName: imageUpload.files[0]?.name,
+                                    fileSize: imageUpload.files[0]?.size,
+                                    fileType: imageUpload.files[0]?.type
+                                });
+                                
+                                // Wait for the change event to process
+                                await new Promise(resolve => {
+                                    const timeout = setTimeout(resolve, 200);
+                                    imageUpload.addEventListener('change', () => {
+                                        clearTimeout(timeout);
+                                        resolve();
+                                    }, { once: true });
+                                    imageUpload.dispatchEvent(new Event('change', { bubbles: true }));
+                                });
+                                
+                                console.log('Product image loaded successfully');
+                            } catch (error) {
+                                console.error('Error loading product image:', error);
+                                console.error('Error details:', {
+                                    message: error.message,
+                                    stack: error.stack,
+                                    productImage: productImage
+                                });
+                                // Continue without image if fetch fails
+                            }
+                        }
+                    }
+                    // Handle donation auto-message
+                    else if (donationId && donationName) {
+                        const donationUrl = `${window.location.origin}/donations/${donationId}`;
+                        let message = `Is this available?\n\n🎁 ${decodeURIComponent(donationName)}`;
+                                            
+                        messageInput.value = message;
+                        
+                        // Upload donation image if provided
+                        if (donationImage && imageUpload) {
+                            try {
+                                // Decode the URL properly
+                                const decodedImageUrl = decodeURIComponent(donationImage);
+                                console.log('Loading donation image from:', decodedImageUrl);
+                                
+                                // Use proxy endpoint to avoid CORS issues
+                                const proxyUrl = '{{ route("proxy.image") }}?url=' + encodeURIComponent(decodedImageUrl);
+                                console.log('Fetching via proxy:', proxyUrl);
+                                
+                                const response = await fetch(proxyUrl);
+                                
+                                if (!response.ok) {
+                                    throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+                                }
+                                
+                                const blob = await response.blob();
+                                
+                                if (!blob || blob.size === 0) {
+                                    throw new Error('Received empty blob');
+                                }
+                                
+                                console.log('Blob received:', { size: blob.size, type: blob.type });
+                                
+                                const file = new File([blob], 'donation-image.jpg', { 
+                                    type: blob.type || 'image/jpeg' 
+                                });
+                                
+                                const dataTransfer = new DataTransfer();
+                                dataTransfer.items.add(file);
+                                imageUpload.files = dataTransfer.files;
+                                
+                                console.log('File set in input:', {
+                                    fileCount: imageUpload.files.length,
+                                    fileName: imageUpload.files[0]?.name,
+                                    fileSize: imageUpload.files[0]?.size,
+                                    fileType: imageUpload.files[0]?.type
+                                });
+                                
+                                // Wait for the change event to process
+                                await new Promise(resolve => {
+                                    const timeout = setTimeout(resolve, 200);
+                                    imageUpload.addEventListener('change', () => {
+                                        clearTimeout(timeout);
+                                        resolve();
+                                    }, { once: true });
+                                    imageUpload.dispatchEvent(new Event('change', { bubbles: true }));
+                                });
+                                
+                                console.log('Donation image loaded successfully');
+                            } catch (error) {
+                                console.error('Error loading donation image:', error);
+                                console.error('Error details:', {
+                                    message: error.message,
+                                    stack: error.stack,
+                                    donationImage: donationImage
+                                });
+                                // Continue without image if fetch fails
+                            }
+                        }
                     } else {
                         messageInput.value = 'Is this available?';
                     }
                     
-                    form.dispatchEvent(new Event('submit'));
+                    // Wait a bit for image to load, then submit
+                    setTimeout(() => {
+                        // Verify image is loaded if one was expected
+                        if ((donationImage || productImage) && imageUpload) {
+                            const hasImage = imageUpload.files && imageUpload.files.length > 0;
+                            console.log('Image loaded check:', { 
+                                expected: !!(donationImage || productImage), 
+                                actual: hasImage,
+                                fileCount: imageUpload.files ? imageUpload.files.length : 0
+                            });
+                        }
+                        form.dispatchEvent(new Event('submit'));
+                    }, (donationImage || productImage) ? 800 : 0);
                     
                     // Remove all auto-message parameters from URL
                     const newUrl = new URL(window.location);
@@ -1871,6 +2197,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     newUrl.searchParams.delete('product_id');
                     newUrl.searchParams.delete('product_name');
                     newUrl.searchParams.delete('product_image');
+                    newUrl.searchParams.delete('donation_id');
+                    newUrl.searchParams.delete('donation_name');
+                    newUrl.searchParams.delete('donation_image');
                     window.history.replaceState({}, '', newUrl);
                 }
             }, 1000);
