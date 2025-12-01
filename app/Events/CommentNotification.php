@@ -15,11 +15,13 @@ class CommentNotification implements ShouldBroadcast
 
     public $comment;
     public $receiverId;
+    protected $type;
 
-    public function __construct(Comment $comment, $receiverId)
+    public function __construct(Comment $comment, $receiverId, string $type = 'comment')
     {
-        $this->comment = $comment;
+        $this->comment = $comment->relationLoaded('user') ? $comment : $comment->load('user');
         $this->receiverId = $receiverId;
+        $this->type = $type;
     }
 
     public function broadcastOn()
@@ -39,6 +41,9 @@ class CommentNotification implements ShouldBroadcast
             'content'   => $this->comment->content,
             'from_user' => $this->comment->user->fname . ' ' . $this->comment->user->lname,
             'product_id'=> $this->comment->product_id,
+            'donation_id'=> $this->comment->donation_id,
+            'parent_id' => $this->comment->parent_id,
+            'type'      => $this->type,
             'created_at'=> $this->comment->created_at->diffForHumans(),
         ];
     }

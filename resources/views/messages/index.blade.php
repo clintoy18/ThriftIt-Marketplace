@@ -58,26 +58,37 @@
                         </div>
                     </div>
 
-                    <!-- Search -->
+                    <!-- Search - UPDATED WITH FUNCTIONALITY -->
                     <div class="p-4">
                         <div class="relative">
-                            <input type="text" placeholder="Search conversations..."
-                                class="w-full pl-10 pr-4 py-2 border border-[#B59F84] dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#634600] focus:border-transparent bg-white dark:bg-gray-800 text-sm dark:text-white placeholder-gray-500 dark:placeholder-text-white">
+                            <input type="text" 
+                                   id="conversations-search-input"
+                                   placeholder="Search conversations..."
+                                   class="w-full pl-10 pr-10 py-2 border border-[#B59F84] dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#634600] focus:border-transparent bg-white dark:bg-gray-800 text-sm dark:text-white placeholder-gray-500 dark:placeholder-text-white">
                             <svg class="absolute left-3 top-2.5 w-4 h-4 text-[#786126] dark:text-white"
                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
+                            <!-- Clear search button -->
+                            <button id="clear-search-btn" 
+                                    class="absolute right-3 top-2.5 hidden text-[#786126] dark:text-white hover:text-[#634600] dark:hover:text-yellow-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Conversations List -->
+                    <!-- Conversations List - UPDATED WITH SEARCH ATTRIBUTES -->
                     <div class="flex-1 overflow-y-auto" id="sidebar">
                         @if ($conversations->count() > 0)
                             @foreach ($conversations as $conversation)
                                 <a href="{{ route('private.chat', $conversation['user']->id) }}"
                                     class="flex items-center p-4 hover:bg-[#B59F84] hover:bg-opacity-20 dark:hover:bg-yellow-800 transition-colors conversation-item"
                                     data-user-id="{{ $conversation['user']->id }}"
+                                    data-user-name="{{ strtolower($conversation['user']->fname . ' ' . $conversation['user']->lname) }}"
+                                    data-latest-message="{{ strtolower($conversation['latest_message']->message ?? '') }}"
                                     x-data="{
                                         unreadCount: {{ (int)($conversation['unread_count'] ?? 0) }},
                                         conversationUserId: {{ $conversation['user']->id }},
@@ -135,23 +146,37 @@
                                     <!-- Conversation Info -->
                                     <div class="ml-3 flex-1 min-w-0">
                                         <div class="flex items-center justify-between">
-                                            <p class="text-sm font-medium text-[#634600] dark:text-white truncate">
+                                            <p class="text-sm font-medium text-[#634600] dark:text-white truncate conversation-name">
                                                 {{ $conversation['user']->fname }} {{ $conversation['user']->lname }}
                                             </p>
-                                            <p class="text-xs text-[#786126] dark:text-white">
+                                            <p class="text-xs text-[#786126] dark:text-white conversation-time">
                                                 {{ $conversation['latest_message']->created_at->diffForHumans() }}
                                             </p>
                                         </div>
                                         <!-- Latest Message - Bold when unread -->
-                                        <p class="text-sm truncate mt-1 text-[#786126] dark:text-white"
+                                        <p class="text-sm truncate mt-1 text-[#786126] dark:text-white conversation-message"
                                             x-bind:class="unreadCount > 0 ? 'font-extrabold text-[#3d2f1f] dark:text-yellow-200' : ''">
                                             {{ $conversation['latest_message']->message ?: '[Image]' }}
                                         </p>
                                     </div>
                                 </a>
                             @endforeach
+                            
+                            <!-- No search results message -->
+                            <div id="no-search-results" class="hidden flex items-center justify-center h-full p-4">
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-[#B59F84] bg-opacity-30 dark:bg-[#f5d68b] rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <svg class="w-8 h-8 text-[#786126] dark:text-[#634600]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <p class="text-[#634600] dark:text-white text-sm">No conversations found</p>
+                                    <p class="text-[#786126] dark:text-white text-xs mt-1">Try different search terms</p>
+                                </div>
+                            </div>
+                            
                         @else
-                            <div class="flex items-center justify-center h-full p-4">
+                            <div class="flex items-center justify-center h-full p-4" id="empty-state">
                                 <div class="text-center">
                                     <div
                                         class="w-16 h-16 bg-[#B59F84] bg-opacity-30 dark:bg-[#f5d68b] rounded-full flex items-center justify-center mx-auto mb-4">
@@ -204,8 +229,198 @@
     </div>
 
     <script>
-        // Settings dropdown toggle
+        // Search functionality for conversations
+        function initConversationSearch() {
+            const searchInput = document.getElementById('conversations-search-input');
+            const clearSearchBtn = document.getElementById('clear-search-btn');
+            const sidebar = document.getElementById('sidebar');
+            const conversationItems = document.querySelectorAll('.conversation-item');
+            const noSearchResults = document.getElementById('no-search-results');
+            const emptyState = document.getElementById('empty-state');
+
+            if (!searchInput || !clearSearchBtn || conversationItems.length === 0) {
+                return;
+            }
+
+            // Store original text for each conversation element
+            conversationItems.forEach(item => {
+                const nameElement = item.querySelector('.conversation-name');
+                const messageElement = item.querySelector('.conversation-message');
+                
+                if (nameElement) {
+                    nameElement.setAttribute('data-original-text', nameElement.textContent);
+                }
+                if (messageElement) {
+                    messageElement.setAttribute('data-original-text', messageElement.textContent);
+                }
+            });
+
+            // Function to perform search
+            function performSearch(searchTerm) {
+                const term = searchTerm.toLowerCase().trim();
+                let hasVisibleResults = false;
+
+                if (term === '') {
+                    // Show all conversations
+                    conversationItems.forEach(item => {
+                        item.classList.remove('hidden');
+                        removeHighlighting(item);
+                    });
+                    
+                    if (emptyState) {
+                        emptyState.classList.remove('hidden');
+                    }
+                    
+                    if (noSearchResults) {
+                        noSearchResults.classList.add('hidden');
+                    }
+                    
+                    return;
+                }
+
+                // Hide empty state during search
+                if (emptyState) {
+                    emptyState.classList.add('hidden');
+                }
+
+                // Filter conversations
+                conversationItems.forEach(item => {
+                    const userName = item.getAttribute('data-user-name') || '';
+                    const latestMessage = item.getAttribute('data-latest-message') || '';
+                    
+                    if (userName.includes(term) || latestMessage.includes(term)) {
+                        item.classList.remove('hidden');
+                        hasVisibleResults = true;
+                        
+                        // Highlight matching text
+                        highlightText(item, term);
+                    } else {
+                        item.classList.add('hidden');
+                        removeHighlighting(item);
+                    }
+                });
+
+                // Show/hide no results message
+                if (hasVisibleResults) {
+                    if (noSearchResults) {
+                        noSearchResults.classList.add('hidden');
+                    }
+                } else {
+                    if (noSearchResults) {
+                        noSearchResults.classList.remove('hidden');
+                    }
+                }
+            }
+
+            // Function to highlight matching text
+            function highlightText(item, term) {
+                const nameElement = item.querySelector('.conversation-name');
+                const messageElement = item.querySelector('.conversation-message');
+                
+                if (nameElement) {
+                    const originalName = nameElement.getAttribute('data-original-text') || nameElement.textContent;
+                    const highlightedName = originalName.replace(
+                        new RegExp(term, 'gi'),
+                        match => `<span class="bg-yellow-200 dark:bg-yellow-600 text-[#634600] dark:text-white px-1 rounded">${match}</span>`
+                    );
+                    nameElement.innerHTML = highlightedName;
+                }
+                
+                if (messageElement) {
+                    const originalMessage = messageElement.getAttribute('data-original-text') || messageElement.textContent;
+                    const highlightedMessage = originalMessage.replace(
+                        new RegExp(term, 'gi'),
+                        match => `<span class="bg-yellow-200 dark:bg-yellow-600 text-[#634600] dark:text-white px-1 rounded">${match}</span>`
+                    );
+                    messageElement.innerHTML = highlightedMessage;
+                }
+            }
+
+            // Function to remove highlighting
+            function removeHighlighting(item) {
+                const nameElement = item.querySelector('.conversation-name');
+                const messageElement = item.querySelector('.conversation-message');
+                
+                if (nameElement && nameElement.getAttribute('data-original-text')) {
+                    nameElement.textContent = nameElement.getAttribute('data-original-text');
+                }
+                
+                if (messageElement && messageElement.getAttribute('data-original-text')) {
+                    messageElement.textContent = messageElement.getAttribute('data-original-text');
+                }
+            }
+
+            // Function to clear search
+            function clearSearch() {
+                searchInput.value = '';
+                clearSearchBtn.classList.add('hidden');
+                
+                // Remove highlighting from all items
+                conversationItems.forEach(item => {
+                    removeHighlighting(item);
+                });
+                
+                performSearch('');
+            }
+
+            // Search event listener
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value;
+                performSearch(searchTerm);
+                
+                // Show/hide clear button
+                if (searchTerm.length > 0) {
+                    clearSearchBtn.classList.remove('hidden');
+                } else {
+                    clearSearchBtn.classList.add('hidden');
+                }
+            });
+
+            // Clear search button event listener
+            clearSearchBtn.addEventListener('click', function() {
+                clearSearch();
+                searchInput.focus();
+            });
+
+            // Clear search on escape key
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    clearSearch();
+                    searchInput.blur();
+                }
+            });
+
+            // Debounce search to improve performance
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+
+            // Apply debouncing to search input
+            const debouncedSearch = debounce((searchTerm) => {
+                performSearch(searchTerm);
+            }, 300);
+
+            searchInput.addEventListener('input', (e) => {
+                debouncedSearch(e.target.value);
+            });
+        }
+
+        // Initialize search when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize search functionality
+            setTimeout(() => {
+                initConversationSearch();
+            }, 100);
+
+            // Settings dropdown toggle
             const settingsToggleBtn = document.getElementById('messages-settings-toggle-btn');
             const settingsDropdownMenu = document.getElementById('messages-settings-dropdown-menu');
             
@@ -481,4 +696,47 @@
             });
         }
     </script>
+    
+    <style>
+        /* Search highlight styles */
+        .conversation-name span.bg-yellow-200,
+        .conversation-message span.bg-yellow-200 {
+            background-color: #fef3c7 !important;
+            color: #634600 !important;
+            font-weight: 600;
+            padding: 0 2px;
+            border-radius: 3px;
+        }
+        
+        .dark .conversation-name span.bg-yellow-600,
+        .dark .conversation-message span.bg-yellow-600 {
+            background-color: #92400e !important;
+            color: white !important;
+            font-weight: 600;
+            padding: 0 2px;
+            border-radius: 3px;
+        }
+        
+        /* Smooth transitions for search */
+        .conversation-item {
+            transition: all 0.3s ease;
+        }
+        
+        /* Search input focus styles */
+        #conversations-search-input:focus {
+            border-color: #634600;
+            box-shadow: 0 0 0 2px rgba(99, 70, 0, 0.1);
+        }
+        
+        .dark #conversations-search-input:focus {
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.2);
+        }
+        
+        /* Clear button hover effects */
+        #clear-search-btn:hover {
+            transform: scale(1.1);
+            transition: transform 0.2s ease;
+        }
+    </style>
 </x-app-layout>

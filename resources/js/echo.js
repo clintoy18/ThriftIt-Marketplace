@@ -184,10 +184,13 @@ if (authUserId) {
         .listen('.comment.notification', (e) => {
             console.log("🔔 New Comment Notification:", e);
 
-            // Toast popup
-            showNotificationToast(`${e.from_user} commented: "${e.content}"`);
+            const isReply = e.type === 'comment_reply';
+            const baseMessage = isReply
+                ? `${e.from_user} replied to your comment`
+                : `${e.from_user} commented on your listing`;
 
-            // Dispatch event for Alpine
+            showNotificationToast(`${baseMessage}: "${e.content}"`);
+
             window.dispatchEvent(new CustomEvent('new-notification', {
                 detail: {
                     id: Date.now(),
@@ -195,6 +198,8 @@ if (authUserId) {
                         from_user: e.from_user,
                         content: e.content,
                         product_id: e.product_id,
+                        donation_id: e.donation_id,
+                        message: baseMessage,
                     },
                     created_at: new Date().toISOString(),
                     is_read: false,

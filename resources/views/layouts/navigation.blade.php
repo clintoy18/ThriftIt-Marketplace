@@ -141,7 +141,7 @@
                                 </div>
                                 <div class="max-h-64 overflow-y-auto divide-y divide-gray-100 custom-scroll ">
                                     <template x-for="notif in notifications" :key="notif.id">
-                                        <a :href="notif.data.product_id ? `/products/${notif.data.product_id}` : '#'"
+                                        <a :href="notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data.donation_id ? `/donations/${notif.data.donation_id}` : '#')"
                                             class="block px-4 py-3 hover:bg-gray-50 transition">
                                             <p class="text-sm text-gray-700">
                                                 <strong class="text-[#B59F84]"
@@ -413,7 +413,7 @@
                                 </div>
                                 <div class="max-h-64 overflow-y-auto divide-y divide-gray-100 custom-scroll ">
                                     <template x-for="notif in notifications" :key="notif.id">
-                                        <a :href="notif.data.product_id ? `/products/${notif.data.product_id}` : '#'"
+                                        <a :href="notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data.donation_id ? `/donations/${notif.data.donation_id}` : '#')"
                                             class="block px-4 py-3 hover:bg-gray-50 transition">
                                             <p class="text-sm text-gray-700">
                                                 <strong class="text-[#B59F84]"
