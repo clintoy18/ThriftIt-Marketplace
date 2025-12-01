@@ -36,7 +36,7 @@ class AdminDashboardController extends Controller
             'new_donations_today' => Donation::whereDate('created_at', today())->count(),
             'new_works_today' => Work::whereDate('created_at', today())->count(),
             'new_reports_today' => Report::whereDate('created_at', today())->count(),
-            'active_works' => Work::where('approval_status', 'active')->count(),
+            'active_works' => Work::where('approval_status', 'approved')->count(),
 
         ];
 

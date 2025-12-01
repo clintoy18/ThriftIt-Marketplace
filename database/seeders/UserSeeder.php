@@ -18,44 +18,37 @@ class UserSeeder extends Seeder
         User::create([
             'fname' => 'Admin',
             'lname' => 'User',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password123'),
+            'email' => 'thrift@admin.com',
+            'password' => Hash::make('thriftadmin2025'),
             'role' => '2',
             'email_verified_at' => now(),
         ]);
 
-        User::create([
-            'fname' => 'Upcycler',
-            'lname' => 'User',
-            'email' => 'upcycler@example.com',
-            'password' => Hash::make('password123'),
-            'role' => '1',
-            'email_verified_at' => now(),
-        ]);
+        // User::create([
+        //     'fname' => 'Upcycler',
+        //     'lname' => 'User',
+        //     'email' => 'upcycler@example.com',
+        //     'password' => Hash::make('password123'),
+        //     'role' => '1',
+        //     'email_verified_at' => now(),
+        // ]);
 
-          User::create([
-            'fname' => 'Regular',
-            'lname' => 'User',
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-            'role' => '0',
-            'email_verified_at' => now(),
-        ]);
+        //   User::create([
+        //     'fname' => 'Regular',
+        //     'lname' => 'User',
+        //     'email' => 'user@example.com',
+        //     'password' => Hash::make('password123'),
+        //     'role' => '0',
+        //     'email_verified_at' => now(),
+        // ]);
          User::create([
-            'fname' => 'Sew',
-            'lname' => 'Fit',
-            'email' => 'clint@example.com',
-            'password' => Hash::make('password123'),
+            'fname' => 'Clint',
+            'lname' => 'Alzon',
+            'email' => 'aicsalonzo@gmail.com',
+            'password' => Hash::make('a11even18'),
             'role' => '0',
             'email_verified_at' => now(),
         ]);
-         User::create([
-            'fname' => 'Renzo',
-            'lname' => 'Toring',
-            'email' => 'renzo@example.com',
-            'password' => Hash::make('password123'),
-            'role' => '0',
-            'email_verified_at' => now(),
-        ]);
+     
     }
 }
