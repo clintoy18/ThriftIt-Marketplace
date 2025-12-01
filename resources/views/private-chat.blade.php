@@ -329,7 +329,7 @@
                                                 @if($msg->image_path)
                                                     <div class="mb-2">
                                                         @php
-                                                            $imageUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($msg->image_path);
+                                                            $imageUrl = \Illuminate\Support\Facades\Storage::url($msg->image_path);
                                                         @endphp
                                                         <img src="{{ $imageUrl }}" 
                                                              alt="Shared image" 
@@ -716,6 +716,11 @@
     </div>
 
     <script>
+        const chatStorageUrlTemplate = @json(\Illuminate\Support\Facades\Storage::url('__PATH__'));
+        const buildChatImageUrl = (path) => {
+            if (!path) return '';
+            return chatStorageUrlTemplate.replace('__PATH__', path);
+        };
         // Search functionality for conversations
 function initConversationSearch() {
     const desktopSearchInput = document.getElementById('desktop-search-input');
@@ -1420,7 +1425,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Handle image (check both image_path and image_url)
             if (data.message.image_path || data.message.image_url) {
-                const imageSrc = data.message.image_url || `/storage/${data.message.image_path}`;
+                const imageSrc = data.message.image_url 
+                    || (data.message.image_path ? buildChatImageUrl(data.message.image_path) : '');
                 // Use inline SVG as fallback instead of external image
                 const fallbackSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23ddd' width='200' height='200'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='14' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3EImage%3C/text%3E%3C/svg%3E";
                 messageContent += `
@@ -1599,7 +1605,7 @@ window.createMessageBubble = function(message, sender, isOwnMessage) {
            </div>`;
 
     const imageSrc = message?.image_url
-        || (message?.image_path ? `/storage/${message.image_path}` : '');
+        || (message?.image_path ? buildChatImageUrl(message.image_path) : '');
     // Use inline SVG as fallback instead of external image
     const fallbackSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23ddd' width='200' height='200'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='14' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3EImage%3C/text%3E%3C/svg%3E";
     const imageHTML = imageSrc

@@ -77,9 +77,8 @@ class PrivateChatController extends Controller
         }
         
         // Add image_url for easy access using Storage facade for proper URL generation
-        // Chat images are stored on the 'public' disk, so we need to specify it explicitly
         $message->setAttribute('image_url', $message->image_path
-            ? Storage::disk('public')->url($message->image_path)
+            ? Storage::url($message->image_path)
             : null);
 
         // Return message as resource/array for JSON serialization
