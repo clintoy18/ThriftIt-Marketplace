@@ -98,8 +98,9 @@
                             <div class="flex flex-col items-center text-center">
                                 <div
                                     class="w-40 h-40 bg-white dark:bg-gray-700 rounded-2xl shadow-lg p-4 border-2 border-[#E1D5B6] dark:border-gray-600 mb-4">
-                                    <img src="{{ asset('storage/' . $product->qr_code) }}" alt="QR Code"
-                                        class="w-full h-full object-contain">
+                                    <img src="{{ Storage::disk('s3')->url($product->qr_code) }}" alt="QR Code"
+                                        class="max-w-full h-auto rounded-lg shadow-sm">
+
                                 </div>
                                 <p class="text-green-600 dark:text-green-400 font-medium flex items-center gap-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

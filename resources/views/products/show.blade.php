@@ -139,29 +139,29 @@
                                     </a>
                                 </div>
                             @endif
-                           
+
 
 
                             <!-- Buy Now Button -->
                             @if (
                                 $product->listingtype !== 'for donation' &&
                                     Auth::id() !== $product->user_id &&
-                                    (!$existingOrder || $existingOrder->status === 'cancelled') && $product->status !== 'sold')
+                                    (!$existingOrder || $existingOrder->status === 'cancelled') &&
+                                    $product->status !== 'sold')
                                 @if ($product->qr_code)
                                     <button type="button" @click="open = true"
                                         class="w-full mt-4 px-6 py-3 bg-[#B59F84] text-white rounded-lg hover:bg-[#a08e77] transition-all duration-300 font-medium">
                                         Buy Now
                                     </button>
                                 @endif
-                                
-                                @else
-                                 <button type="button" disabled
-                                class="w-full mt-4 px-6 py-3 bg-[#B59F84] text-white rounded-lg 
+                            @else
+                                <button type="button" disabled
+                                    class="w-full mt-4 px-6 py-3 bg-[#B59F84] text-white rounded-lg 
                                     opacity-50 cursor-not-allowed font-medium">
-                                Sold
-                            </button>
+                                    Sold
+                                </button>
 
-                                
+
                             @endif
 
                             <!-- Payment Modal -->
@@ -195,11 +195,24 @@
                                             </div>
                                             <div
                                                 class="bg-gray-50 rounded-xl p-4 border-2 border-dashed border-gray-200">
-                                                <img src="{{ asset('storage/' . $product->qr_code) }}" alt="QR Code"
-                                                    class="w-48 h-48 object-contain mx-auto mb-3">
+                                                <img src="{{ Storage::disk('s3')->url($product->qr_code) }}"
+                                                    alt="QR Code" class="w-48 h-48 object-contain mx-auto mb-3">
                                                 <p class="text-sm text-gray-600">Use your banking app to scan this QR
                                                     code</p>
                                             </div>
+                                        </div>
+                                        <!-- Buyer Awareness Notice -->
+                                        <div
+                                            class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-6 rounded-lg flex items-start gap-3">
+                                            <svg class="w-5 h-5 text-yellow-500 flex-shrink-0" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 110-16 8 8 0 010 16z" />
+                                            </svg>
+                                            <p class="text-sm text-yellow-700">
+                                                Verify the seller and the QR code before paying. Only upload payment
+                                                proof once confirmed.
+                                            </p>
                                         </div>
 
                                         <!-- Payment Proof Upload Section -->
@@ -353,8 +366,7 @@
                             <div
                                 class="absolute -top-[60px] left-[100px] -translate-x-1/2 w-[100px] h-[100px]
                             rounded-full border-4 border-white dark:border-gray-800 overflow-hidden shadow-lg z-10">
-                                <img src="{{ $product->user->profileImageUrl() }}"
-                                    alt="{{ $product->user->name }}"
+                                <img src="{{ $product->user->profileImageUrl() }}" alt="{{ $product->user->name }}"
                                     class="w-full h-full object-cover">
                             </div>
                             <!-- User Details -->

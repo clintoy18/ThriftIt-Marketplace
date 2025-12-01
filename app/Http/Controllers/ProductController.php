@@ -199,16 +199,25 @@ class ProductController extends Controller
     public function storeQr(Request $request, Product $product): RedirectResponse
     {
         if ($request->hasFile('qr_code')) {
-            if ($product->qr_code && Storage::disk('public')->exists($product->qr_code)) {
-                Storage::disk('public')->delete($product->qr_code);
+
+            // Delete the old QR code from S3 if it exists
+            if ($product->qr_code && Storage::disk('s3')->exists($product->qr_code)) {
+                Storage::disk('s3')->delete($product->qr_code);
             }
-            $product->qr_code = $request->file('qr_code')->store('qr_codes', 'public');
+
+            // Upload the new QR code to S3 with public visibility
+            $path = $request->file('qr_code')->storePublicly('qr_codes', 's3');
+
+            // Save the S3 file path to the product
+            $product->qr_code = $path;
             $product->save();
         }
 
+        // Redirect to final review page with a success message
         return redirect()->route('sell-item.final', $product->id)
             ->with('success', 'QR code uploaded! Review and finalize your product.');
     }
+
 
     // ✅ Step 2: Skip QR upload
     public function skipQr(Product $product): RedirectResponse
