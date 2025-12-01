@@ -52,7 +52,8 @@
                 <div class="p-3 md:w-1/2 font-poppins relative">
                     <!-- Background Image - Adjustable positioning -->
                     <div class="absolute top-[-100px] left-[-150px] z-0 w-[145px] h-[600px]">
-                        <img src="{{ Storage::disk('s3')->url('images/Rectangle123.png') }}" alt="Background" class="w-full h-full">
+                        <img src="{{ Storage::disk('s3')->url('images/Rectangle123.png') }}" alt="Background"
+                            class="w-full h-full">
                     </div>
                     <!-- Text Content (with higher z-index) -->
                     <div class="relative z-10">
@@ -215,68 +216,7 @@
     <div
         class="shadow-sm overflow-hidden dark:bg-gray-800 bg-white my-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="p-4 sm:p-6" id="productsContainer">
-            <!-- Filters Section with Higher z-index -->
-            <div class="flex gap-2 justify-end relative z-[100]">
-                <!-- Category Dropdown -->
-                <div x-data="{ open: false }" class="relative z-[]0">
-                    <button @click="open = !open"
-                        class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm shadow-sm z-50">
-                        <span
-                            id="categoryButtonText">{{ isset($selectedCategoryId) && $categories->where('id', $selectedCategoryId)->first() ? $categories->where('id', $selectedCategoryId)->first()->name : 'Category' }}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-700 dark:text-gray-300"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </button>
-                    <!-- Dropdown Menu -->
-                    <div x-cloak x-show="open" @click.outside="open = false"
-                        class="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-[101] py-1 max-h-64 overflow-y-auto">
-                        <a data-category-link data-category-name="All" href="{{ route('dashboard') }}"
-                            class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg">
-                            All
-                        </a>
-                        @foreach ($categories as $cat)
-                            <a data-category-link data-category-name="{{ $cat->name }}"
-                                href="{{ route('dashboard', ['category' => $cat->id]) }}"
-                                class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg {{ isset($selectedCategoryId) && (int) $selectedCategoryId === $cat->id ? 'font-semibold' : '' }}">
-                                {{ $cat->name }}
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-
-                <!-- Location Dropdown -->
-                <div x-data="{ open: false }" class="relative z-[100]">
-                    <button @click="open = !open"
-                        class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm shadow-sm z-50">
-                        <span id="locationButtonText">
-                            {{ isset($selectedBarangayId) && $barangays->where('id', $selectedBarangayId)->first() ? $barangays->where('id', $selectedBarangayId)->first()->name : 'Location' }}
-                        </span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-700 dark:text-gray-300"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </button>
-                    <!-- Dropdown Menu -->
-                    <div x-cloak x-show="open" @click.outside="open = false"
-                        class="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-[101] py-1 max-h-64 overflow-y-auto">
-                        <a data-location-link data-location-name="All" href="{{ route('dashboard') }}"
-                            class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg">
-                            All
-                        </a>
-                        @foreach ($barangays as $barangay)
-                            <a data-location-link data-location-name="{{ $barangay->name }}"
-                                href="{{ route('dashboard', ['barangay' => $barangay->id]) }}"
-                                class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg {{ isset($selectedBarangayId) && (int) $selectedBarangayId === $barangay->id ? 'font-semibold' : '' }}">
-                                {{ $barangay->name }}
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-
-            </div>
+            <x-dashboard-filters :categories="$categories" :barangays="$barangays" :selected-category-id="isset($selectedCategoryId) ? $selectedCategoryId : null" :selected-barangay-id="isset($selectedBarangayId) ? $selectedBarangayId : null" />
 
             <!-- Loading Indicator -->
             <div id="loadingIndicator" class="hidden flex items-center justify-center py-4">
@@ -549,7 +489,7 @@
                     <!-- Image -->
                     <div class="md:w-1/3 flex flex-col relative right-[-80px] animate-zoom-in animation-delay-400">
                         <img src="{{ Storage::disk('s3')->url('images/donate-image.jpg') }}" alt="Donate Image"
-                        class="rounded-lg shadow-md w-full h-80 object-cover transform transition-all duration-700 hover:scale-105 hover:shadow-xl relative z-10">
+                            class="rounded-lg shadow-md w-full h-80 object-cover transform transition-all duration-700 hover:scale-105 hover:shadow-xl relative z-10">
                     </div>
 
                     <!-- Text Content -->
@@ -615,7 +555,8 @@
                             class="w-full h-64 object-cover relative z-10">
                     </div>
                     <div class="absolute -bottom-3 -right-3 bg-white rounded-full p-2 shadow-md animate-bounce-gentle">
-                        <img src="{{ Storage::disk('s3')->url('images/image 157.png') }}" alt="Recycle emoji" class="h-8 w-8">
+                        <img src="{{ Storage::disk('s3')->url('images/image 157.png') }}" alt="Recycle emoji"
+                            class="h-8 w-8">
                     </div>
                 </div>
 

@@ -59,8 +59,8 @@ class ProductStatusNotification implements ShouldBroadcast
     public function broadcastWith()
     {
         // Create a friendly message based on status
-        $message = $this->status === 'approved' 
-            ? "Your product {$this->product->name} has been approved" 
+        $message = $this->status === 'approved'
+            ? "Your product {$this->product->name} has been approved"
             : "Your product {$this->product->name} has been rejected";
 
         return [
@@ -69,7 +69,7 @@ class ProductStatusNotification implements ShouldBroadcast
             'status'     => $this->status,
             'message'    => $message,
             'from_user'  => 'Thrift-IT',
-            'created_at' => $this->product->created_at->diffForHumans(),
+            'created_at' => $this->product->created_at->setTimezone('Asia/Manila')->format('M d, Y • g:i A'),
         ];
     }
 }
