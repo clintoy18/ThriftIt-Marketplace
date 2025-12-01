@@ -546,6 +546,12 @@
             updateSizeOptions();
             document.getElementById('category_id').addEventListener('change', updateSizeOptions);
         });
+         document.getElementById('donationForm').addEventListener('submit', function(e) {
+        const confirmed = confirm('Are you sure you want to submit this donation?');
+        if (!confirmed) {
+            e.preventDefault(); // Stop the form from submitting
+        }
+    });
     </script>
     <style>
         /* Simple tiles for the photo grid */
