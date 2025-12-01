@@ -183,24 +183,33 @@
                                     <!-- Content -->
                                     <div class="p-6 max-h-[80vh] overflow-y-auto">
                                         <!-- QR Code Section -->
-                                        <div class="text-center mb-6">
-                                            <div class="flex items-center justify-center mb-3">
-                                                <svg class="w-5 h-5 text-[#B59F84] mr-2" fill="currentColor"
-                                                    viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd"
-                                                        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
-                                                <h3 class="font-semibold text-gray-800">Scan to Pay</h3>
+                                        @if ($product->qr_code)
+                                            <div class="text-center mb-6">
+                                                <div class="flex items-center justify-center mb-3">
+                                                    <svg class="w-5 h-5 text-[#B59F84] mr-2" fill="currentColor"
+                                                        viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd"
+                                                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                    <h3 class="font-semibold text-gray-800">Scan to Pay</h3>
+                                                </div>
+                                                <div
+                                                    class="bg-gray-50 rounded-xl p-4 border-2 border-dashed border-gray-200">
+                                                    <img src="{{ Storage::disk('s3')->url($product->qr_code) }}"
+                                                        alt="QR Code" class="w-48 h-48 object-contain mx-auto mb-3">
+                                                    <p class="text-sm text-gray-600">Use your banking app to scan this QR
+                                                        code</p>
+                                                </div>
                                             </div>
+                                        @else
                                             <div
-                                                class="bg-gray-50 rounded-xl p-4 border-2 border-dashed border-gray-200">
-                                                <img src="{{ Storage::disk('s3')->url($product->qr_code) }}"
-                                                    alt="QR Code" class="w-48 h-48 object-contain mx-auto mb-3">
-                                                <p class="text-sm text-gray-600">Use your banking app to scan this QR
-                                                    code</p>
+                                                class="text-center mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+                                                <p class="text-sm text-yellow-700">
+                                                    The seller has not uploaded a payment QR code for this product yet.
+                                                </p>
                                             </div>
-                                        </div>
+                                        @endif
                                         <!-- Buyer Awareness Notice -->
                                         <div
                                             class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-6 rounded-lg flex items-start gap-3">
