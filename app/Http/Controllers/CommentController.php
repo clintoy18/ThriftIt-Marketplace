@@ -53,6 +53,23 @@ class CommentController extends Controller
                 'parent_id'   => $request->parent_id,
             ]);
 
+            $comment->load('user');
+
+            $notifiedUserIds = [];
+            $parentComment = null;
+            if ($comment->parent_id) {
+                $parentComment = Comment::find($comment->parent_id);
+                if ($parentComment && $parentComment->user_id !== Auth::id()) {
+                    $this->notifyCommentTarget(
+                        $comment,
+                        $parentComment->user_id,
+                        'comment_reply',
+                        'replied to your comment'
+                    );
+                    $notifiedUserIds[] = $parentComment->user_id;
+                }
+            }
+
             // Clear cache for this product's comments
             if ($request->product_id) {
                 Cache::forget("product_{$request->product_id}_comments");
@@ -60,21 +77,19 @@ class CommentController extends Controller
                 
                 $product = Product::find($request->product_id);
 
-            if ($product && $product->user_id !== Auth::id()) {
-                // Save notification to DB
-               Notification::create([
-                    'user_id' => $product->user_id,
-                    'type'    => 'comment',
-                    'data'    => [
-                    'from_user'  => Auth::user()->fname . ' ' . Auth::user()->lname,
-                    'content'    => $comment->content,
-                    'product_id' => $product->id,
-                    ],
-                ]);
-
-                // Fire real-time event
-                broadcast(new CommentNotification($comment, $product->user_id))->toOthers();
-            }
+                if (
+                    $product &&
+                    $product->user_id !== Auth::id() &&
+                    !in_array($product->user_id, $notifiedUserIds, true)
+                ) {
+                    $this->notifyCommentTarget(
+                        $comment,
+                        $product->user_id,
+                        'comment',
+                        'commented on your product'
+                    );
+                    $notifiedUserIds[] = $product->user_id;
+                }
             }
             
             // Clear cache for this donation's comments
@@ -84,25 +99,22 @@ class CommentController extends Controller
 
                 $donation = Donation::find($request->donation_id);
 
-                if ($donation && $donation->user_id !== Auth::id()) {
-                    // Save notification to DB
-                    Notification::create([
-                        'user_id' => $donation->user_id,
-                        'type'    => 'comment',
-                        'data'    => [
-                            'from_user'   => Auth::user()->fname . ' ' . Auth::user()->lname,
-                            'content'     => $comment->content,
-                            'donation_id' => $donation->id,
-                        ],
-                    ]);
-    
-                    // Fire real-time event
-                    broadcast(new CommentNotification($comment, $donation->user_id))->toOthers();
+                if (
+                    $donation &&
+                    $donation->user_id !== Auth::id() &&
+                    !in_array($donation->user_id, $notifiedUserIds, true)
+                ) {
+                    $this->notifyCommentTarget(
+                        $comment,
+                        $donation->user_id,
+                        'comment',
+                        'commented on your donation'
+                    );
+                    $notifiedUserIds[] = $donation->user_id;
                 }
             }
 
             if ($request->expectsJson()) {
-                $comment->load('user');
                 return response()->json([
                     'success' => true,
                     'comment' => [
@@ -251,5 +263,24 @@ class CommentController extends Controller
         }
 
         return redirect()->back()->with('success');
+    }
+
+    protected function notifyCommentTarget(Comment $comment, int $targetUserId, string $type, string $message): void
+    {
+        $notification = Notification::create([
+            'user_id' => $targetUserId,
+            'type'    => $type,
+            'data'    => [
+                'from_user'        => Auth::user()->fname . ' ' . Auth::user()->lname,
+                'content'          => $comment->content,
+                'product_id'       => $comment->product_id,
+                'donation_id'      => $comment->donation_id,
+                'comment_id'       => $comment->id,
+                'parent_comment_id'=> $comment->parent_id,
+                'message'          => $message,
+            ],
+        ]);
+
+        broadcast(new CommentNotification($comment, $targetUserId, $type))->toOthers();
     }
 }
