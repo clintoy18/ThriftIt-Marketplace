@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="recipient-id" content="{{ $recipient->id }}">
     <meta name="recipient-profile-pic-url" content="{{ $recipient->profileImageUrl() }}">
+    <meta name="chat-storage-url-template" content="{{ Storage::disk('s3')->url('__PATH__') }}">
     <meta name="recipient-name" content="{{ substr($recipient->fname, 0, 1) }}{{ substr($recipient->lname, 0, 1) }}">
 
     <div class="py-0 sm:py-6">
@@ -716,9 +717,10 @@
     </div>
 
     <script>
-        const chatStorageUrlTemplate = @json(\Illuminate\Support\Facades\Storage::url('__PATH__'));
+        const chatStorageUrlTemplateMeta = document.querySelector('meta[name="chat-storage-url-template"]');
+        const chatStorageUrlTemplate = chatStorageUrlTemplateMeta?.getAttribute('content') || '';
         const buildChatImageUrl = (path) => {
-            if (!path) return '';
+            if (!path || !chatStorageUrlTemplate) return '';
             return chatStorageUrlTemplate.replace('__PATH__', path);
         };
         // Search functionality for conversations

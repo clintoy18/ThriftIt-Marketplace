@@ -7,6 +7,7 @@ use App\Models\Message;
 use App\Models\Product;
 use App\Models\User;
 use App\Events\PrivateMessageSent;
+use Illuminate\Support\Facades\Storage;
 
 class MessageService
 {
@@ -75,7 +76,7 @@ class MessageService
         $imagePath = null;
         if ($hasImage) {
             try {
-                $imagePath = $imageFile->store('chat_images', 'public');
+                $imagePath = $imageFile->storePublicly('chat_images', 's3');
             } catch (\Exception $e) {
                 return ['error' => 'Failed to upload image: ' . $e->getMessage()];
             }

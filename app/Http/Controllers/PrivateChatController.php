@@ -76,9 +76,9 @@ class PrivateChatController extends Controller
             $message->load('user');
         }
         
-        // Add image_url for easy access using Storage facade for proper URL generation
+        // Add image_url for easy access using Storage facade for proper URL generation on S3
         $message->setAttribute('image_url', $message->image_path
-            ? Storage::url($message->image_path)
+            ? Storage::disk('s3')->url($message->image_path)
             : null);
 
         // Return message as resource/array for JSON serialization

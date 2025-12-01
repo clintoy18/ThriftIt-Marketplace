@@ -20,6 +20,14 @@ class PrivateMessageSent implements ShouldBroadcast
         /** @var \Illuminate\Filesystem\FilesystemAdapter $s3 */
         $s3 = Storage::disk('s3');
 
+        if (!$message->relationLoaded('user')) {
+            $message->load('user');
+        }
+
+        $message->setAttribute('image_url', $message->image_path
+            ? $s3->url($message->image_path)
+            : null);
+
         $this->message = $message;
         $this->sender = [
             'id' => $message->user->id,
