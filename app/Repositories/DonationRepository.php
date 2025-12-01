@@ -10,6 +10,7 @@ class DonationRepository
     public function all()
     {
         return Donation::where('approval_status', 'approved')
+            ->where('status', 'available')
             ->with('donationImages')
             ->get();
     }
