@@ -53,17 +53,16 @@
                             <span class="font-medium">Category:</span> {{ $product->category->name ?? 'No Category' }}
                         </p>
 
-                        <!-- Status & Description -->
-                        <div class="space-y-2 mb-4">
-                            <p class="text-gray-600 dark:text-gray-400">
-                                <span class="font-medium">Status:</span> {{ ucfirst($product->status) }}
+                        <p class="text-gray-600 dark:text-gray-400">
+                            <span class="font-medium">Status:</span> {{ ucfirst($product->status) }}
+                        </p>
+
+                        <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-sm">
+                            <p class="text-gray-800 dark:text-gray-200">
+                                {{ $product->description ?? 'No description available' }}
                             </p>
-                            <div class=" dark:bg-gray-700 rounded-lg ">
-                                <p class="text-gray-600 dark:text-gray-400 break-words whitespace-pre-wrap text-left">
-                                    {{ $product->description ?? 'No description available' }}
-                                </p>
-                            </div>
                         </div>
+
 
                         <!-- Price / Donation -->
                         <div class="mb-4">
@@ -89,32 +88,35 @@
                         <!-- Owner Actions -->
                         @if (Auth::id() === $product->user_id)
                             <div class="flex flex-col gap-3 mt-4">
+
+                                {{-- Update Product is ALWAYS allowed --}}
                                 <a href="{{ route('products.edit', $product->id) }}"
                                     class="px-6 py-3 bg-[#B59F84] text-white rounded-lg hover:bg-[#a08e77] transition-all duration-300 text-center font-medium">
                                     Update Product
                                 </a>
 
-
-                                @if ($product->status === 'available' && $product->approval_status === 'approved')
+                                {{-- Mark as Sold allowed ONLY if approved by admin --}}
+                                @if ($product->approval_status === 'approved' && $product->status === 'available')
                                     <form action="{{ route('products.markAsSold', $product) }}" method="POST">
                                         @csrf
                                         @method('PUT')
                                         <button type="submit"
-                                            class="w-full px-6 py-3 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800 transition-all duration-300 font-medium"
+                                            class="w-full px-6 py-3 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 
+                    dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800 transition-all duration-300 font-medium"
                                             onclick="return confirm('Mark this product as Sold?')">
                                             Mark as Sold
                                         </button>
                                     </form>
-                                @else
                                 @endif
+
                             </div>
                         @endif
+
 
                         <!-- Buyer Actions -->
                         <div x-data="{ open: false }">
                             @php
                                 $existingOrder = $product->orders()->where('buyer_id', Auth::id())->first();
-
                             @endphp
 
                             <!-- Message Seller - Only show to buyers, not to the owner -->
@@ -140,8 +142,6 @@
                                 </div>
                             @endif
 
-
-
                             <!-- Buy Now Button -->
                             @if (
                                 $product->listingtype !== 'for donation' &&
@@ -155,13 +155,13 @@
                                     </button>
                                 @endif
                             @else
-                                <button type="button" disabled
-                                    class="w-full mt-4 px-6 py-3 bg-[#B59F84] text-white rounded-lg 
+                                @if ($product->status === 'sold')
+                                    <button type="button" disabled
+                                        class="w-full mt-4 px-6 py-3 bg-[#B59F84] text-white rounded-lg 
                                     opacity-50 cursor-not-allowed font-medium">
-                                    Sold
-                                </button>
-
-
+                                        Sold
+                                    </button>
+                                @endif
                             @endif
 
                             <!-- Payment Modal -->
@@ -198,7 +198,8 @@
                                                     class="bg-gray-50 rounded-xl p-4 border-2 border-dashed border-gray-200">
                                                     <img src="{{ Storage::disk('s3')->url($product->qr_code) }}"
                                                         alt="QR Code" class="w-48 h-48 object-contain mx-auto mb-3">
-                                                    <p class="text-sm text-gray-600">Use your banking app to scan this QR
+                                                    <p class="text-sm text-gray-600">Use your banking app to scan this
+                                                        QR
                                                         code</p>
                                                 </div>
                                             </div>
