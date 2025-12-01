@@ -41,14 +41,14 @@ class UserSeeder extends Seeder
         //     'role' => '0',
         //     'email_verified_at' => now(),
         // ]);
-         User::create([
-            'fname' => 'Clint',
-            'lname' => 'Alzon',
-            'email' => 'aicsalonzo@gmail.com',
-            'password' => Hash::make('a11even18'),
-            'role' => '0',
-            'email_verified_at' => now(),
-        ]);
+        //  User::create([
+        //     'fname' => 'Clint',
+        //     'lname' => 'Alzon',
+        //     'email' => 'aicsalonzo@gmail.com',
+        //     'password' => Hash::make('a11even18'),
+        //     'role' => '0',
+        //     'email_verified_at' => now(),
+        // ]);
      
     }
 }
