@@ -261,6 +261,32 @@ if (authUserId) {
         });
 }
 
+// Appointment Booked Notification listener
+if (authUserId) {
+    window.Echo.private(`notifications-channel.${authUserId}`)
+        .listen('.appointment.booked.notification', (e) => {
+            console.log("📅 New Appointment Notification:", e);
+
+            const baseMessage = `${e.from_user} booked a new appointment.`;
+            showNotificationToast(`📅 ${baseMessage}`);
+
+            window.dispatchEvent(new CustomEvent('new-notification', {
+                detail: {
+                    id: Date.now(),
+                    data: {
+                        appointment_id: e.id,
+                        from_user: e.from_user,
+                        apptype: e.apptype,
+                        appdate: e.appdate,
+                        message: baseMessage,
+                    },
+                    created_at: new Date().toISOString(),
+                    is_read: false,
+                }
+            }));
+        });
+}
+
 
 // Function to show toast notification
 function showNotificationToast(message) {

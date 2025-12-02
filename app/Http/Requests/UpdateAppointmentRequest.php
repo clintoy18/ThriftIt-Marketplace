@@ -24,7 +24,8 @@ class UpdateAppointmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'appstatus' => 'required|string|in:pending,approved,completed,rejected',
+            // Allow all possible appointment statuses, including declined
+            'appstatus' => 'required|string|in:pending,approved,completed,declined,rejected',
             'appdetails' => 'nullable|string|min:15|max:255',
             'contactnumber' => 'nullable|numeric|digits_between:10,15',
         ];
