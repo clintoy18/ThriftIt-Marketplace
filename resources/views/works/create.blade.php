@@ -260,9 +260,22 @@
                 if (selectedFiles.length < 2) {
                     e.preventDefault();
                     showError('Please upload at least 2 photos.');
+                    return;
                 } else if (selectedFiles.length > 8) {
                     e.preventDefault();
                     showError('You can upload up to 8 photos only.');
+                    return;
+                }
+
+                // Confirmation summary before final submit
+                const title = document.getElementById('title').value.trim() || 'Untitled';
+                const upcycleType = document.getElementById('upcycle_type').value || 'Not specified';
+                const confirmMessage = `Confirm upload?\n\nTitle: ${title}\nType: ${upcycleType}\nImages: ${selectedFiles.length}\n\nProceed to upload your work?`;
+
+                if (!window.confirm(confirmMessage)) {
+                    e.preventDefault();
+                    showError('Upload cancelled.');
+                    return;
                 }
             });
 
