@@ -28,7 +28,7 @@ class ProfileController extends Controller
         $user = $request->user(); // logged-in user only
         $barangays = Barangay::all();
         
-        $totalListings = $user->products()->count();
+        $totalListings = $user->products()->where('approval_status','approved')->count();
         $itemsSold = $user->products()->where('status', 'sold')->count();
         $revenue = $user->products()->where('status', 'sold')->sum('price');
         $itemsDonated = $user->donations()->where('status', 'donated')->count();
@@ -124,7 +124,7 @@ class ProfileController extends Controller
         $works = $user->works()->where('approval_status','approved')->get();
 
         // Dashboard statistics (only for profile owner)
-        $totalListings = $user->products()->count();
+        $totalListings = $user->products()->where('approval_status','approved')->count();
         $itemsSold = $user->products()->where('status', 'sold')->count();
         $revenue = $user->products()->where('status', 'sold')->sum('price');
         $itemsDonated = $user->donations()->where('status', 'donated')->count();
