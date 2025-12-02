@@ -71,7 +71,6 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function (
     Route::resource('donations',DonationController::class);
     Route::resource('segments', SegmentController::class)->only(['show']);
     Route::get('segments/{segment}/products', [SegmentController::class, 'products'])->name('segments.products');
-    Route::resource(('eco-posts'), EcoPostController::class);
 
     Route::patch('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
@@ -103,7 +102,7 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function (
 Route::middleware(['auth', 'verified', 'rolemiddleware:upcycler'])->group(function () {
     Route::resource('upcycler', UpcyclerController::class);
     Route::resource('works', WorkController::class)->except(['show']);
-    Route::resource(('eco-posts'), EcoPostController::class);
+   
 
 });
 
@@ -163,6 +162,8 @@ Route::middleware('auth')->group(function () {
 
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::resource(('eco-posts'), EcoPostController::class);
 
     //routes to show
 
