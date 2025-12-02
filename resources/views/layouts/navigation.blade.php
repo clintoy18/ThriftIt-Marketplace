@@ -30,6 +30,9 @@
                         <a href="{{ route('works.index') }}"
                             class="text-gray-700 dark:text-gray-200 hidden font-bold lg:block">Upcycling
                             Works</a>
+                        <a href="{{ route('works.index') }}"
+                            class="text-gray-700 dark:text-gray-200 hidden font-bold lg:block">Eco Portal
+                            </a>
                     @endif
                 </div>
             @endauth
@@ -541,6 +544,11 @@
                             <a href="{{ route('upcycler.index') }}"
                                 class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Manage
                                 Appointments</a>
+                                    <a href="{{ route('works.index') }}"
+                                class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Upcycling Works
+                                </a>
+                                    <a href="{{ route('eco-posts.index') }}"
+                                class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Eco Portal   </a>
                         @endif
 
                         <a href="{{ route('profile.show', ['user' => Auth::id()]) }}"
