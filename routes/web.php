@@ -103,6 +103,7 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function (
 Route::middleware(['auth', 'verified', 'rolemiddleware:upcycler'])->group(function () {
     Route::resource('upcycler', UpcyclerController::class);
     Route::resource('works', WorkController::class)->except(['show']);
+    Route::resource(('eco-posts'), EcoPostController::class);
 
 });
 
