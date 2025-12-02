@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentRequest;
+use App\Models\Barangay;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
@@ -22,10 +23,21 @@ class AppointmentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $upcyclers = User::where('role', 1)->where('is_active','1')->get(); // fetch active all upcyclers
-        return view('appointments.index', compact('upcyclers'));
+        $selectedBarangayId = $request->query('barangay');
+
+        $query = User::where('role', 1)
+            ->where('is_active', '1');
+
+        if ($selectedBarangayId) {
+            $query->where('barangay_id', $selectedBarangayId);
+        }
+
+        $upcyclers = $query->get(); // fetch (optionally filtered) active upcyclers
+        $barangays = Barangay::all();
+
+        return view('appointments.index', compact('upcyclers', 'barangays', 'selectedBarangayId'));
     }
 
     /**
