@@ -4,8 +4,11 @@ namespace App\Services;
 
 use App\Repositories\AppointmentRepository;
 use App\Models\Appointment;
+use App\Models\Notification;
+use App\Events\AppointmentBookedNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class AppointmentService
 {
@@ -48,6 +51,27 @@ class AppointmentService
                     ]);
                 }
             }
+        }
+
+        // 3️⃣ Notify the upcycler that a new appointment was booked
+        if (!empty($appointment->upcycler_id)) {
+            // Save notification in DB
+            Notification::create([
+                'user_id' => $appointment->upcycler_id,
+                'type'    => 'appointment_booked',
+                'data'    => [
+                    'appointment_id' => $appointment->appointmentid,
+                    'from_user'      => Auth::user() ? Auth::user()->fname . ' ' . Auth::user()->lname : 'A user',
+                    'apptype'        => $appointment->apptype,
+                    'appdate'        => $appointment->appdate,
+                    'message'        => (Auth::user()
+                        ? Auth::user()->fname . ' ' . Auth::user()->lname
+                        : 'A user') . ' booked a new appointment with you.',
+                ],
+            ]);
+
+            // Broadcast real-time notification to upcycler
+            event(new AppointmentBookedNotification($appointment, $appointment->upcycler_id));
         }
 
         return $appointment;
