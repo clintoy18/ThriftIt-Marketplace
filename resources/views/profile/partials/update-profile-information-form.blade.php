@@ -13,9 +13,19 @@
             <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                 {{ __('Profile Information') }}
                 <span
-                    class="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 rounded-full">
-                    Personal
+                    class="
+        px-2 py-1 text-xs font-medium rounded-full
+        @if ($user->verification_status === 'approved') bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200
+        @else
+            bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 @endif
+    ">
+                    @if ($user->verification_status === 'approved')
+                        Verified
+                    @else
+                        Unverified
+                    @endif
                 </span>
+
             </h2>
             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                 {{ __("Update your account's profile information and email address.") }}
