@@ -28,7 +28,6 @@ use App\Http\Controllers\EcoPostController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\WorkController;
 use App\Http\Controllers\NotificationController;
-
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -52,10 +51,11 @@ Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])
 Route::get('/admin/export', [AdminReportController::class, 'exportAllPdf'])
     ->middleware(['auth', 'verified', 'rolemiddleware:admin'])
     ->name('admin.export.pdf');
-    
+
 Route::get('upcycler/dashboard', function () {
-    return view('upcycler');})
-    ->middleware(['auth', 'verified','rolemiddleware:upcycler'])
+    return view('upcycler');
+})
+    ->middleware(['auth', 'verified', 'rolemiddleware:upcycler'])
     ->name('upcycler');
 
 
@@ -68,7 +68,7 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function (
     Route::post('comments/{comment}/like', [CommentLikeController::class, 'toggleLike'])->name('comments.like');
     Route::get('comments/{comment}/reactions', [CommentLikeController::class, 'getReactions'])->name('comments.reactions');
     Route::get('/donation-hub', [DonationController::class, 'getAllDonations'])->name('donations.hub');
-    Route::resource('donations',DonationController::class);
+    Route::resource('donations', DonationController::class);
     Route::resource('segments', SegmentController::class)->only(['show']);
     Route::get('segments/{segment}/products', [SegmentController::class, 'products'])->name('segments.products');
 
@@ -76,33 +76,25 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function (
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/users/{user}/report', [ReportController::class, 'create'])->name('reports.create');
     Route::post('/users/{user}/report', [ReportController::class, 'store'])->name('reports.store');
-    Route::get('/reviews',[ReviewController::class,'index'])->name('reviews.index');
-    Route::get('reviews/{review}',[ReviewController::class,'show'])->name('reviews.show');
-    Route::get('/users/{user}/review',[ReviewController::class,'create'])->name('reviews.create');
-    Route::post('/users/{user}/review',[ReviewController::class,'store'])->name('reviews.store');
+    Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
+    Route::get('reviews/{review}', [ReviewController::class, 'show'])->name('reviews.show');
+    Route::get('/users/{user}/review', [ReviewController::class, 'create'])->name('reviews.create');
+    Route::post('/users/{user}/review', [ReviewController::class, 'store'])->name('reviews.store');
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])
-    ->name('leaderboard.index');
+        ->name('leaderboard.index');
 
-    Route::post('/notifications/read', function () {
-            Notification::where('user_id', Auth::id())
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
 
-        return response()->json(['status' => 'ok']);
-    })->name('notifications.read');
 
 
     Route::post('/orders/{product}', [OrderController::class, 'store'])->name('orders.store');
     Route::patch('/orders/{order}/{status}', [OrderController::class, 'updateStatus'])
-    ->name('orders.updateStatus');
-
+        ->name('orders.updateStatus');
 });
 
 //Upcycler Routes
 Route::middleware(['auth', 'verified', 'rolemiddleware:upcycler'])->group(function () {
     Route::resource('upcycler', UpcyclerController::class);
     Route::resource('works', WorkController::class)->except(['show']);
- 
 });
 
 // Admin Routes
@@ -118,24 +110,24 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:admin'])->prefix('admin')
     Route::get('/sales/monthly-report/{month}', [App\Http\Controllers\Admin\SalesReportController::class, 'generateMonthlyReport'])->name('sales.monthly-report');
     Route::get('/sales/yearly-report', [App\Http\Controllers\Admin\SalesReportController::class, 'generateYearlyReport'])->name('sales.yearly-report');
     Route::get('/sales/monthly-export/{month}', [App\Http\Controllers\Admin\SalesReportController::class, 'exportMonthlyDataPdf'])->name('sales.monthly-export');
-   
+
     //approve and reject product
     Route::put('/products/{product}/approve', [AdminProductController::class, 'approve'])
-    ->name('products.approve');
+        ->name('products.approve');
     Route::put('/products/{product}/reject', [AdminProductController::class, 'reject'])
-    ->name('products.reject');
- 
-     //approve and reject donations
-    Route::put('/donations/{donation}/approve', [AdminDonationController::class, 'approve'])
-    ->name('donations.approve');
-    Route::put('/donations/{donation}/reject', [AdminDonationController::class, 'reject'])
-    ->name('donations.reject');
+        ->name('products.reject');
 
-        //approve and reject work
+    //approve and reject donations
+    Route::put('/donations/{donation}/approve', [AdminDonationController::class, 'approve'])
+        ->name('donations.approve');
+    Route::put('/donations/{donation}/reject', [AdminDonationController::class, 'reject'])
+        ->name('donations.reject');
+
+    //approve and reject work
     Route::put('/works/{work}/approve', [AdminWorkController::class, 'approve'])
-    ->name('works.approve');
+        ->name('works.approve');
     Route::put('/works/{work}/reject', [AdminWorkController::class, 'reject'])
-    ->name('works.reject');
+        ->name('works.reject');
 
     //verify donations and add points to donor/user
     Route::get('/donations/reward-management', [AdminDonationController::class, 'rewardManagement'])->name('donations.rewardManagement');
@@ -174,182 +166,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/blocked', [PrivateChatController::class, 'getBlockedUsers'])->name('users.blocked');
     Route::post('/users/{user}/unblock', [PrivateChatController::class, 'unblock'])->name('users.unblock');
     Route::get('/proxy-image', [PrivateChatController::class, 'proxyImage'])->name('proxy.image');
-    
+
     Route::get('appointments/myAppointments', [AppointmentController::class, 'myAppointments'])
         ->middleware('verified')
         ->name('appointments.myAppointments');
-   
-    
-    // // Call invitation routes
-    // Route::post('/api/call/invite', function (Request $request) {
-    //     $request->validate([
-    //         'recipient_id' => 'required|exists:users,id',
-    //         'call_type' => 'required|in:audio,video',
-    //         'action' => 'required|in:invite,end'
-    //     ]);
-        
-    //     $recipientId = $request->recipient_id;
-    //     $callType = $request->call_type;
-    //     $action = $request->action;
-    //     $callerId = auth()->id();
-        
-    //     // Get caller info
-    //     $caller = auth()->user();
-        
-    //     // Broadcast the call invitation
-    //     broadcast(new \App\Events\CallInvitation($callerId, $recipientId, $callType, $caller, $action));
-        
-    //     return response()->json(['success' => true, 'message' => 'Call invitation sent']);
-    // })->name('api.call.invite');
-    
-    // Route::post('/api/call/response', function (Request $request) {
-    //     $request->validate([
-    //         'caller_id' => 'required|exists:users,id',
-    //         'call_type' => 'required|in:audio,video',
-    //         'response' => 'required|in:accepted,rejected'
-    //     ]);
-        
-    //     $callerId = $request->caller_id;
-    //     $callType = $request->call_type;
-    //     $response = $request->response;
-    //     $responderId = auth()->id();
-        
-    //     // Get responder info
-    //     $responder = auth()->user();
-        
-    //     // Broadcast the call response back to the caller
-    //     broadcast(new \App\Events\CallInvitation($responderId, $callerId, $callType, $responder, $response));
-        
-    //     return response()->json(['success' => true, 'message' => 'Call response sent']);
-    // })->name('api.call.response');
-    
-    // // Test route for debugging
-    // Route::get('/test-call/{userId}', function ($userId) {
-    //     if (!auth()->check()) {
-    //         return "Please log in first";
-    //     }
-    //     broadcast(new \App\Events\CallInvitation(auth()->id(), $userId, 'video', auth()->user()));
-    //     return "Call invitation sent to user {$userId}";
-    // })->name('test.call');
-    
-    // // WebRTC Signaling Routes (API-based for reliability)
-    // Route::post('/api/webrtc/offer', function (Request $request) {
-    //     try {
-    //         $request->validate([
-    //             'recipient_id' => 'required|integer|exists:users,id',
-    //             'offer' => 'required',
-    //             'caller_id' => 'required|integer',
-    //             'type' => 'required|in:audio,video'
-    //         ]);
-            
-    //         $recipientId = (int) $request->recipient_id;
-    //         $offer = $request->offer;
-    //         $callerId = (int) $request->caller_id;
-            
-    //         // Verify caller is the authenticated user
-    //         if ($callerId !== auth()->id()) {
-    //             return response()->json(['error' => 'Unauthorized'], 403);
-    //         }
-            
-    //         // Ensure offer is an array (RTCSessionDescription objects are serialized as arrays)
-    //         if (is_object($offer)) {
-    //             $offer = (array) $offer;
-    //         }
-            
-    //         // Broadcast the offer via Laravel event (more reliable than Pusher whisper)
-    //         broadcast(new \App\Events\WebRTCOffer($recipientId, $offer, $callerId));
-            
-    //         return response()->json(['success' => true, 'message' => 'WebRTC offer sent']);
-    //     } catch (\Illuminate\Validation\ValidationException $e) {
-    //         \Log::error('WebRTC Offer Validation Error:', $e->errors());
-    //         return response()->json(['error' => 'Validation failed', 'details' => $e->errors()], 422);
-    //     } catch (\Exception $e) {
-    //         \Log::error('WebRTC Offer Error: ' . $e->getMessage(), [
-    //             'trace' => $e->getTraceAsString(),
-    //             'request' => $request->all()
-    //         ]);
-    //         return response()->json(['error' => 'Failed to send offer', 'message' => $e->getMessage()], 500);
-    //     }
-    // })->name('api.webrtc.offer');
-    
-    // Route::post('/api/webrtc/answer', function (Request $request) {
-    //     try {
-    //         $request->validate([
-    //             'recipient_id' => 'required|integer|exists:users,id',
-    //             'answer' => 'required',
-    //             'caller_id' => 'required|integer'
-    //         ]);
-            
-    //         $recipientId = (int) $request->recipient_id;
-    //         $answer = $request->answer;
-    //         $callerId = (int) $request->caller_id;
-            
-    //         // Verify caller is the authenticated user
-    //         if ($callerId !== auth()->id()) {
-    //             return response()->json(['error' => 'Unauthorized'], 403);
-    //         }
-            
-    //         // Ensure answer is an array
-    //         if (is_object($answer)) {
-    //             $answer = (array) $answer;
-    //         }
-            
-    //         // Broadcast the answer via Laravel event
-    //         broadcast(new \App\Events\WebRTCAnswer($recipientId, $answer, $callerId));
-            
-    //         return response()->json(['success' => true, 'message' => 'WebRTC answer sent']);
-    //     } catch (\Illuminate\Validation\ValidationException $e) {
-    //         \Log::error('WebRTC Answer Validation Error:', $e->errors());
-    //         return response()->json(['error' => 'Validation failed', 'details' => $e->errors()], 422);
-    //     } catch (\Exception $e) {
-    //         \Log::error('WebRTC Answer Error: ' . $e->getMessage(), [
-    //             'trace' => $e->getTraceAsString(),
-    //             'request' => $request->all()
-    //         ]);
-    //         return response()->json(['error' => 'Failed to send answer', 'message' => $e->getMessage()], 500);
-    //     }
-    // })->name('api.webrtc.answer');
-    
-    // Route::post('/api/webrtc/ice-candidate', function (Request $request) {
-    //     try {
-    //         $request->validate([
-    //             'recipient_id' => 'required|integer|exists:users,id',
-    //             'candidate' => 'required',
-    //             'caller_id' => 'required|integer'
-    //         ]);
-            
-    //         $recipientId = (int) $request->recipient_id;
-    //         $candidate = $request->candidate;
-    //         $callerId = (int) $request->caller_id;
-            
-    //         // Verify caller is the authenticated user
-    //         if ($callerId !== auth()->id()) {
-    //             return response()->json(['error' => 'Unauthorized'], 403);
-    //         }
-            
-    //         // Ensure candidate is an array
-    //         if (is_object($candidate)) {
-    //             $candidate = (array) $candidate;
-    //         }
-            
-    //         // Broadcast the ICE candidate via Laravel event
-    //         broadcast(new \App\Events\WebRTCIceCandidate($recipientId, $candidate, $callerId));
-            
-    //         return response()->json(['success' => true, 'message' => 'ICE candidate sent']);
-    //     } catch (\Illuminate\Validation\ValidationException $e) {
-    //         \Log::error('WebRTC ICE Candidate Validation Error:', $e->errors());
-    //         return response()->json(['error' => 'Validation failed', 'details' => $e->errors()], 422);
-    //     } catch (\Exception $e) {
-    //         \Log::error('WebRTC ICE Candidate Error: ' . $e->getMessage(), [
-    //             'trace' => $e->getTraceAsString(),
-    //             'request' => $request->all()
-    //         ]);
-    //         return response()->json(['error' => 'Failed to send ICE candidate', 'message' => $e->getMessage()], 500);
-    //     }
-    // })->name('api.webrtc.ice-candidate');
 
     //upload verification document user/upcycler 
-     Route::post('/profile/verification-document', [ProfileController::class, 'uploadVerificationDocument'])
+    Route::post('/profile/verification-document', [ProfileController::class, 'uploadVerificationDocument'])
         ->name('profile.verification.upload');
 
     //show works globally
@@ -357,12 +180,12 @@ Route::middleware('auth')->group(function () {
 
     //mark item as sold
     Route::put('/products/{product}/mark-as-sold', [ProductController::class, 'markAsSold'])
-    ->name('products.markAsSold')
-    ->middleware('auth');   
+        ->name('products.markAsSold')
+        ->middleware('auth');
 
-        //mark item as sold
+    //mark item as sold
     Route::put('/donations/{donation}/mark-as-donated', [DonationController::class, 'markAsDonated'])
-    ->name('donations.markAsDonated');   
+        ->name('donations.markAsDonated');
 
     //route for pricing page
     Route::get('/pricing', [PricingController::class, 'index'])->name('pricing.index');
@@ -370,32 +193,40 @@ Route::middleware('auth')->group(function () {
     //route for cehckout
     Route::get('/checkout/{name}', [App\Http\Controllers\CheckoutController::class, 'checkout'])->name('checkout');
     Route::get('/checkout-success', [App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
-    
+
+
+    Route::post('/notifications/read', function () {
+        Notification::where('user_id', Auth::id())
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        return response()->json(['status' => 'ok']);
+    })->name('notifications.read');
     // // Notification routes
     // Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     // Route::get('/notifications/count', [NotificationController::class, 'count'])->name('notifications.count');
     // Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     // Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
- 
+
 });
 Route::post('/messages/mark-read', function () {
     if (Auth::check()) {
         $userId = Auth::id();
-        
+
         // Mark all messages as read
         \App\Models\Message::where('receiver_id', $userId)
             ->where('is_read', false)
             ->update(['is_read' => true]);
-        
+
         // Get updated count
         $unreadCount = \App\Models\Message::where('receiver_id', $userId)
             ->where('is_read', false)
             ->count();
-        
+
         // Broadcast update if using real-time
         // event(new MessagesRead($userId));
     }
-    
+
     return response()->json(['success' => true, 'unread_count' => $unreadCount ?? 0]);
 })->name('messages.mark-read')->middleware('auth');
 
@@ -412,15 +243,16 @@ Route::get('/messages/unread-count', function () {
 })->name('messages.unread-count')->middleware('auth');
 
 // Route to get unread count for a specific conversation
+
 Route::get('/messages/conversation-unread-count/{userId}', function ($userId) {
     if (Auth::check()) {
         $currentUserId = Auth::id();
-        $unreadCount = \App\Models\Message::where(function($query) use ($currentUserId, $userId) {
+        $unreadCount = \App\Models\Message::where(function ($query) use ($currentUserId, $userId) {
             $query->where('user_id', $userId)
-                  ->where('receiver_id', $currentUserId);
+                ->where('receiver_id', $currentUserId);
         })
-        ->where('is_read', false)
-        ->count();
+            ->where('is_read', false)
+            ->count();
         return response()->json(['unread_count' => $unreadCount]);
     }
     return response()->json(['unread_count' => 0]);
@@ -435,4 +267,4 @@ Route::get('/sell-item/final/{product}', [ProductController::class, 'finalStep']
 Route::post('/sell-item/final/{product}', [ProductController::class, 'finalize'])->name('sell-item.finalize');
 
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
