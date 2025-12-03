@@ -82,16 +82,6 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function (
     Route::post('/users/{user}/review',[ReviewController::class,'store'])->name('reviews.store');
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])
     ->name('leaderboard.index');
-
-    Route::post('/notifications/read', function () {
-            Notification::where('user_id', Auth::id())
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
-
-        return response()->json(['status' => 'ok']);
-    })->name('notifications.read');
-
-
     Route::post('/orders/{product}', [OrderController::class, 'store'])->name('orders.store');
     Route::patch('/orders/{order}/{status}', [OrderController::class, 'updateStatus'])
     ->name('orders.updateStatus');
@@ -174,6 +164,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/blocked', [PrivateChatController::class, 'getBlockedUsers'])->name('users.blocked');
     Route::post('/users/{user}/unblock', [PrivateChatController::class, 'unblock'])->name('users.unblock');
     Route::get('/proxy-image', [PrivateChatController::class, 'proxyImage'])->name('proxy.image');
+
+    // Mark all notifications as read (used by bell dropdown for all roles)
+    Route::post('/notifications/read', function () {
+        Notification::where('user_id', Auth::id())
+            ->where(function ($query) {
+                $query->where('is_read', false)
+                      ->orWhereNull('is_read');
+            })
+            ->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+
+        return response()->json(['status' => 'ok']);
+    })->name('notifications.read');
     
     Route::get('appointments/myAppointments', [AppointmentController::class, 'myAppointments'])
         ->middleware('verified')
