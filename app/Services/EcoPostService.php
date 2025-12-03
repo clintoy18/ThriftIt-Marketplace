@@ -24,12 +24,18 @@ class EcoPostService
     {
         return $this->repo->find($id);
     }
-
-     public function createPost(array $data)
+    public function createPost(array $data)
     {
-        // Handle image upload if provided
         if (isset($data['image'])) {
-            $data['image'] = $data['image']->store('eco_posts', 'public');
+
+            // Store file in S3 (e.g., eco_posts/filename.jpg)
+            $path = $data['image']->store('eco_posts', [
+                'disk' => 's3',
+                'visibility' => 'public',
+            ]);
+
+            // Store only the S3 key/path in the database
+            $data['image'] = $path;
         }
 
         return EcoEducationalPost::create($data);
@@ -39,11 +45,20 @@ class EcoPostService
     public function updatePost($id, array $data)
     {
         if (isset($data['image'])) {
-            $data['image'] = $data['image']->store('eco_posts', 'public');
+
+            // Store new image in S3
+            $path = $data['image']->store('eco_posts', [
+                'disk' => 's3',
+                'visibility' => 'public',
+            ]);
+
+            // Store only the S3 key/path in database
+            $data['image'] = $path;
         }
 
         return $this->repo->update($id, $data);
     }
+
 
     public function deletePost($id)
     {
