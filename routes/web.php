@@ -27,6 +27,7 @@ use App\Http\Controllers\PricingController;
 use App\Http\Controllers\EcoPostController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\WorkController;
+use App\Http\Controllers\NotificationController;
 
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
@@ -60,7 +61,6 @@ Route::get('upcycler/dashboard', function () {
 
 //to make sure only a verified user can access the user routes, 
 Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function () {
-    Route::get('appointments/myAppointments', [AppointmentController::class, 'myAppointments'])->name('appointments.myAppointments');
     Route::resource('products', ProductController::class);
     Route::resource('categories', CategoriesController::class);
     Route::resource('appointments', AppointmentController::class);
@@ -102,8 +102,7 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function (
 Route::middleware(['auth', 'verified', 'rolemiddleware:upcycler'])->group(function () {
     Route::resource('upcycler', UpcyclerController::class);
     Route::resource('works', WorkController::class)->except(['show']);
-   
-
+ 
 });
 
 // Admin Routes
@@ -175,6 +174,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/blocked', [PrivateChatController::class, 'getBlockedUsers'])->name('users.blocked');
     Route::post('/users/{user}/unblock', [PrivateChatController::class, 'unblock'])->name('users.unblock');
     Route::get('/proxy-image', [PrivateChatController::class, 'proxyImage'])->name('proxy.image');
+    
+    Route::get('appointments/myAppointments', [AppointmentController::class, 'myAppointments'])
+        ->middleware('verified')
+        ->name('appointments.myAppointments');
+   
     
     // // Call invitation routes
     // Route::post('/api/call/invite', function (Request $request) {

@@ -110,10 +110,66 @@
                                 <span x-text="unreadCount > 9 ? '9+' : unreadCount"></span>
                             </span>
                         </a>
-                        <!-- Notification Bell -->
+                        <!-- Notification Bell with ALL notifications in dropdown -->
                         <div id="notif-bell" x-data="{
                             open: false,
                             notifications: [],
+                            groupedNotifications: {},
+                            loadingMore: false,
+                            hasMore: true,
+                            page: 1,
+                            perPage: 50, // Show more notifications initially
+                            getGroupedNotifications() {
+                                const groups = {};
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+                                const todayStr = today.toDateString();
+                                
+                                this.notifications.forEach(notif => {
+                                    const notifDate = new Date(notif.created_at);
+                                    notifDate.setHours(0, 0, 0, 0);
+                                    const notifDateStr = notifDate.toDateString();
+                                    
+                                    let groupName;
+                                    if (notifDateStr === todayStr) {
+                                        groupName = 'Today';
+                                    } else {
+                                        const yesterday = new Date(today);
+                                        yesterday.setDate(yesterday.getDate() - 1);
+                                        
+                                        if (notifDateStr === yesterday.toDateString()) {
+                                            groupName = 'Yesterday';
+                                        } else {
+                                            const weekAgo = new Date(today);
+                                            weekAgo.setDate(weekAgo.getDate() - 7);
+                                            
+                                            if (notifDate >= weekAgo) {
+                                                groupName = 'This week';
+                                            } else {
+                                                const currentYear = new Date().getFullYear();
+                                                const notifYear = notifDate.getFullYear();
+                                                const dateOptions = { 
+                                                    month: 'short', 
+                                                    day: 'numeric'
+                                                };
+                                                
+                                                if (notifYear !== currentYear) {
+                                                    dateOptions.year = 'numeric';
+                                                }
+                                                
+                                                groupName = notifDate.toLocaleDateString('en-US', dateOptions);
+                                            }
+                                        }
+                                    }
+                                    
+                                    if (!groups[groupName]) {
+                                        groups[groupName] = [];
+                                    }
+                                    groups[groupName].push(notif);
+                                });
+                                
+                                return groups;
+                            },
                             markAsRead() {
                                 fetch('{{ route('notifications.read') }}', {
                                     method: 'POST',
@@ -123,13 +179,67 @@
                                     }
                                 }).then(() => {
                                     this.notifications.forEach(n => n.is_read = true);
+                                    // Update badge
+                                    window.dispatchEvent(new CustomEvent('notifications-marked-read'));
                                 });
+                            },
+                            loadMoreNotifications() {
+                                if (this.loadingMore || !this.hasMore) return;
+                                
+                                this.loadingMore = true;
+                                this.page++;
+                                
+                                fetch(`/notifications/load-more?page=${this.page}`)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.notifications && data.notifications.length > 0) {
+                                            this.notifications = [...this.notifications, ...data.notifications];
+                                            this.groupedNotifications = this.getGroupedNotifications();
+                                            this.hasMore = data.has_more;
+                                        } else {
+                                            this.hasMore = false;
+                                        }
+                                        this.loadingMore = false;
+                                    })
+                                    .catch(() => {
+                                        this.loadingMore = false;
+                                    });
+                            },
+                            init() {
+                                // Load initial notifications (more than before)
+                                @if(Auth::check())
+                                    try {
+                                        @php
+                                            $notifications = \App\Models\Notification::where('user_id', Auth::id())
+                                                ->latest()
+                                                ->take(50)
+                                                ->get()
+                                                ->map(function($notification) {
+                                                    $data = $notification->data;
+                                                    $data['profile_pic_url'] = $notification->from_user_profile_pic;
+                                                    $notification->data = $data;
+                                                    return $notification;
+                                                });
+                                        @endphp
+                                        this.notifications = {!! Js::from($notifications) !!};
+                                        this.groupedNotifications = this.getGroupedNotifications();
+                                        this.hasMore = {{ \App\Models\Notification::where('user_id', Auth::id())->count() > 50 ? 'true' : 'false' }};
+                                    } catch(e) {
+                                        console.error('Error loading notifications:', e);
+                                        this.notifications = [];
+                                        this.groupedNotifications = {};
+                                        this.hasMore = false;
+                                    }
+                                @else
+                                    this.notifications = [];
+                                    this.groupedNotifications = {};
+                                    this.hasMore = false;
+                                @endif
                             }
-                        }" x-init="notifications = {{ Js::from(\App\Models\Notification::where('user_id', Auth::id())->latest()->take(5)->get()) }};"
-                            @new-notification.window="notifications.unshift($event.detail)">
+                        }" @new-notification.window="notifications.unshift($event.detail); groupedNotifications = getGroupedNotifications();"
+                        @notifications-marked-read.window="notifications.forEach(n => n.is_read = true);">
                             <!-- Bell Icon -->
                             <button @click="open = !open; if(open) markAsRead()" class="relative focus:outline-none mt-1.5">
-                                <!-- Use Heroicon Bell -->
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor"
                                     class="w-6 h-6 text-gray-700 dark:text-gray-200">
@@ -142,33 +252,94 @@
                                     <span x-text="notifications.filter(n => !n.is_read).length"></span>
                                 </span>
                             </button>
-                            <!-- Dropdown -->
-                            <div x-show="open" @click.away="open = false" x-transition
-                                class="absolute right-20 mt-2 w-80 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden z-50 border border-gray-200">
-                                <div class="px-4 py-2 bg-gray-50 border-b border-gray-200  dark:bg-gray-800 ">
-                                    <span
-                                        class="text-sm font-semibold text-gray-700 dark:text-gray-200">Notifications</span>
+                           <!-- Dropdown - Larger to show more notifications -->
+<div x-show="open" @click.away="open = false" x-transition
+    class="absolute right-20 mt-2 w-96 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden z-50 border border-gray-200">
+    <div class="px-4 py-2 bg-gray-50 border-b border-gray-200  dark:bg-gray-800 flex justify-between items-center">
+        <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">Notifications</span>
+        <button @click="markAsRead()" class="text-xs text-[#B59F84] hover:underline">
+            Mark all as read
+        </button>
+    </div>
+    <!-- Notification content container with better overflow handling -->
+    <div class="flex flex-col" style="max-height: 70vh;">
+        <div class="flex-1 overflow-y-auto custom-scroll">
+            <template x-for="[groupName, groupNotifications] in Object.entries(groupedNotifications)" :key="groupName">
+                <div>
+                    <div class="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 sticky top-0 z-10">
+                        <span class="text-xs font-semibold text-gray-600 dark:text-gray-300" x-text="groupName"></span>
+                    </div>
+                    <template x-for="notif in groupNotifications" :key="notif.id">
+                        <a :href="
+                                notif.data.product_id 
+                                    ? `/products/${notif.data.product_id}` 
+                                    : (notif.data.donation_id 
+                                        ? `/donations/${notif.data.donation_id}` 
+                                        : (notif.data.appointment_id 
+                                            ? '{{ route('upcycler') }}' 
+                                            : (notif.data.link || '#')
+                                        )
+                                    )"
+                            class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 last:border-b-0"
+                            @click="open = false">
+                            <div class="flex items-start gap-3">
+                                <!-- Profile Picture -->
+                                <div class="flex-shrink-0">
+                                    <img :src="notif.data.profile_pic_url || '{{ asset('images/default-profile.jpg') }}'"
+                                         :alt="notif.data.from_user || 'User'"
+                                         class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600">
                                 </div>
-                                <div class="max-h-64 overflow-y-auto divide-y divide-gray-100 custom-scroll ">
-                                    <template x-for="notif in notifications" :key="notif.id">
-                                        <a :href="notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data
-                                            .donation_id ? `/donations/${notif.data.donation_id}` : '#')"
-                                            class="block px-4 py-3 hover:bg-gray-50 transition">
-                                            <p class="text-sm text-gray-700">
-                                                <strong class="text-[#B59F84]"
-                                                    x-text="notif.data.from_user || 'System'"></strong>
-                                                <span
-                                                    x-text="notif.data.message || (notif.data.content ? 'commented: ' + notif.data.content : '')"></span>
-                                            </p>
-                                            <span class="text-xs text-gray-400"
-                                                x-text="new Date(notif.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })">
-                                            </span>
-
-                                        </a>
-                                    </template>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-gray-700 dark:text-gray-200 mb-1">
+                                        <strong class="text-[#B59F84]"
+                                            x-text="notif.data.from_user || 'System'"></strong>
+                                        <span
+                                            x-text="notif.data.message || (notif.data.content ? 'commented: ' + notif.data.content : '')"></span>
+                                    </p>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400"
+                                        x-text="new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })">
+                                    </span>
                                 </div>
+                                <span x-show="!notif.is_read" class="ml-2 w-2 h-2 bg-[#B59F84] rounded-full mt-1.5 flex-shrink-0"></span>
                             </div>
-                        </div>
+                        </a>
+                    </template>
+                </div>
+            </template>
+            
+            <!-- Empty State -->
+            <div x-show="notifications.length === 0" class="px-4 py-8 text-center">
+                <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+                    </path>
+                </svg>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">No notifications yet</p>
+            </div>
+        </div>
+        
+        <!-- Footer with load more button - stays at bottom -->
+        <div class="border-t border-gray-200 bg-white dark:bg-gray-800">
+            <!-- Load More Button -->
+            <div x-show="hasMore && notifications.length > 0" class="border-b border-gray-200">
+                <button @click="loadMoreNotifications()" 
+                        :disabled="loadingMore"
+                        class="w-full px-4 py-3 text-sm text-center text-[#B59F84] font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span x-show="!loadingMore">Show more notifications</span>
+                    <span x-show="loadingMore" class="flex items-center justify-center">
+                        <svg class="animate-spin h-4 w-4 mr-2 text-[#B59F84]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Loading...
+                    </span>
+                </button>
+            </div>
+        </div>
+            
+        </div>
+    </div>
+</div>
                     @endif
                 @endauth
                 @auth
@@ -415,13 +586,135 @@
                             </a>
                         @endif
                     @endauth
-                    <!-- Notification Bell -->
-                    <div id="notif-bell" x-data="{ open: false, notifications: [], markAsRead() { fetch('{{ route('notifications.read') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } }).then(() => { this.notifications.forEach(n => n.is_read = true); }); } }" x-init="notifications = {{ Js::from(\App\Models\Notification::where('user_id', Auth::id())->latest()->take(5)->get()) }};"
-                        @new-notification.window="notifications.unshift($event.detail)">
+                    <!-- Mobile Notification Bell with ALL notifications -->
+                    <div id="notif-bell-mobile" x-data="{ 
+                        open: false, 
+                        notifications: [],
+                        groupedNotifications: {},
+                        loadingMore: false,
+                        hasMore: true,
+                        page: 1,
+                        perPage: 30,
+                        getGroupedNotifications() {
+                            const groups = {};
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const todayStr = today.toDateString();
+                            
+                            this.notifications.forEach(notif => {
+                                const notifDate = new Date(notif.created_at);
+                                notifDate.setHours(0, 0, 0, 0);
+                                const notifDateStr = notifDate.toDateString();
+                                
+                                let groupName;
+                                if (notifDateStr === todayStr) {
+                                    groupName = 'Today';
+                                } else {
+                                    const yesterday = new Date(today);
+                                    yesterday.setDate(yesterday.getDate() - 1);
+                                    
+                                    if (notifDateStr === yesterday.toDateString()) {
+                                        groupName = 'Yesterday';
+                                    } else {
+                                        const weekAgo = new Date(today);
+                                        weekAgo.setDate(weekAgo.getDate() - 7);
+                                        
+                                        if (notifDate >= weekAgo) {
+                                            groupName = 'This week';
+                                        } else {
+                                            const currentYear = new Date().getFullYear();
+                                            const notifYear = notifDate.getFullYear();
+                                            const dateOptions = { 
+                                                month: 'short', 
+                                                day: 'numeric'
+                                            };
+                                            
+                                            if (notifYear !== currentYear) {
+                                                dateOptions.year = 'numeric';
+                                            }
+                                            
+                                            groupName = notifDate.toLocaleDateString('en-US', dateOptions);
+                                        }
+                                    }
+                                }
+                                
+                                if (!groups[groupName]) {
+                                    groups[groupName] = [];
+                                }
+                                groups[groupName].push(notif);
+                            });
+                            
+                            return groups;
+                        },
+                        markAsRead() {
+                            fetch('{{ route('notifications.read') }}', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json',
+                                }
+                            }).then(() => {
+                                this.notifications.forEach(n => n.is_read = true);
+                                window.dispatchEvent(new CustomEvent('notifications-marked-read'));
+                            });
+                        },
+                        loadMoreNotifications() {
+                            if (this.loadingMore || !this.hasMore) return;
+                            
+                            this.loadingMore = true;
+                            this.page++;
+                            
+                            fetch(`/notifications/load-more?page=${this.page}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.notifications && data.notifications.length > 0) {
+                                        this.notifications = [...this.notifications, ...data.notifications];
+                                        this.groupedNotifications = this.getGroupedNotifications();
+                                        this.hasMore = data.has_more;
+                                    } else {
+                                        this.hasMore = false;
+                                    }
+                                    this.loadingMore = false;
+                                })
+                                .catch(() => {
+                                    this.loadingMore = false;
+                                });
+                        },
+                        init() {
+                            @if(Auth::check())
+                                try {
+                                    @php
+                                        $mobileNotifications = \App\Models\Notification::where('user_id', Auth::id())
+                                            ->latest()
+                                            ->take(30)
+                                            ->get()
+                                            ->map(function($notification) {
+                                                $data = $notification->data;
+                                                $data['profile_pic_url'] = $notification->from_user_profile_pic;
+                                                $notification->data = $data;
+                                                return $notification;
+                                            });
+                                    @endphp
+                                    this.notifications = {!! Js::from($mobileNotifications) !!};
+                                    this.groupedNotifications = this.getGroupedNotifications();
+                                    this.hasMore = {{ \App\Models\Notification::where('user_id', Auth::id())->count() > 30 ? 'true' : 'false' }};
+                                } catch(e) {
+                                    console.error('Error loading notifications:', e);
+                                    this.notifications = [];
+                                    this.groupedNotifications = {};
+                                    this.hasMore = false;
+                                }
+                            @else
+                                this.notifications = [];
+                                this.groupedNotifications = {};
+                                this.hasMore = false;
+                            @endif
+                        }
+                    }" @new-notification.window="notifications.unshift($event.detail); groupedNotifications = getGroupedNotifications();"
+                    @notifications-marked-read.window="notifications.forEach(n => n.is_read = true);">
                         <!-- Bell Icon -->
                         <button @click="open = !open; if(open) markAsRead()"
                             class="relative focus:outline-none mt-1.5">
-                            <!-- Use Heroicon Bell -->
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor"
                                 class="w-6 h-6 text-gray-700  dark:text-gray-200">
@@ -438,24 +731,82 @@
                         <!-- Dropdown -->
                         <div x-show="open" @click.away="open = false" x-transition
                             class="absolute right-20 mt-2 w-80 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden z-50 border border-gray-200">
-                            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200  dark:bg-gray-800 ">
-                                <span
-                                    class="text-sm font-semibold text-gray-700 dark:text-gray-200">Notifications</span>
+                            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200  dark:bg-gray-800 flex justify-between items-center">
+                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">Notifications</span>
+                                <button @click="markAsRead()" class="text-xs text-[#B59F84] hover:underline">
+                                    Mark all as read
+                                </button>
                             </div>
-                            <div class="max-h-64 overflow-y-auto divide-y divide-gray-100 custom-scroll ">
-                                <template x-for="notif in notifications" :key="notif.id">
-                                    <a :href="notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data
-                                        .donation_id ? `/donations/${notif.data.donation_id}` : '#')"
-                                        class="block px-4 py-3 hover:bg-gray-50 transition">
-                                        <p class="text-sm text-gray-700">
-                                            <strong class="text-[#B59F84]"
-                                                x-text="notif.data.from_user || 'System'"></strong>
-                                            <span
-                                                x-text="notif.data.message || (notif.data.content ? 'commented: ' + notif.data.content : '')"></span>
-                                        </p>
-                                        <span class="text-xs text-gray-400" x-text="notif.created_at"></span>
-                                    </a>
+                            <div class="max-h-64 overflow-y-auto divide-y divide-gray-100 custom-scroll">
+                                <template x-for="[groupName, groupNotifications] in Object.entries(groupedNotifications)" :key="groupName">
+                                    <div>
+                                        <div class="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200">
+                                            <span class="text-xs font-semibold text-gray-600 dark:text-gray-300" x-text="groupName"></span>
+                                        </div>
+                                        <template x-for="notif in groupNotifications" :key="notif.id">
+                                            <a :href="
+                                                    notif.data.link 
+                                                        || (notif.data.product_id 
+                                                            ? `/products/${notif.data.product_id}` 
+                                                            : (notif.data.donation_id 
+                                                                ? `/donations/${notif.data.donation_id}` 
+                                                                : (notif.data.appointment_id 
+                                                                    ? '{{ route('upcycler') }}' 
+                                                                    : '#'
+                                                                )
+                                                            )
+                                                        )"
+                                            class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                                            @click="open = false">
+                                                <div class="flex items-start gap-3">
+                                                    <!-- Profile Picture -->
+                                                    <div class="flex-shrink-0">
+                                                        <img :src="notif.data.profile_pic_url || '{{ asset('images/default-profile.jpg') }}'"
+                                                             :alt="notif.data.from_user || 'User'"
+                                                             class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600">
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <p class="text-sm text-gray-700 dark:text-gray-200 mb-1">
+                                                            <strong class="text-[#B59F84]"
+                                                                x-text="notif.data.from_user || 'System'"></strong>
+                                                            <span x-text="notif.data.message || (notif.data.content ? 'commented: ' + notif.data.content : '')"></span>
+                                                        </p>
+                                                        <span class="text-xs text-gray-500 dark:text-gray-400"
+                                                            x-text="new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })">
+                                                        </span>
+                                                    </div>
+                                                    <span x-show="!notif.is_read" class="ml-2 w-2 h-2 bg-[#B59F84] rounded-full mt-1.5 flex-shrink-0"></span>
+                                                </div>
+                                            </a>
+                                        </template>
+                                    </div>
                                 </template>
+                                
+                                <!-- Empty State -->
+                                <div x-show="notifications.length === 0" class="px-4 py-8 text-center">
+                                    <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+                                        </path>
+                                    </svg>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm">No notifications yet</p>
+                                </div>
+                                
+                                <!-- Load More Button -->
+                                <div x-show="hasMore && notifications.length > 0" class="border-t border-gray-200">
+                                    <button @click="loadMoreNotifications()" 
+                                            :disabled="loadingMore"
+                                            class="w-full px-4 py-3 text-sm text-center text-[#B59F84] font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <span x-show="!loadingMore">Show more notifications</span>
+                                        <span x-show="loadingMore" class="flex items-center justify-center">
+                                            <svg class="animate-spin h-4 w-4 mr-2 text-[#B59F84]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Loading...
+                                        </span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -654,6 +1005,29 @@
             margin: 0 !important;
             max-width: 100vw !important;
         }
+    }
+
+    /* Better scrollbar for notifications */
+    .custom-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #c1c1c1 transparent;
+    }
+    
+    .custom-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .custom-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .custom-scroll::-webkit-scrollbar-thumb {
+        background-color: #c1c1c1;
+        border-radius: 20px;
+    }
+    
+    .dark .custom-scroll::-webkit-scrollbar-thumb {
+        background-color: #4a5568;
     }
 </style>
 <script>
