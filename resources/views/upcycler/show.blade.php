@@ -118,6 +118,19 @@
 
                         <!-- Appointment Details -->
                         <div class="space-y-4">
+                            <!-- Important Section: Appointment Details -->
+                            <div class="flex items-center space-x-3 border-l-4 border-[#B59F84] pl-4 bg-yellow-50">
+                                <svg class="w-5 h-5 text-[#B59F84]" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 5v14m7-7H5"></path>
+                                </svg>
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Client Note</p>
+                                    <p class="font-medium text-gray-900 dark:text-gray-100">
+                                        {{ $appointment->appdetails }}</p>
+                                </div>
+                            </div>
                             <div class="flex items-center space-x-3">
                                 <svg class="w-5 h-5 text-[#B59F84]" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -145,7 +158,9 @@
                                         {{ \Carbon\Carbon::parse($appointment->appdate)->format('F j, Y g:i A') }}</p>
                                 </div>
                             </div>
+                        
                         </div>
+
                     </div>
 
                     <!-- Status and Created At -->

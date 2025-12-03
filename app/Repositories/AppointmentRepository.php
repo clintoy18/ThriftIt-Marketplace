@@ -13,7 +13,12 @@ class AppointmentRepository
 
     public function find($id)
     {
-     return Appointment::with('apptImages')->findOrFail($id);
+        return Appointment::with('apptImages')->findOrFail($id);
+    }
+
+    public function getById($id)
+    {
+        return Appointment::findOrFail($id);   
     }
 
     public function create(array $data)
@@ -37,12 +42,17 @@ class AppointmentRepository
         return Appointment::with('upcycler')->where('user_id', $userId)->get();
     }
 
-    public function getByUpcycler($upcyclerId, $statuses = ['pending', 'approved'])
+    public function getByUpcycler($upcyclerId, $statuses = [])
     {
-        return Appointment::where('upcycler_id', $upcyclerId)
-            ->whereIn('appstatus', $statuses)
-            ->get();
+        $query = Appointment::where('upcycler_id', $upcyclerId);
+
+        if (!empty($statuses)) {
+            $query->whereIn('appstatus', $statuses);
+        }
+
+        return $query->get();
     }
+
 
     public function updateById($appointmentId, array $data)
     {

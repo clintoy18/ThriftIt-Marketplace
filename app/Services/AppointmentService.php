@@ -26,7 +26,7 @@ class AppointmentService
 
     public function getAppointmentById($id)
     {
-        return $this->appointmentRepository->getByUpcycler($id);
+        return $this->appointmentRepository->getById($id);
     }
 
     public function createAppointment(array $data, ?array $apptImages = null)
@@ -111,11 +111,11 @@ class AppointmentService
             return ['error' => 'You can only cancel appointments more than 24 hours in advance.'];
         }
 
-        // if($appointment->appstatus == 'approved')
-        // {
-        //     return ['error' => 'You cannot cancel approved appointment.'];
+        if($appointment->appstatus == 'approved')
+        {
+            return ['error' => 'You cannot cancel approved appointment.'];
 
-        // }
+        }
 
         $this->appointmentRepository->update($appointment, ['appstatus' => 'cancelled']);
         return ['success' => 'Appointment cancelled successfully!'];

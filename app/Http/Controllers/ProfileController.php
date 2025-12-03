@@ -108,11 +108,11 @@ class ProfileController extends Controller
 
     public function show(User $user)
     {
-        // Available products (status not sold)
+        // Available products (approved, not sold)
         $availableProducts = $user->products()
-        ->where('approval_status', 'approved')    // only approved products
-        ->where('status', '!=', 'sold')  // exclude sold products
-        ->get();
+            ->where('approval_status', 'approved')
+            ->where('status', '!=', 'sold')
+            ->get();
 
         // Sold products
         $soldProducts = $user->products()->where('status', 'sold')->get();
@@ -120,14 +120,29 @@ class ProfileController extends Controller
         // Orders received for this user's products
         $orders = $user->ordersAsSeller()->with(['product', 'buyer'])->get();
 
-        // Works
-        $works = $user->works()->where('approval_status','approved')->get();
+        // Works (approved only)
+        $works = $user->works()->where('approval_status', 'approved')->get();
 
-        // Dashboard statistics (only for profile owner)
-        $totalListings = $user->products()->where('approval_status','approved')->count();
+        // Completed appointments as requester
+        $completedAppointments = $user->appointments()
+            ->where('appstatus', 'completed')
+            ->with(['upcycler'])
+            ->get();
+
+        // Completed appointments as upcycler
+        $completedAppointmentsAsUpcycler = $user->appointmentsAsUpcycler()
+            ->where('appstatus', 'completed')
+            ->with(['upcycler'])
+            ->get();
+
+        // Dashboard statistics
+        $totalListings = $user->products()->where('approval_status', 'approved')->count();
         $itemsSold = $user->products()->where('status', 'sold')->count();
         $revenue = $user->products()->where('status', 'sold')->sum('price');
         $itemsDonated = $user->donations()->where('status', 'donated')->count();
+        $approvedWorks = $user->works()->where('approval_status', 'approved')->count();
+        $completedAppointmentsCount = $completedAppointments->count();
+        $completedAppointmentsAsUpcyclerCount = $completedAppointmentsAsUpcycler->count();
 
         return view('profile.show', [
             'user' => $user,
@@ -138,7 +153,12 @@ class ProfileController extends Controller
             'itemsSold' => $itemsSold,
             'revenue' => $revenue,
             'itemsDonated' => $itemsDonated,
-            'works'=> $works,
+            'works' => $works,
+            'approvedWorks' => $approvedWorks,
+            'completedAppointments' => $completedAppointments,
+            'completedAppointmentsCount' => $completedAppointmentsCount,
+            'completedAppointmentsAsUpcycler' => $completedAppointmentsAsUpcycler,
+            'completedAppointmentsAsUpcyclerCount' => $completedAppointmentsAsUpcyclerCount,
         ]);
     }
 
