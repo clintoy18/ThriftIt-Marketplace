@@ -49,8 +49,24 @@ class UpcyclerService
 
     public function getAppointmentsForUpcycler($upcyclerId)
     {
-        return $this->appointmentRepository->getByUpcycler($upcyclerId);
+        $appointments = $this->appointmentRepository->getByUpcycler($upcyclerId);
+
+        // Group appointments by status
+        $grouped = $appointments->groupBy('appstatus');
+
+        // Ensure 'pending' comes first
+        $ordered = collect();
+        foreach (['pending', 'approved', 'completed', 'cancelled'] as $status) {
+            if ($grouped->has($status)) {
+                $ordered[$status] = $grouped[$status];
+            }
+        }
+
+        return $ordered;
     }
+
+
+
 
     public function getAppointmentById($appointmentId)
     {
@@ -84,4 +100,4 @@ class UpcyclerService
         }
         return $this->appointmentRepository->delete($appointment);
     }
-} 
+}
