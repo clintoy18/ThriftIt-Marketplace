@@ -62,7 +62,7 @@
             <div class="hidden md:flex items-center gap-2 lg:gap-4">
                 @auth
                     @if ($role !== 2)
-                        <a href="#" class="text-gray-700 dark:text-gray-200">🤍</a> <!-- Wishlist -->
+                        {{-- <a href="#" class="text-gray-700 dark:text-gray-200">🤍</a> <!-- Wishlist --> --}}
 
 
                         <!-- Messages with Real-time Badge -->
@@ -477,11 +477,11 @@
                 <div class="flex flex-col space-y-0 px-4 py-4">
                     @auth
                         @if ($role !== 2)
-                            <a href="#"
+                            {{-- <a href="#"
                                 class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100">
                                 <span class="mr-3 text-lg">🤍</span>
                                 <span class="font-medium">Wishlist</span>
-                            </a>
+                            </a> --}}
 
                             <a href="{{ route('messages.index') }}"
                                 class="flex items-center text-gray-700 dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 relative"
