@@ -113,8 +113,17 @@ class AppointmentController extends Controller
 
     public function myAppointments()
     {
-        $appointments = $this->appointmentService->getAppointmentsByUser(Auth::id());
-        return view('appointments.myAppointments', compact('appointments'));
+        $user = Auth::user();
+
+        if ($user->role == 1) { // Upcycler
+            $appointments = $this->appointmentService->getAppointmentsByUpcycler($user->id);
+            $viewMode = 'upcycler';
+        } else { // Default to regular user
+            $appointments = $this->appointmentService->getAppointmentsByUser($user->id);
+            $viewMode = 'user';
+        }
+
+        return view('appointments.myAppointments', compact('appointments', 'viewMode'));
     }
 
     public function cancel($appointmentid)

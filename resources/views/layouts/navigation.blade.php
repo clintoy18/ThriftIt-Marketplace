@@ -209,7 +209,19 @@
                                 // Load initial notifications (more than before)
                                 @if(Auth::check())
                                     try {
-                                        this.notifications = {!! Js::from(\App\Models\Notification::where('user_id', Auth::id())->latest()->take(50)->get()) !!};
+                                        @php
+                                            $notifications = \App\Models\Notification::where('user_id', Auth::id())
+                                                ->latest()
+                                                ->take(50)
+                                                ->get()
+                                                ->map(function($notification) {
+                                                    $data = $notification->data;
+                                                    $data['profile_pic_url'] = $notification->from_user_profile_pic;
+                                                    $notification->data = $data;
+                                                    return $notification;
+                                                });
+                                        @endphp
+                                        this.notifications = {!! Js::from($notifications) !!};
                                         this.groupedNotifications = this.getGroupedNotifications();
                                         this.hasMore = {{ \App\Models\Notification::where('user_id', Auth::id())->count() > 50 ? 'true' : 'false' }};
                                     } catch(e) {
@@ -258,11 +270,26 @@
                         <span class="text-xs font-semibold text-gray-600 dark:text-gray-300" x-text="groupName"></span>
                     </div>
                     <template x-for="notif in groupNotifications" :key="notif.id">
-                        <a :href="notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data.donation_id ? `/donations/${notif.data.donation_id}` : '#')"
+                        <a :href="
+                                notif.data.product_id 
+                                    ? `/products/${notif.data.product_id}` 
+                                    : (notif.data.donation_id 
+                                        ? `/donations/${notif.data.donation_id}` 
+                                        : (notif.data.appointment_id 
+                                            ? '{{ route('upcycler') }}' 
+                                            : (notif.data.link || '#')
+                                        )
+                                    )"
                             class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 last:border-b-0"
                             @click="open = false">
-                            <div class="flex items-start">
-                                <div class="flex-1">
+                            <div class="flex items-start gap-3">
+                                <!-- Profile Picture -->
+                                <div class="flex-shrink-0">
+                                    <img :src="notif.data.profile_pic_url || '{{ asset('images/default-profile.jpg') }}'"
+                                         :alt="notif.data.from_user || 'User'"
+                                         class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600">
+                                </div>
+                                <div class="flex-1 min-w-0">
                                     <p class="text-sm text-gray-700 dark:text-gray-200 mb-1">
                                         <strong class="text-[#B59F84]"
                                             x-text="notif.data.from_user || 'System'"></strong>
@@ -308,6 +335,7 @@
                     </span>
                 </button>
             </div>
+        </div>
             
         </div>
     </div>
@@ -655,7 +683,19 @@
                         init() {
                             @if(Auth::check())
                                 try {
-                                    this.notifications = {!! Js::from(\App\Models\Notification::where('user_id', Auth::id())->latest()->take(30)->get()) !!};
+                                    @php
+                                        $mobileNotifications = \App\Models\Notification::where('user_id', Auth::id())
+                                            ->latest()
+                                            ->take(30)
+                                            ->get()
+                                            ->map(function($notification) {
+                                                $data = $notification->data;
+                                                $data['profile_pic_url'] = $notification->from_user_profile_pic;
+                                                $notification->data = $data;
+                                                return $notification;
+                                            });
+                                    @endphp
+                                    this.notifications = {!! Js::from($mobileNotifications) !!};
                                     this.groupedNotifications = this.getGroupedNotifications();
                                     this.hasMore = {{ \App\Models\Notification::where('user_id', Auth::id())->count() > 30 ? 'true' : 'false' }};
                                 } catch(e) {
@@ -704,11 +744,28 @@
                                             <span class="text-xs font-semibold text-gray-600 dark:text-gray-300" x-text="groupName"></span>
                                         </div>
                                         <template x-for="notif in groupNotifications" :key="notif.id">
-                                            <a :href="notif.data.link || '#'"
+                                            <a :href="
+                                                    notif.data.link 
+                                                        || (notif.data.product_id 
+                                                            ? `/products/${notif.data.product_id}` 
+                                                            : (notif.data.donation_id 
+                                                                ? `/donations/${notif.data.donation_id}` 
+                                                                : (notif.data.appointment_id 
+                                                                    ? '{{ route('upcycler') }}' 
+                                                                    : '#'
+                                                                )
+                                                            )
+                                                        )"
                                             class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
                                             @click="open = false">
-                                                <div class="flex items-start">
-                                                    <div class="flex-1">
+                                                <div class="flex items-start gap-3">
+                                                    <!-- Profile Picture -->
+                                                    <div class="flex-shrink-0">
+                                                        <img :src="notif.data.profile_pic_url || '{{ asset('images/default-profile.jpg') }}'"
+                                                             :alt="notif.data.from_user || 'User'"
+                                                             class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600">
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
                                                         <p class="text-sm text-gray-700 dark:text-gray-200 mb-1">
                                                             <strong class="text-[#B59F84]"
                                                                 x-text="notif.data.from_user || 'System'"></strong>

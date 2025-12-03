@@ -64,7 +64,7 @@ class AppointmentService
                     'from_user'      => Auth::user() ? Auth::user()->fname . ' ' . Auth::user()->lname : 'A user',
                     'apptype'        => $appointment->apptype,
                     'appdate'        => $appointment->appdate,
-                    'link'           => route('appointments.myAppointments'),
+                    'link'           => route('upcycler.index'),
                     'message'        => (Auth::user()
                         ? Auth::user()->fname . ' ' . Auth::user()->lname
                         : 'A user') . ' booked a new appointment with you.',
@@ -92,6 +92,11 @@ class AppointmentService
     public function getAppointmentsByUser($userId)
     {
         return $this->appointmentRepository->getByUser($userId);
+    }
+
+    public function getAppointmentsByUpcycler($upcyclerId)
+    {
+        return $this->appointmentRepository->getByUpcycler($upcyclerId);
     }
 
     public function cancelAppointment(Appointment $appointment)

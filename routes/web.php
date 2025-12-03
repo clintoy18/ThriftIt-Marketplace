@@ -61,7 +61,6 @@ Route::get('upcycler/dashboard', function () {
 
 //to make sure only a verified user can access the user routes, 
 Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function () {
-    Route::get('appointments/myAppointments', [AppointmentController::class, 'myAppointments'])->name('appointments.myAppointments');
     Route::resource('products', ProductController::class);
     Route::resource('categories', CategoriesController::class);
     Route::resource('appointments', AppointmentController::class);
@@ -103,8 +102,7 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function (
 Route::middleware(['auth', 'verified', 'rolemiddleware:upcycler'])->group(function () {
     Route::resource('upcycler', UpcyclerController::class);
     Route::resource('works', WorkController::class)->except(['show']);
-   
-
+ 
 });
 
 // Admin Routes
@@ -177,8 +175,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/users/{user}/unblock', [PrivateChatController::class, 'unblock'])->name('users.unblock');
     Route::get('/proxy-image', [PrivateChatController::class, 'proxyImage'])->name('proxy.image');
     
+    Route::get('appointments/myAppointments', [AppointmentController::class, 'myAppointments'])
+        ->middleware('verified')
+        ->name('appointments.myAppointments');
    
-    Route::get('/notifications/load-more', [NotificationController::class, 'loadMore'])->name('notifications.load-more');
     
     // // Call invitation routes
     // Route::post('/api/call/invite', function (Request $request) {

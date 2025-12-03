@@ -22,7 +22,13 @@ class NotificationController extends Controller
             ->latest()
             ->skip($offset)
             ->take($perPage)
-            ->get();
+            ->get()
+            ->map(function($notification) {
+                $data = $notification->data;
+                $data['profile_pic_url'] = $notification->from_user_profile_pic;
+                $notification->data = $data;
+                return $notification;
+            });
         
         $totalCount = Notification::where('user_id', Auth::id())->count();
         $loadedCount = $offset + $notifications->count();
