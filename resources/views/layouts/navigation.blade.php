@@ -30,7 +30,7 @@
                         <a href="{{ route('works.index') }}"
                             class="text-gray-700 dark:text-gray-200 hidden font-bold lg:block">Upcycling
                             Works</a>
-                        <a href="{{ route('works.index') }}"
+                        <a href="{{ route('eco-posts.index') }}"
                             class="text-gray-700 dark:text-gray-200 hidden font-bold lg:block">Eco Portal
                             </a>
                     @endif
@@ -276,8 +276,8 @@
                                     : (notif.data.donation_id 
                                         ? `/donations/${notif.data.donation_id}` 
                                         : (notif.data.appointment_id 
-                                            ? '{{ route('upcycler') }}' 
-                                            : (notif.data.link || '#')
+                                            ? '{{ route('upcycler.index') }}' 
+                                            : (notif.data.link || '')
                                         )
                                     )"
                             class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 last:border-b-0"

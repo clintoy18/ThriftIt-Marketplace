@@ -66,10 +66,16 @@
     <!-- Upcycler Cards -->
     <section id="upcyclers" class="py-16">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-center mb-10 text-gray-900 dark:text-white">
-                Meet Our Upcyclers
-            </h2>
-
+           <div class="flex items-center justify-between mb-10">
+                <h2 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                    Meet Our Upcyclers
+                </h2>
+                <a href="{{ route('appointments.myAppointments') }}"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#B59F84] text-white shadow-md hover:bg-[#a08e77] transition">
+                    <span class="font-semibold">Manage Appointments</span>
+                </a>
+            </div>
+            
             {{-- Location Filter (similar style to dashboard location filter) --}}
             @if(isset($barangays) && $barangays->count() > 0)
                 <div class="flex justify-end mb-6">

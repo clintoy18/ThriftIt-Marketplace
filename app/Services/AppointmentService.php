@@ -64,10 +64,8 @@ class AppointmentService
                     'from_user'      => Auth::user() ? Auth::user()->fname . ' ' . Auth::user()->lname : 'A user',
                     'apptype'        => $appointment->apptype,
                     'appdate'        => $appointment->appdate,
-                    'link'           => route('upcycler.index'),
-                    'message'        => (Auth::user()
-                        ? Auth::user()->fname . ' ' . Auth::user()->lname
-                        : 'A user') . ' booked a new appointment with you.',
+                    'link'           => route('upcycler'),
+                    'message'        =>' booked a new appointment with you.',
                 ],
             ]);
 
