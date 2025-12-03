@@ -27,6 +27,7 @@ use App\Http\Controllers\PricingController;
 use App\Http\Controllers\EcoPostController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\WorkController;
+use App\Http\Controllers\NotificationController;
 
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
@@ -175,6 +176,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/blocked', [PrivateChatController::class, 'getBlockedUsers'])->name('users.blocked');
     Route::post('/users/{user}/unblock', [PrivateChatController::class, 'unblock'])->name('users.unblock');
     Route::get('/proxy-image', [PrivateChatController::class, 'proxyImage'])->name('proxy.image');
+    
+   
+    Route::get('/notifications/load-more', [NotificationController::class, 'loadMore'])->name('notifications.load-more');
     
     // // Call invitation routes
     // Route::post('/api/call/invite', function (Request $request) {

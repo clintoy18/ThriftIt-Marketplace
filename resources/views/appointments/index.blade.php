@@ -136,11 +136,11 @@
                                     class="h-20 bg-gradient-to-r from-[#E1D5B6] to-[#cbbda2] dark:from-gray-700 dark:to-gray-600">
                                 </div>
                                 <div class="p-6 relative z-20">
-                                    <div
-                                        class="-mt-12 mb-4 w-20 h-20 mx-auto rounded-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 flex items-center justify-center text-lg font-bold text-gray-800 dark:text-gray-200 shadow-md overflow-hidden">
-                                        <img src="{{ $upcycler->profileImageUrl() }}" alt="{{ $upcycler->name }}"
-                                            class="w-full h-full object-cover rounded-full">
-                                    </div>
+                                <a href="{{ route('profile.show', $upcycler->id) }}"
+                                    class="-mt-12 mb-4 w-20 h-20 mx-auto rounded-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 flex items-center justify-center text-lg font-bold text-gray-800 dark:text-gray-200 shadow-md overflow-hidden transition-transform duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#B59F84]">
+                                    <img src="{{ $upcycler->profileImageUrl() }}" alt="{{ $upcycler->name }}"
+                                        class="w-full h-full object-cover rounded-full">
+                                </a>
 
                                     <div class="text-center">
                                         <h3

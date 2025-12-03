@@ -8,6 +8,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use App\Models\Appointment;
+use Illuminate\Support\Facades\Route;
 
 class AppointmentBookedNotification implements ShouldBroadcast
 {
@@ -40,6 +41,7 @@ class AppointmentBookedNotification implements ShouldBroadcast
             'apptype'       => $this->appointment->apptype,
             'appdate'       => optional($this->appointment->appdate)->format('M d, Y g:i A'),
             'message'       => "{$this->appointment->user->fname} {$this->appointment->user->lname} booked a new appointment.",
+            'link'          => route('appointments.myAppointments'),
             'created_at'    => $this->appointment->created_at->diffForHumans(),
         ];
     }

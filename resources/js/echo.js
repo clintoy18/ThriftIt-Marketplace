@@ -268,7 +268,7 @@ if (authUserId) {
             console.log("📅 New Appointment Notification:", e);
 
             const baseMessage = `${e.from_user} booked a new appointment.`;
-            showNotificationToast(`📅 ${baseMessage}`);
+            showNotificationToast(`📅 ${baseMessage}`, e.link);
 
             window.dispatchEvent(new CustomEvent('new-notification', {
                 detail: {
@@ -279,6 +279,7 @@ if (authUserId) {
                         apptype: e.apptype,
                         appdate: e.appdate,
                         message: baseMessage,
+                        link: e.link,
                     },
                     created_at: new Date().toISOString(),
                     is_read: false,
@@ -289,13 +290,22 @@ if (authUserId) {
 
 
 // Function to show toast notification
-function showNotificationToast(message) {
+function showNotificationToast(message, link = null) {
     const toast = document.createElement("div");
-    toast.className = "fixed bottom-4 right-4 bg-[#B59F84] text-white px-4 py-2 rounded-lg shadow-lg z-50";
-    toast.innerText = message;
+    toast.className = "fixed bottom-4 right-4 bg-[#B59F84] text-white px-4 py-2 rounded-lg shadow-lg z-50 cursor-pointer";
+
+    if (link) {
+        toast.innerHTML = `<span class="underline"> ${message} </span>`;
+        toast.addEventListener('click', () => {
+            window.location.href = link;
+        });
+    } else {
+        toast.textContent = message;
+        toast.classList.remove('cursor-pointer');
+    }
 
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 4000);
+    setTimeout(() => toast.remove(), 5000);
 }
 
 // ============================================
