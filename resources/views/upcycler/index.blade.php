@@ -10,7 +10,7 @@
             </div>
             <div>
                 <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                    {{ __('My Appointments') }}
+                    {{ __('Upcycler Dashboard') }}
                 </h2>
                 <p class="text-sm text-gray-600 dark:text-gray-400">
                     Manage your client appointments and consultations
@@ -19,70 +19,75 @@
         </div>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-12" x-data="{ tab: 'pending' }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
 
-                @php
-                    $statuses = ['pending', 'approved', 'completed', 'cancelled', 'declined'];
-                @endphp
+                <!-- Tabs -->
+                <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
+                    <nav class="-mb-px flex space-x-4">
+                        @php
+                            $statuses = ['pending', 'approved', 'completed', 'cancelled'];
+                        @endphp
+                        @foreach($statuses as $status)
+                            <button 
+                                @click="tab='{{ $status }}'"
+                                :class="tab === '{{ $status }}' ? 'border-b-2 border-[#B59F84] text-[#B59F84] dark:text-[#F1E9D2]' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+                                class="px-3 py-2 font-medium text-sm focus:outline-none transition-colors"
+                            >
+                                {{ ucfirst($status) }}
+                            </button>
+                        @endforeach
+                    </nav>
+                </div>
 
+                <!-- Tab Contents -->
                 @foreach($statuses as $status)
-                    @php
-                        $appointmentsByStatus = $appointments->where('appstatus', $status);
-                    @endphp
-
-                    @if($appointmentsByStatus->count() > 0)
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4 capitalize">
-                                {{ $status }} Appointments
-                            </h3>
-
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full text-left border border-[#E9DFC7] dark:border-gray-700 rounded-lg">
+                    <div x-show="tab === '{{ $status }}'" class="transition duration-300">
+                        @if(isset($appointments[$status]) && $appointments[$status]->count() > 0)
+                            <div class="overflow-x-auto mb-6">
+                                <table class="min-w-full text-left text-sm text-gray-700 dark:text-gray-200 border border-[#E9DFC7] dark:border-gray-700 rounded-lg">
                                     <thead class="bg-[#F8F4EC] dark:bg-gray-700">
                                         <tr>
-                                            <th class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600 font-semibold">ID</th>
-                                            <th class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600 font-semibold">Upcycler</th>
-                                            <th class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600 font-semibold">Details</th>
+                                            <th class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600 font-semibold">User</th>
+                                            <th class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600 font-semibold">Type</th>
                                             <th class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600 font-semibold">Date</th>
-                                            <th class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600 font-semibold">Time</th>
                                             <th class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600 font-semibold">Status</th>
                                             <th class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600 font-semibold">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($appointmentsByStatus as $appointment)
+                                        @foreach($appointments[$status] as $appointment)
                                             <tr class="bg-white dark:bg-gray-800 hover:bg-[#F8F4EC] dark:hover:bg-gray-700 transition-colors duration-150">
-                                                <td class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600">{{ $appointment->appointmentid }}</td>
-                                                <td class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600">{{ $appointment->upcycler->fname ?? 'N/A' }} {{ $appointment->upcycler->lname ?? '' }}</td>
-                                                <td class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600">{{ $appointment->appdetails }}</td>
-                                                <td class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600">{{ \Carbon\Carbon::parse($appointment->appdate)->format('M d, Y') }}</td>
-                                                <td class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600">{{ \Carbon\Carbon::parse($appointment->appdate)->format('h:i A') }}</td>
                                                 <td class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600">
-                                                    @php
-                                                        $badgeClasses = [
-                                                            'pending' => 'bg-[#F1E9D2] text-[#8A7560] dark:bg-[#8A7560] dark:text-[#F1E9D2]',
-                                                            'approved' => 'bg-[#B59F84] text-white dark:bg-[#9C8770] dark:text-[#F1E9D2]',
-                                                            'completed' => 'bg-[#F4F2ED] text-[#8A7560] dark:bg-[#7A664D] dark:text-[#F1E9D2]',
-                                                            'cancelled' => 'bg-[#F5D6C6] text-[#8A4B2D] dark:bg-[#8A4B2D] dark:text-[#F1E9D2]',
-                                                            'declined' => 'bg-[#F5D6C6] text-[#8A4B2D] dark:bg-[#8A4B2D] dark:text-[#F1E9D2]',
-                                                        ][$appointment->appstatus] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
-                                                    @endphp
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $badgeClasses }}">
-                                                        {{ ucfirst($appointment->appstatus) }}
+                                                    <div class="flex items-center space-x-3">
+                                                        <div class="w-8 h-8 bg-[#F1E9D2] dark:bg-[#9C8770] rounded-full flex items-center justify-center">
+                                                            <svg class="w-4 h-4 text-[#B59F84] dark:text-[#F1E9D2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                                            </svg>
+                                                        </div>
+                                                        <span>{{ $appointment->user->lname }}, {{ $appointment->user->fname }}</span>
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600">{{ $appointment->apptype }}</td>
+                                                <td class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600">{{ \Carbon\Carbon::parse($appointment->appdate)->format('F j, Y g:i A') }}</td>
+                                                <td class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600">
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize 
+                                                        @if($appointment->appstatus === 'confirmed') bg-[#F8F4EC] text-[#B59F84] dark:bg-[#9C8770] dark:text-[#F1E9D2]
+                                                        @elseif($appointment->appstatus === 'pending') bg-[#F1E9D2] text-[#8A7560] dark:bg-[#8A7560] dark:text-[#F1E9D2]
+                                                        @else bg-[#F4F2ED] text-[#8A7560] dark:bg-gray-700 dark:text-gray-200 @endif">
+                                                        {{ $appointment->appstatus }}
                                                     </span>
                                                 </td>
                                                 <td class="px-4 py-3 border-b border-[#E9DFC7] dark:border-gray-600">
                                                     <div class="flex items-center space-x-3">
-                                                        <a href="{{ route('appointments.show', $appointment) }}" class="text-[#B59F84] hover:text-[#8A7560] dark:text-[#D5C39A] dark:hover:text-[#F1E9D2]">View</a>
-                                                        @if($appointment->appstatus === 'pending')
-                                                            <form method="POST" action="{{ route('appointments.cancel', $appointment) }}" class="inline" onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
-                                                                @csrf
-                                                                @method('PATCH')
-                                                                <button type="submit" class="text-[#8A7560] hover:text-[#6B5B48] dark:text-[#8A7560] dark:hover:text-[#6B5B48]">Cancel</button>
-                                                            </form>
-                                                        @endif
+                                                        <a href="{{ route('upcycler.show', $appointment) }}" class="text-[#B59F84] hover:text-[#8A7560] dark:text-[#D5C39A] dark:hover:text-[#F1E9D2]">View</a>
+                                                        <form action="{{ route('upcycler.destroy', $appointment) }}" method="POST" class="inline">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" onclick="return confirm('Are you sure you want to delete this appointment?')" class="text-[#8A7560] hover:text-[#6B5B48] dark:text-[#8A7560] dark:hover:text-[#6B5B48]">Delete</button>
+                                                        </form>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -90,18 +95,18 @@
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-                    @else
-                        <div class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                            <div class="flex flex-col items-center justify-center">
-                                <svg class="w-12 h-12 mb-3 text-[#B59F84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                                <p>No {{ $status }} appointments.</p>
+                        @else
+                            <div class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                                <div class="flex flex-col items-center justify-center">
+                                    <svg class="w-12 h-12 mb-3 text-[#B59F84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <p>No {{ $status }} appointments.</p>
+                                </div>
                             </div>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 @endforeach
 
             </div>
