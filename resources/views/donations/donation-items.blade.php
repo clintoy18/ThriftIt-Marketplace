@@ -7,7 +7,7 @@
             <div class="flex flex-col md:hidden text-center relative font-poppins">
                 <!-- Title -->
                 <h1 class="text-3xl font-extrabold text-[#634600] leading-tight dark:text-[#B59F84]">
-                    My Products
+                    My donations
                 </h1>
                 <p class="mt-2 text-lg text-[#603E14] dark:text-gray-200 mb-6">
                     Manage your sustainable fashion items 🌿
@@ -98,6 +98,7 @@
                 </a>
             </div>
 
+            
             <!-- Grid -->
             <div class="rounded-2xl shadow-sm overflow-hidden">
                 <div class="p-6">
@@ -119,8 +120,15 @@
                                         <!-- Image -->
                                         <div class="relative aspect-square overflow-hidden">
                                             <img src="{{ $donation->donationImages->isNotEmpty() ? Storage::disk('s3')->url($donation->donationImages->first()->image) : asset('images/default-placeholder.png') }}"
-                                                alt="{{ $donation->name }}" class="w-full h-full object-cover" />
-                                            class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105">
+                                                alt="{{ $donation->name }}" class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
+
+                                            {{-- Pending approval badge --}}
+                                            @if ($donation->approval_status === 'pending')
+                                                <div
+                                                    class="absolute top-2 right-2 z-10 bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded-full font-semibold shadow">
+                                                    Pending
+                                                </div>
+                                            @endif
                                         </div>
 
                                         <!-- Info -->

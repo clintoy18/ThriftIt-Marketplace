@@ -58,7 +58,7 @@
                         </p>
 
                         <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-sm">
-                            <p class="text-gray-800 dark:text-gray-200">
+                        <p class="text-gray-800 dark:text-gray-200 break-words overflow-hidden">
                                 {{ $product->description ?? 'No description available' }}
                             </p>
                         </div>
