@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use App\Models\Product;
 use App\Models\Barangay;
 use App\Models\Donation;
+use App\Models\Appointment;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Laravel\Cashier\Billable;
 use Illuminate\Support\Facades\Storage;
@@ -155,6 +156,18 @@ class User extends Authenticatable implements MustVerifyEmail
     public function works()
     {
         return $this->hasMany(Work::class);
+    }
+
+    // Appointments requested by this user (as buyer/requester)
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class, 'user_id');
+    }
+
+    // Appointments where this user is the upcycler
+    public function appointmentsAsUpcycler()
+    {
+        return $this->hasMany(Appointment::class, 'upcycler_id');
     }
 
     // Users that this user has blocked
