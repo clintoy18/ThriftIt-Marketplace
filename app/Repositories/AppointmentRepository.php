@@ -16,6 +16,11 @@ class AppointmentRepository
         return Appointment::with('apptImages')->findOrFail($id);
     }
 
+    public function getById($id)
+    {
+        return Appointment::findOrFail($id);   
+    }
+
     public function create(array $data)
     {
         return Appointment::create($data);
