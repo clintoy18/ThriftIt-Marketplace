@@ -29,13 +29,13 @@ class Subscribed
         $limit = 5;
 
         // Adjust limit based on subscription product
-        if ($user->subscribedToProduct('prod_T4nVT7WiXSJe56')) {
+        if ($user->subscribedToProduct('prod_TXeLIH6C3eBbuY')) {
             // Starter Rack
             $limit = 10;
-        } elseif ($user->subscribedToProduct('prod_T4nWTcrGuqLsx7')) {
+        } elseif ($user->subscribedToProduct('prod_TXeK42zx4mikcP')) {
             // Bargain Shelf
             $limit = 20;
-        } elseif ($user->subscribedToProduct('prod_T4nWhIZz4Y2Aja')) {
+        } elseif ($user->subscribedToProduct('prod_TXeIKafMmVOk7B')) {
             // Vintage Vault
             $limit = null; // Unlimited
         }

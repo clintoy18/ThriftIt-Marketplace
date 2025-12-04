@@ -57,7 +57,7 @@
                                 <svg class="flex-shrink-0 w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">2 upcycle bookings</span>
+                                <span class="text-gray-700 dark:text-gray-300">10 upcycle booking appointments</span>
                             </li>
                             <li class="flex items-center space-x-3">
                                 <svg class="flex-shrink-0 w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -98,19 +98,19 @@
                                 <svg class="flex-shrink-0 w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">Up to <span class="font-semibold">30 listings</span></span>
+                                <span class="text-gray-700 dark:text-gray-300">Up to <span class="font-semibold">40 listings</span></span>
                             </li>
                             <li class="flex items-center space-x-3">
                                 <svg class="flex-shrink-0 w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">5 upcycle bookings</span>
+                                <span class="text-gray-700 dark:text-gray-300">20 upcycle booking appointments</span>
                             </li>
                             <li class="flex items-center space-x-3">
                                 <svg class="flex-shrink-0 w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">Featured spot in search</span>
+                                <span class="text-gray-700 dark:text-gray-300">Featured spot in dashboard</span>
                             </li>
                         </ul>
 
@@ -145,13 +145,13 @@
                                 <svg class="flex-shrink-0 w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">100+ listings</span>
+                                <span class="text-gray-700 dark:text-gray-300">Unlimited listings</span>
                             </li>
                             <li class="flex items-center space-x-3">
                                 <svg class="flex-shrink-0 w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">15 upcycle bookings</span>
+                                <span class="text-gray-700 dark:text-gray-300">Unlimited upcycle booking appointments</span>
                             </li>
                             <li class="flex items-center space-x-3">
                                 <svg class="flex-shrink-0 w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
