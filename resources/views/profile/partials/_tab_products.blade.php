@@ -4,7 +4,7 @@
             <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 <svg class="w-6 h-6 text-[#B59F84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                 </svg>
                 Product Inventory
             </h3>
@@ -22,9 +22,10 @@
     <div class="mb-8">
         <div class="flex items-center gap-3 mb-4">
             <div class="p-2 bg-[#F1E9D2] dark:bg-[#9C8770] rounded-lg">
-                <svg class="w-5 h-5 text-[#B59F84] dark:text-[#F1E9D2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-[#B59F84] dark:text-[#F1E9D2]" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
                 </svg>
             </div>
             <div>
@@ -39,12 +40,17 @@
                     @include('profile.partials._product_card', ['product' => $product, 'sold' => false])
                 @endforeach
             </div>
+
+            <!-- Pagination links -->
+            <div class="mt-4">
+                {{ $availableProducts->links() }}
+            </div>
         @else
             @include('profile.partials._empty_state', [
                 'icon' => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
                 'title' => 'No Active Products',
                 'message' => 'Start your sustainable journey by listing your first upcycled product!',
-                'button' => ['text' => 'Create First Product', 'url' => route('products.create')]
+                'button' => ['text' => 'Create First Product', 'url' => route('products.create')],
             ])
         @endif
     </div>
@@ -53,9 +59,10 @@
     <div>
         <div class="flex items-center gap-3 mb-4">
             <div class="p-2 bg-[#F1E9D2] dark:bg-[#8A7560] rounded-lg">
-                <svg class="w-5 h-5 text-[#8A7560] dark:text-[#F1E9D2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-[#8A7560] dark:text-[#F1E9D2]" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
             <div>
@@ -74,7 +81,7 @@
             @include('profile.partials._empty_state', [
                 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
                 'title' => 'No Sales Yet',
-                'message' => 'Your sold products will appear here'
+                'message' => 'Your sold products will appear here',
             ])
         @endif
     </div>

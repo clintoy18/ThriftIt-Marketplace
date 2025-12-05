@@ -112,10 +112,10 @@ class ProfileController extends Controller
         $availableProducts = $user->products()
             ->where('approval_status', 'approved')
             ->where('status', '!=', 'sold')
-            ->get();
+            ->paginate(8);
 
         // Sold products
-        $soldProducts = $user->products()->where('status', 'sold')->get();
+        $soldProducts = $user->products()->where('status', 'sold')->paginate(8);
 
         // Orders received for this user's products
         $orders = $user->ordersAsSeller()->with(['product', 'buyer'])->get();
