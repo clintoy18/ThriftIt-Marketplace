@@ -233,6 +233,10 @@
                             ])->links('pagination.tailwind-custom') }}
                     </div>
                 @endif
+                <div id="loadingIndicator" class="hidden flex items-center justify-center py-4">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#634600]"></div>
+                    <span class="ml-2 text-gray-600 dark:text-gray-300">Loading products...</span>
+                </div>
 
                 {{-- Products Grid --}}
                 <div id="productsGrid">
