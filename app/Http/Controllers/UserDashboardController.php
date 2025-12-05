@@ -40,11 +40,11 @@ class UserDashboardController extends Controller
             $query->where('products.barangay_id', $selectedBarangayId);
         }
 
-        $products = $query->paginate(10);
+        $products = $query->paginate(12);
 
-        $donations = Donation::with(['user', 'category'])
-            ->where('status', 'available')
-            ->get();
+        // $donations = Donation::with(['user', 'category'])
+        //     ->where('status', 'available')
+        //     ->get();
 
         $segments = Segment::all();
         $categories = Categories::all();
@@ -52,7 +52,7 @@ class UserDashboardController extends Controller
 
         return view('dashboard', compact(
             'products',
-            'donations',
+            // 'donations',
             'segments',
             'categories',
             'barangays',

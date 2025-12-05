@@ -6,7 +6,7 @@
                     @if($product->listingtype === 'for donation')
                         <div class="absolute top-1 left-1 z-10 bg-[#D9D9D9] text-gray-700 text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full">
                             Donation
-                        </div>
+                    </div>
                     @endif
                    <div class="relative aspect-square overflow-hidden">
                         {{-- S3 BUCKET  fetch image --}}

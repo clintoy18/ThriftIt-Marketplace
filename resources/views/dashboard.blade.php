@@ -216,87 +216,37 @@
     <div
         class="shadow-sm overflow-hidden dark:bg-gray-800 bg-white my-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="p-4 sm:p-6" id="productsContainer">
-            <x-dashboard-filters :categories="$categories" :barangays="$barangays" :selected-category-id="isset($selectedCategoryId) ? $selectedCategoryId : null" :selected-barangay-id="isset($selectedBarangayId) ? $selectedBarangayId : null" />
 
-            <!-- Loading Indicator -->
-            <div id="loadingIndicator" class="hidden flex items-center justify-center py-4">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#634600]"></div>
-                <span class="ml-2 text-gray-600 dark:text-gray-300">Loading products...</span>
+            {{-- Filters --}}
+            <div class="mb-6 flex flex-wrap gap-3 justify-end">
+                <x-dashboard-filters :categories="$categories" :barangays="$barangays" :selected-category-id="$selectedCategoryId ?? null" :selected-barangay-id="$selectedBarangayId ?? null" />
             </div>
 
-            <!-- Products Grid -->
-            <div id="productsGrid" class="mt-4 relative z-10">
-                @if ($products->count() > 0)
-                    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
-                        @foreach ($products as $product)
-                            <div
-                                class="group relative bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition duration-200 border border-[#D9D9D9] dark:border-gray-700">
-                                <a href="{{ route('products.show', $product->id) }}" class="block h-full">
-                                    @if ($product->listingtype === 'for donation')
-                                        <div
-                                            class="absolute top-1 left-1 z-10 bg-[#D9D9D9] text-gray-700 text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full">
-                                            Donation
-                                        </div>
-                                    @endif
-                                    <div class="relative aspect-square overflow-hidden">
-                                        {{-- S3 BUCKET  fetch image --}}
-                                        <img src="{{ $product->first_image }}" class="w-full h-full object-cover"
-                                            alt="Product Image">
-                                        <div
-                                            class="absolute inset-0 bg-gray-800 bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                                            <span
-                                                class="bg-white text-gray-800 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium">
-                                                Quick view
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="p-2 sm:p-3">
-                                        <div class="flex justify-between items-start">
-                                            <h3
-                                                class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white transition-colors truncate max-w-[70%]">
-                                                {{ $product->name }}
-                                            </h3>
-                                            <span
-                                                class="text-[10px] sm:text-xs font-medium px-1 py-0.5 bg-[#D9D9D9] dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300">
-                                                {{ $product->size ?? 'L' }}
-                                            </span>
-                                        </div>
-
-                                        <p
-                                            class="text-gray-500 dark:text-gray-400 text-[10px] sm:text-xs mt-0.5 truncate">
-                                            {{ $product->category->name ?? 'No Category' }}
-                                        </p>
-                                        <p
-                                            class="text-gray-500 dark:text-gray-400 text-[10px] sm:text-xs mt-0.5 truncate">
-                                            <i> {{ $product->barangay->name ?? 'N/A' }}, Cebu City</i>
-                                        </p>
-
-                                        <div class="flex justify-between items-center mt-1">
-                                            <p
-                                                class="text-xs sm:text-sm font-bold dark:text-red-600 {{ $product->listingtype === 'for donation' ? 'text-gray-700' : 'text-black-600' }}">
-                                                {{ $product->listingtype === 'for donation' ? 'For Donation' : '₱' . number_format($product->price, 2) }}
-                                            </p>
-
-                                            <button
-                                                class="favorite-btn text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
-                                                data-id="{{ $product->id }}" type="button"
-                                                onclick="event.preventDefault(); event.stopPropagation();">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5"
-                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                        @endforeach
+            {{-- Products + Pagination Wrapper --}}
+            <div id="productsWrapper">
+                {{-- Top Pagination --}}
+                @if ($products->hasPages())
+                    <div id="paginationTop" class="mb-4 flex justify-center">
+                        {{ $products->appends([
+                                'category' => $selectedCategoryId,
+                                'barangay' => $selectedBarangayId,
+                            ])->links('pagination.tailwind-custom') }}
                     </div>
-                @else
-                    <x-empty-message message="No active listing found." link="{{ route('products.create') }}"
-                        buttonText="Add Items" icon="shopping-cart" />
+                @endif
+
+                {{-- Products Grid --}}
+                <div id="productsGrid">
+                    @include('segments.partials.products-grid', ['products' => $products])
+                </div>
+
+                {{-- Bottom Pagination --}}
+                @if ($products->hasPages())
+                    <div id="paginationBottom" class="mt-6 flex justify-center">
+                        {{ $products->appends([
+                                'category' => $selectedCategoryId,
+                                'barangay' => $selectedBarangayId,
+                            ])->links('pagination.tailwind-custom') }}
+                    </div>
                 @endif
             </div>
         </div>
@@ -1331,6 +1281,131 @@
             document.querySelectorAll('[class*="animate-"]').forEach(el => {
                 observer.observe(el);
             });
+        });
+
+        // paginate without refresh
+        document.addEventListener('DOMContentLoaded', () => {
+
+            function loadProducts(url) {
+                const loading = document.getElementById('loadingIndicator');
+                if (loading) loading.classList.remove('hidden');
+
+                fetch(url, {
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest"
+                        }
+                    })
+                    .then(res => res.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+
+                        // Update products grid
+                        document.getElementById('productsGrid').innerHTML =
+                            doc.getElementById('productsGrid').innerHTML;
+
+                        // Update top & bottom pagination
+                        const topPagination = document.getElementById('paginationTop');
+                        const bottomPagination = document.getElementById('paginationBottom');
+
+                        if (topPagination && bottomPagination) {
+                            topPagination.innerHTML =
+                                doc.getElementById('paginationTop').innerHTML;
+                            bottomPagination.innerHTML =
+                                doc.getElementById('paginationBottom').innerHTML;
+                        }
+
+                        // Reattach event listeners
+                        attachPaginationLinks();
+                        attachFilterLinks();
+
+                        if (loading) loading.classList.add('hidden');
+
+                        // Smooth scroll to products
+                        document.getElementById('productsGrid').scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    });
+            }
+
+            function attachPaginationLinks() {
+                document.querySelectorAll('#paginationTop a, #paginationBottom a').forEach(link => {
+                    link.addEventListener('click', e => {
+                        e.preventDefault();
+                        loadProducts(link.href);
+                    });
+                });
+            }
+
+            function attachFilterLinks() {
+                document.querySelectorAll('[data-filter-link]').forEach(link => {
+                    link.addEventListener('click', e => {
+                        e.preventDefault();
+                        loadProducts(link.href);
+                    });
+                });
+            }
+
+            attachPaginationLinks();
+            attachFilterLinks();
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+
+            function loadProducts(url) {
+                const loading = document.getElementById('loadingIndicator');
+                loading.classList.remove('hidden');
+
+                fetch(url, {
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest"
+                        }
+                    })
+                    .then(res => res.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+
+                        // Update products grid
+                        document.getElementById('productsGrid').innerHTML = doc.getElementById('productsGrid')
+                            .innerHTML;
+
+                        // Update pagination
+                        const topPagination = document.querySelectorAll('#paginationLinks')[0];
+                        const bottomPagination = document.querySelectorAll('#paginationLinks')[1];
+                        topPagination.innerHTML = doc.querySelectorAll('#paginationLinks')[0].innerHTML;
+                        bottomPagination.innerHTML = doc.querySelectorAll('#paginationLinks')[1].innerHTML;
+
+                        attachPaginationLinks();
+                        attachFilterLinks();
+
+                        loading.classList.add('hidden');
+                        window.scrollTo({
+                            top: 0,
+                            behavior: 'smooth'
+                        });
+                    });
+            }
+
+            function attachPaginationLinks() {
+                document.querySelectorAll('#paginationLinks a').forEach(link => {
+                    link.addEventListener('click', e => {
+                        e.preventDefault();
+                        loadProducts(link.href);
+                    });
+                });
+            }
+
+            function attachFilterLinks() {
+                document.querySelectorAll('[data-filter-link]').forEach(link => {
+                    link.addEventListener('click', e => {
+                        e.preventDefault();
+                        loadProducts(link.href);
+                    });
+                });
+            }
+
+            attachPaginationLinks();
+            attachFilterLinks();
         });
     </script>
 </x-app-layout>
