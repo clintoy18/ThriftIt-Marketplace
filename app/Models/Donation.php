@@ -24,7 +24,7 @@ class Donation extends Model
         'size',
         'image',
         'status',
-        'segment_id',
+        // 'segment_id',
         'barangay_id',
         'proof',
         'verification_status',           

@@ -190,7 +190,7 @@
                         </div>
                     @endisset
 
-                   
+
                 </div>
             </div>
 
@@ -204,47 +204,70 @@
 
                 <div id="donationsGrid" class="p-6">
                     @if ($donations->count() > 0)
-                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
+                        <div
+                            class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
                             @foreach ($donations as $donation)
                                 <div
-                                    class="group relative bg-[#F4F2ED] dark:bg-gray-800/90 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow hover:shadow-2xl transition-all duration-300">
+                                    class="group relative bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition duration-200 border border-[#D9D9D9] dark:border-gray-700">
                                     <a href="{{ route('donations.show', $donation->id) }}" class="block h-full">
 
-                                        <!-- Badge -->
-                                        @if ($donation->listingtype === 'for donation')
+                                        {{-- Free badge (instead of Donation badge) --}}
+                                        <div
+                                            class="absolute top-1 left-1 z-10 bg-green-200 text-green-800 text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full font-semibold">
+                                            Free
+                                        </div>
+
+                                        {{-- Pending approval badge --}}
+                                        @if ($donation->approval_status === 'pending')
                                             <div
-                                                class="absolute top-2 left-2 z-10 bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full shadow">
-                                                Donation
+                                                class="absolute top-1 right-1 z-10 bg-yellow-100 text-yellow-800 text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full font-semibold shadow">
+                                                Pending
                                             </div>
                                         @endif
 
-                                        <!-- Image -->
+                                        {{-- Image --}}
                                         <div class="relative aspect-square overflow-hidden">
                                             <img src="{{ $donation->donationImages->isNotEmpty() ? Storage::disk('s3')->url($donation->donationImages->first()->image) : asset('images/default-placeholder.png') }}"
-                                                alt="{{ $donation->name }}" class="w-full h-full object-cover" />
-                                            class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105">
+                                                alt="{{ $donation->name }}" class="w-full h-full object-cover">
+
+                                            {{-- Hover overlay --}}
+                                            <div
+                                                class="absolute inset-0 bg-gray-800 bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                                <span
+                                                    class="bg-white text-gray-800 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium">
+                                                    Quick view
+                                                </span>
+                                            </div>
                                         </div>
 
-                                        <!-- Info -->
-                                        <div class="p-4">
+                                        {{-- Info --}}
+                                        <div class="p-2 sm:p-3">
                                             <div class="flex justify-between items-start">
                                                 <h3
-                                                    class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                                    class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white transition-colors truncate max-w-[70%]">
                                                     {{ $donation->name }}
                                                 </h3>
                                                 <span
-                                                    class="text-xs font-medium px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300">
+                                                    class="text-[10px] sm:text-xs font-medium px-1 py-0.5 bg-[#D9D9D9] dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300">
                                                     {{ $donation->size ?? 'L' }}
                                                 </span>
                                             </div>
-                                            <p class="text-gray-500 dark:text-gray-400 text-xs mt-1 truncate">
+
+                                            <p
+                                                class="text-gray-500 dark:text-gray-400 text-[10px] sm:text-xs mt-0.5 truncate">
                                                 {{ $donation->category->name ?? 'No Category' }}
                                             </p>
-                                            <div
-                                                class="absolute top-2 left-2 z-10 dark:bg-green-300 bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full shadow">
-                                                Free
-                                            </div>
 
+                                            <p
+                                                class="text-gray-500 dark:text-gray-400 text-[10px] sm:text-xs mt-0.5 truncate">
+                                                <i>{{ $donation->barangay->name ?? 'N/A' }}, Cebu City</i>
+                                            </p>
+
+                                            <div class="flex justify-between items-center mt-1">
+                                                <p class="text-xs sm:text-sm font-bold text-gray-700">
+                                                    For Donation
+                                                </p>
+                                            </div>
                                         </div>
                                     </a>
                                 </div>
@@ -287,7 +310,8 @@
                     const linkUrl = new URL(e.currentTarget.href, window.location.origin);
                     const buttonText = document.getElementById('donationCategoryButtonText');
 
-                    const categoryName = e.currentTarget.getAttribute('data-category-name') || 'Category';
+                    const categoryName = e.currentTarget.getAttribute('data-category-name') ||
+                        'Category';
                     if (buttonText) {
                         buttonText.textContent = categoryName;
                     }
@@ -303,7 +327,8 @@
                     showLoading();
 
                     try {
-                        const url = '{{ route('donations.hub') }}' + (params.toString() ? '?' + params.toString() : '');
+                        const url = '{{ route('donations.hub') }}' + (params.toString() ? '?' +
+                            params.toString() : '');
                         const response = await fetch(url, {
                             headers: {
                                 'X-Requested-With': 'XMLHttpRequest',
@@ -327,12 +352,14 @@
 
                     const newUrl = new URL(window.location);
                     if (linkUrl.searchParams.get('category')) {
-                        newUrl.searchParams.set('category', linkUrl.searchParams.get('category'));
+                        newUrl.searchParams.set('category', linkUrl.searchParams.get(
+                            'category'));
                     } else {
                         newUrl.searchParams.delete('category');
                     }
                     if (currentUrl.searchParams.get('barangay')) {
-                        newUrl.searchParams.set('barangay', currentUrl.searchParams.get('barangay'));
+                        newUrl.searchParams.set('barangay', currentUrl.searchParams.get(
+                            'barangay'));
                     }
                     window.history.replaceState({}, '', newUrl);
                 });
@@ -346,7 +373,8 @@
                     const linkUrl = new URL(e.currentTarget.href, window.location.origin);
                     const buttonText = document.getElementById('donationLocationButtonText');
 
-                    const locationName = e.currentTarget.getAttribute('data-location-name') || 'Location';
+                    const locationName = e.currentTarget.getAttribute('data-location-name') ||
+                        'Location';
                     if (buttonText) {
                         buttonText.textContent = locationName;
                     }
@@ -362,7 +390,8 @@
                     showLoading();
 
                     try {
-                        const url = '{{ route('donations.hub') }}' + (params.toString() ? '?' + params.toString() : '');
+                        const url = '{{ route('donations.hub') }}' + (params.toString() ? '?' +
+                            params.toString() : '');
                         const response = await fetch(url, {
                             headers: {
                                 'X-Requested-With': 'XMLHttpRequest',
@@ -386,12 +415,14 @@
 
                     const newUrl = new URL(window.location);
                     if (linkUrl.searchParams.get('barangay')) {
-                        newUrl.searchParams.set('barangay', linkUrl.searchParams.get('barangay'));
+                        newUrl.searchParams.set('barangay', linkUrl.searchParams.get(
+                            'barangay'));
                     } else {
                         newUrl.searchParams.delete('barangay');
                     }
                     if (currentUrl.searchParams.get('category')) {
-                        newUrl.searchParams.set('category', currentUrl.searchParams.get('category'));
+                        newUrl.searchParams.set('category', currentUrl.searchParams.get(
+                            'category'));
                     }
                     window.history.replaceState({}, '', newUrl);
                 });
