@@ -501,51 +501,82 @@
             renderPreviews(selectedFiles);
         });
 
-        function updateSizeOptions() {
-            const categorySelect = document.getElementById('category_id');
-            const sizeSelect = document.getElementById('size');
-            const clothingSizes = document.querySelector('.clothing-sizes');
-            const shoeSizes = document.querySelector('.shoe-sizes');
-            const accessorySizes = document.querySelector('.accessory-sizes');
+        // Size options update based on selected donation category
+        (function () {
+            let sizeTemplates = null;
 
-            clothingSizes.classList.add('hidden');
-            shoeSizes.classList.add('hidden');
-            accessorySizes.classList.add('hidden');
-            sizeSelect.value = '';
+            function initSizeTemplates() {
+                const sizeSelect = document.getElementById('size');
+                if (!sizeSelect || sizeTemplates) return;
 
-            const selectedOption = categorySelect.options[categorySelect.selectedIndex];
-            const categoryName = selectedOption.text.toLowerCase();
+                const placeholder = sizeSelect.querySelector('option[value=""]');
+                const clothingGroup = sizeSelect.querySelector('optgroup[label="Clothing"]');
+                const shoesGroup = sizeSelect.querySelector('optgroup[label="Shoes"]');
+                const accessoriesGroup = sizeSelect.querySelector('optgroup[label="Accessories"]');
 
-            if (categoryName.includes('shirt') || categoryName.includes('clothing') || categoryName.includes('dress') ||
-                categoryName.includes('pants')) {
-                clothingSizes.classList.remove('hidden');
-            } else if (categoryName.includes('shoe') || categoryName.includes('footwear')) {
-                shoeSizes.classList.remove('hidden');
-            } else {
-                accessorySizes.classList.remove('hidden');
+                sizeTemplates = {
+                    placeholder: placeholder ? placeholder.outerHTML : '',
+                    clothing: clothingGroup ? clothingGroup.outerHTML : '',
+                    shoes: shoesGroup ? shoesGroup.outerHTML : '',
+                    accessories: accessoriesGroup ? accessoriesGroup.outerHTML : '',
+                    full: sizeSelect.innerHTML
+                };
             }
-        }
 
-        function previewImage(input) {
-            const preview = document.getElementById('preview');
-            const imagePreview = document.getElementById('imagePreview');
-            const uploadText = document.getElementById('uploadText');
+            function updateSizeOptions() {
+                const categorySelect = document.getElementById('category_id');
+                const sizeSelect = document.getElementById('size');
+                if (!categorySelect || !sizeSelect) return;
 
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    imagePreview.classList.remove('hidden');
-                    uploadText.classList.add('hidden');
+                initSizeTemplates();
+                if (!sizeTemplates) return;
+
+                const selectedIndex = categorySelect.selectedIndex;
+                if (selectedIndex <= 0) {
+                    // No category selected, show all sizes
+                    sizeSelect.innerHTML = sizeTemplates.full;
+                    return;
                 }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            updateSizeOptions();
-            document.getElementById('category_id').addEventListener('change', updateSizeOptions);
-        });
+                const selectedText = (categorySelect.options[selectedIndex].text || '').toLowerCase();
+
+                // Decide size group based on category name
+                let group = 'clothing';
+                if (selectedText.includes('shoe') || selectedText.includes('footwear')) {
+                    group = 'shoes';
+                } else if (
+                    selectedText.includes('accessor') ||
+                    selectedText.includes('bag') ||
+                    selectedText.includes('hat') ||
+                    selectedText.includes('belt') ||
+                    selectedText.includes('scarf') ||
+                    selectedText.includes('jewel') ||
+                    selectedText.includes('watch')
+                ) {
+                    group = 'accessories';
+                }
+
+                let optionsHtml = sizeTemplates.placeholder;
+                if (group === 'shoes' && sizeTemplates.shoes) {
+                    optionsHtml += sizeTemplates.shoes;
+                } else if (group === 'accessories' && sizeTemplates.accessories) {
+                    optionsHtml += sizeTemplates.accessories;
+                } else {
+                    optionsHtml += sizeTemplates.clothing;
+                }
+
+                sizeSelect.innerHTML = optionsHtml;
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                initSizeTemplates();
+                updateSizeOptions();
+                const categorySelect = document.getElementById('category_id');
+                if (categorySelect) {
+                    categorySelect.addEventListener('change', updateSizeOptions);
+                }
+            });
+        })();
          document.getElementById('donationForm').addEventListener('submit', function(e) {
         const confirmed = confirm('Are you sure you want to submit this donation?');
         if (!confirmed) {

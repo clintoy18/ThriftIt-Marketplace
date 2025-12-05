@@ -25,6 +25,23 @@
                 </div>
             </div>
 
+            {{-- Subscription Type --}}
+            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg mb-8 max-w-6xl mx-auto">
+                <div class="max-w-xl">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                        {{ __('Subscription Type') }}
+                    </h3>
+
+                    @if (auth()->user() && auth()->user()->subscribedToProduct('prod_T4nVT7WiXSJe56'))
+                        <p>You are subscribed to our Starter Rack plan.</p>
+                    @endif
+
+                    @if (auth()->user() && auth()->user()->subscribedToPrice('price_basic_monthly'))
+                        <p>You are subscribed to our monthly Basic plan.</p>
+                    @endif
+                </div>
+            </div>
+
             <div class="grid lg:grid-cols-3 gap-8 lg:gap-6 max-w-6xl mx-auto">
                 
                 <!-- Starter Rack -->

@@ -502,20 +502,94 @@
         renderPreviews(selectedFiles);
     });
 
-    // Size options update based on category (if needed)
-    function updateSizeOptions() {
-        const categorySelect = document.getElementById('category_id');
-        const sizeSelect = document.getElementById('size');
-        
-        // You can implement category-based size filtering here if needed
-        // Similar to the donation form implementation
-    }
+    // Size options update based on selected category
+    (function () {
+        let sizeTemplates = null;
 
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize size options if category-based filtering is needed
-        updateSizeOptions();
-        document.getElementById('category_id').addEventListener('change', updateSizeOptions);
-    });
+        function initSizeTemplates() {
+            const sizeSelect = document.getElementById('size');
+            if (!sizeSelect || sizeTemplates) return;
+
+            const placeholder = sizeSelect.querySelector('option[value=""]');
+            const clothingGroup = sizeSelect.querySelector('optgroup[label^="Shirts"]');
+            const shoesGroup = sizeSelect.querySelector('optgroup[label="Shoes"]');
+            const accessoriesGroup = sizeSelect.querySelector('optgroup[label="Accessories"]');
+            const socksGroup = sizeSelect.querySelector('optgroup[label^="Socks"]');
+
+            sizeTemplates = {
+                placeholder: placeholder ? placeholder.outerHTML : '',
+                clothing: clothingGroup ? clothingGroup.outerHTML : '',
+                shoes: shoesGroup ? shoesGroup.outerHTML : '',
+                accessories: accessoriesGroup ? accessoriesGroup.outerHTML : '',
+                socks: socksGroup ? socksGroup.outerHTML : '',
+                full: sizeSelect.innerHTML
+            };
+        }
+
+        function updateSizeOptions() {
+            const categorySelect = document.getElementById('category_id');
+            const sizeSelect = document.getElementById('size');
+            if (!categorySelect || !sizeSelect) return;
+
+            initSizeTemplates();
+            if (!sizeTemplates) return;
+
+            const selectedIndex = categorySelect.selectedIndex;
+            if (selectedIndex <= 0) {
+                // No category selected, show all sizes
+                sizeSelect.innerHTML = sizeTemplates.full;
+                return;
+            }
+
+            const selectedText = (categorySelect.options[selectedIndex].text || '').toLowerCase();
+
+            // Decide size group based on category name
+            let group = 'clothing';
+            if (selectedText.includes('shoe') || selectedText.includes('footwear')) {
+                group = 'shoes';
+            } else if (
+                selectedText.includes('accessor') ||
+                selectedText.includes('bag') ||
+                selectedText.includes('hat') ||
+                selectedText.includes('belt') ||
+                selectedText.includes('scarf') ||
+                selectedText.includes('jewel') ||
+                selectedText.includes('watch')
+            ) {
+                group = 'accessories';
+            } else if (
+                selectedText.includes('sock') ||
+                selectedText.includes('hosiery') ||
+                selectedText.includes('stocking') ||
+                selectedText.includes('tights')
+            ) {
+                group = 'socks';
+            }
+
+            let optionsHtml = sizeTemplates.placeholder;
+            if (group === 'shoes' && sizeTemplates.shoes) {
+                optionsHtml += sizeTemplates.shoes;
+            } else if (group === 'accessories' && sizeTemplates.accessories) {
+                optionsHtml += sizeTemplates.accessories;
+            } else if (group === 'socks' && sizeTemplates.socks) {
+                optionsHtml += sizeTemplates.socks;
+            } else {
+                // default clothing (full clothing group; shoes etc can be added if you want)
+                optionsHtml += sizeTemplates.clothing;
+            }
+
+            sizeSelect.innerHTML = optionsHtml;
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initSizeTemplates();
+            updateSizeOptions();
+            const categorySelect = document.getElementById('category_id');
+            if (categorySelect) {
+                categorySelect.addEventListener('change', updateSizeOptions);
+            }
+        });
+    })();
 </script>
 
     <style>

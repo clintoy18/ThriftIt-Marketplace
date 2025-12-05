@@ -121,6 +121,15 @@
                                             {{-- S3 BUCKET --}}
                                             <img src="{{ $product->first_image }}" alt="{{ $product->name }}"
                                                 class="w-full h-full object-cover" />
+
+                                            {{-- Pending approval badge --}}
+                                            @if ($product->approval_status === 'pending')
+                                                <div
+                                                    class="absolute top-1 right-1 z-10 bg-yellow-100 text-yellow-800 text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full font-semibold shadow">
+                                                    Pending
+                                                </div>
+                                            @endif
+
                                             <div
                                                 class="absolute inset-0 bg-gray-800 bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                                                 <span

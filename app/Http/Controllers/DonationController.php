@@ -176,8 +176,35 @@ class DonationController extends Controller
 
     public function getAllDonations()
     {
-        $donations = $this->donationService->getApprovedDonations();
-        return view('donations.donation-hub', compact('donations'));
+        // Optional filters from query string
+        $categoryId = request('category');
+        $barangayId = request('barangay');
+
+        $donationsQuery = Donation::where('approval_status', 'approved')
+            ->where('status', 'available')
+            ->with(['donationImages', 'category', 'barangay']);
+
+        if ($categoryId) {
+            $donationsQuery->where('category_id', $categoryId);
+        }
+
+        if ($barangayId) {
+            $donationsQuery->where('barangay_id', $barangayId);
+        }
+
+        $donations = $donationsQuery->get();
+
+        // Data for filters
+        $categories = Categories::all();
+        $barangays = Barangay::all();
+
+        return view('donations.donation-hub', compact(
+            'donations',
+            'categories',
+            'barangays',
+            'categoryId',
+            'barangayId'
+        ));
     }
 
     public function markAsDonated(SubmitProofRequest $request, Donation $donation): RedirectResponse

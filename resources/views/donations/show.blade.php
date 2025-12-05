@@ -57,7 +57,12 @@
                         <div class="space-y-4 mt-4">
                             <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Details</h2>
                             <p class="text-gray-600 dark:text-gray-400">{{ $donation->status }}</p>
-                            <p class="text-gray-600 dark:text-gray-400">{{ $donation->description }}</p>
+                                                        
+                            <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-sm">
+                            <p class="text-gray-800 dark:text-gray-200 break-words overflow-hidden">
+                                {{ $donation->description ?? 'No description available' }}
+                            </p>
+                        </div>
                         </div>
 
                         <div class="mt-4 flex flex-col gap-3">
