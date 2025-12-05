@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Product;
+use App\Models\User;
 
 class ProductSeeder extends Seeder
 {
@@ -12,185 +13,132 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        $products = [
-            // 🧥 Clint’s Products (user_id = 4)
-            [
-                'user_id' => 4,
-                'category_id' => 11, // Jackets
-                'name' => 'NIKE Jordan Classic Camo Windbreaker',
-                'description' => 'Size: Medium | Excellent condition | Complete tags | No issue | 23x28',
-                'price' => 1800.00,
-                'size' => 'M',
-                'image' => 'products_images/jordan_camo.jpg',
-                'qty' => 1,
-                'approval_status' => 'pending',
-                'segment_id' => 1,
-                'status' => 'available',
-                'barangay_id' => 1,
 
-            ],
-            [
-                'user_id' => 4,
-                'category_id' => 11, // Jackets
-                'name' => 'Air Jordan Essential Woven Jacket',
-                'description' => 'Size: Medium | Excellent condition | Complete tags | No issue | 22.5x26.5',
-                'price' => 1900.00,
-                'size' => 'M',
-                'image' => 'products_images/jordan_woven.jpg',
-                'qty' => 1,
-                'approval_status' => 'pending',
-                'segment_id' => 1,
-                'status' => 'available',
-                'barangay_id' => 1,
-            ],
-            [
-                'user_id' => 4,
-                'category_id' => 1, // Shirts
-                'name' => 'Ralph Lauren USA Flag Bear Embroidered',
-                'description' => 'Authentic Ralph Lauren Polo Bear embroidered design | Great condition | Size: M | No issue',
-                'price' => 1300.00,
-                'size' => 'M',
-                'image' => 'products_images/ralph_bear.jpg',
-                'qty' => 1,
-                'approval_status' => 'pending',
-                'segment_id' => 1,
-                'status' => 'available',
-                'barangay_id' => 1,
-            ],
-            [
-                'user_id' => 4,
-                'category_id' => 6, // Outerwear
-                'name' => 'Burberry Kensington Heritage Trench Coat',
-                'description' => 'Luxury trench coat in great condition | Minimal wear, no issue | Timeless design',
-                'price' => 4200.00,
-                'size' => 'L',
-                'image' => 'products_images/burberry_trench.jpg',
-                'qty' => 1,
-                'approval_status' => 'pending',
-                'segment_id' => 1,
-                'status' => 'available',
-                'barangay_id' => 1,
-            ],
-
-            // 👕 Regular User (user_id = 3)
-            [
-                'user_id' => 3,
-                'category_id' => 1, // Shirts
-                'name' => 'Lacoste Mens Polo Shirt Black',
-                'description' => 'Good as new | Color rate: 10/10 | No issue | Size: M | 20.5x27',
-                'price' => 1000.00,
-                'size' => 'M',
-                'image' => 'products_images/lacoste_black.jpg',
-                'qty' => 1,
-                'approval_status' => 'pending',
-                'segment_id' => 1,
-                'status' => 'available',
-                'barangay_id' => 1,
-            ],
-            [
-                'user_id' => 3,
-                'category_id' => 1, // Shirts
-                'name' => 'Comme des Garçons Play Black Emblem Polo Grey',
-                'description' => 'Excellent condition | No issue | Size: M',
-                'price' => 1200.00,
-                'size' => 'M',
-                'image' => 'products_images/cdg_polo.jpg',
-                'qty' => 1,
-                'approval_status' => 'pending',
-                'segment_id' => 1,
-                'status' => 'available',
-                'barangay_id' => 1,
-            ],
-            [
-                'user_id' => 3,
-                'category_id' => 1, // Shirts
-                'name' => 'Barcelona 2019-2020 Home Football Shirt Nike Soccer',
-                'description' => 'Official Nike teamwear | No issue | Size: M',
-                'price' => 950.00,
-                'size' => 'M',
-                'image' => 'products_images/barcelona_home.jpg',
-                'qty' => 1,
-                'approval_status' => 'pending',
-                'segment_id' => 1,
-                'status' => 'available',
-                'barangay_id' => 1,
-            ],
-            [
-                'user_id' => 3,
-                'category_id' => 11, // Jackets
-                'name' => 'Milano Jacket',
-                'description' => 'A stylish Milano jacket with a clean urban look | Perfect for layering | Size: M',
-                'price' => 1450.00,
-                'size' => 'M',
-                'image' => 'products_images/milano_jacket.jpg',
-                'qty' => 1,
-                'approval_status' => 'pending',
-                'segment_id' => 1,
-                'status' => 'available',
-                'barangay_id' => 1,
-            ],
-
-            // 👖 Renzo’s Products (user_id = 5)
-            [
-                'user_id' => 5,
-                'category_id' => 2, // Pants
-                'name' => 'Carhartt Carpenter Pants',
-                'description' => 'Durable Carhartt pants built for comfort and functionality | Size: 32',
-                'price' => 1500.00,
-                'size' => '32',
-                'image' => 'products_images/carhartt_pants.jpg',
-                'qty' => 1,
-                'approval_status' => 'pending',
-                'segment_id' => 1,
-                'status' => 'available',
-                'barangay_id' => 1,
-            ],
-            [
-                'user_id' => 5,
-                'category_id' => 7, // Shorts
-                'name' => 'Carhartt Shorts',
-                'description' => 'Comfortable and durable Carhartt shorts made for warm weather and active days.',
-                'price' => 950.00,
-                'size' => 'M',
-                'image' => 'products_images/carhartt_shorts.jpg',
-                'qty' => 1,
-                'approval_status' => 'pending',
-                'segment_id' => 1,
-                'status' => 'available',
-                'barangay_id' => 1,
-            ],
-            [
-                'user_id' => 5,
-                'category_id' => 1, // Shirts
-                'name' => 'Ralph Lauren Stripe Polo',
-                'description' => 'A classic Ralph Lauren striped polo made from soft cotton | Great for semi-casual wear',
-                'price' => 1300.00,
-                'size' => 'L',
-                'image' => 'products_images/ralph_polo.jpg',
-                'qty' => 1,
-                'approval_status' => 'pending',
-                'segment_id' => 1,
-                'status' => 'available',
-                'barangay_id' => 1,
-            ],
-            [
-                'user_id' => 5,
-                'category_id' => 11, // Jackets
-                'name' => 'Jordan Jogger',
-                'description' => 'Comfort fit jogger | Excellent condition | Size: M | No issue',
-                'price' => 1300.00,
-                'size' => 'M',
-                'image' => 'products_images/jordan_jogger.jpg',
-                'qty' => 1,
-                'approval_status' => 'pending',
-                'segment_id' => 1,
-                'status' => 'available',
-                'barangay_id' => 1,
-            ],
+        $categories = [
+            1 => 'Shirts',
+            2 => 'Pants',
+            3 => 'Dresses',
+            4 => 'Shoes',
+            5 => 'Accessories',
+            6 => 'Outerwear',
+            7 => 'Shorts',
+            8 => 'Skirts',
+            9 => 'Hats',
+            10 => 'Socks',
+            11 => 'Jackets',
+            12 => 'Polo',
+            13 => 'Others'
+        ];
+ $products = [
+            ['name'=>'Retro Denim Jacket','category_id'=>11],
+            ['name'=>'Floral Summer Dress','category_id'=>3],
+            ['name'=>'Vintage Cargo Pants','category_id'=>2],
+            ['name'=>'Black Oversized Hoodie','category_id'=>6],
+            ['name'=>'Knit Sweater - Cream','category_id'=>1],
+            ['name'=>'Classic Polo Shirt','category_id'=>12],
+            ['name'=>'Slim Fit Jeans','category_id'=>2],
+            ['name'=>'Corduroy Button-Down Shirt','category_id'=>1],
+            ['name'=>'Beige Pleated Skirt','category_id'=>8],
+            ['name'=>'Graphic Tee - Urban Edition','category_id'=>1],
+            ['name'=>'Leather Belt','category_id'=>5],
+            ['name'=>'Canvas Sneakers','category_id'=>4],
+            ['name'=>'Wool Scarf','category_id'=>5],
+            ['name'=>'Denim Shorts','category_id'=>7],
+            ['name'=>'Hooded Raincoat','category_id'=>11],
+            ['name'=>'Silk Blouse','category_id'=>1],
+            ['name'=>'Plaid Shirt','category_id'=>1],
+            ['name'=>'Corduroy Pants','category_id'=>2],
+            ['name'=>'Trench Coat','category_id'=>11],
+            ['name'=>'Striped Tee','category_id'=>1],
+            ['name'=>'Leather Boots','category_id'=>4],
+            ['name'=>'Mini Backpack','category_id'=>5],
+            ['name'=>'Bucket Hat','category_id'=>9],
+            ['name'=>'Sports Jacket','category_id'=>11],
+            ['name'=>'Chinos Pants','category_id'=>2],
+            ['name'=>'Maxi Dress','category_id'=>3],
+            ['name'=>'Puffer Vest','category_id'=>6],
+            ['name'=>'Cardigan Sweater','category_id'=>1],
+            ['name'=>'Ripped Jeans','category_id'=>2],
+            ['name'=>'Vintage Hoodie','category_id'=>6],
+            ['name'=>'Suede Jacket','category_id'=>11],
+            ['name'=>'Tie-Dye Shirt','category_id'=>1],
+            ['name'=>'Wool Coat','category_id'=>11],
+            ['name'=>'Leather Gloves','category_id'=>5],
+            ['name'=>'Denim Overalls','category_id'=>2],
+            ['name'=>'Pleated Pants','category_id'=>2],
+            ['name'=>'Long Cardigan','category_id'=>1],
+            ['name'=>'Denim Vest','category_id'=>6],
+            ['name'=>'Printed Blouse','category_id'=>1],
+            ['name'=>'Bomber Jacket','category_id'=>11],
+            ['name'=>'High-Waist Shorts','category_id'=>7],
+            ['name'=>'Oversized Tee','category_id'=>1],
+            ['name'=>'Leather Skirt','category_id'=>8],
+            ['name'=>'Fleece Jacket','category_id'=>6],
+            ['name'=>'Checked Blazer','category_id'=>11],
+            ['name'=>'Cropped Hoodie','category_id'=>6],
+            ['name'=>'Sweatpants','category_id'=>2],
+            ['name'=>'Linen Shirt','category_id'=>1],
+            ['name'=>'Corduroy Skirt','category_id'=>8],
+            ['name'=>'Vintage Sneakers','category_id'=>4],
+            ['name'=>'Flannel Shirt','category_id'=>1],
+            ['name'=>'Hooded Sweatshirt','category_id'=>6],
+            ['name'=>'Silk Scarf','category_id'=>5],
+            ['name'=>'Vintage Jeans','category_id'=>2],
+            ['name'=>'Chunky Knit Sweater','category_id'=>1],
+            ['name'=>'Baseball Cap','category_id'=>9],
+            ['name'=>'Denim Shirt','category_id'=>1],
+            ['name'=>'Polo Dress','category_id'=>3],
+            ['name'=>'Leather Sandals','category_id'=>4],
+            ['name'=>'Sports Shorts','category_id'=>7],
+            ['name'=>'Cargo Jacket','category_id'=>11],
+            ['name'=>'Wool Pants','category_id'=>2],
+            ['name'=>'Denim Romper','category_id'=>3],
+            ['name'=>'Graphic Hoodie','category_id'=>6],
+            ['name'=>'Knit Beanie','category_id'=>9],
         ];
 
-        foreach ($products as $product) {
-            Product::create($product);
+           $descriptions = [
+            'Lightly used and in great condition.',
+            'Minimal signs of wear. Very comfortable.',
+            'Perfect for everyday outfits.',
+            'Soft fabric, stylish, and clean.',
+            'Trendy piece, still looks new.',
+        ];
+
+        $sizes = ['XS','S','M','L','XL','XXL'];
+
+        // Get all regular users
+        $regularUsers = User::where('role','0')->get();
+
+        // Product counts per user
+        $userProductCounts = [10,8,4,19,20];
+        $currentIndex = 0;
+
+        foreach($regularUsers as $key => $user){
+            $count = $userProductCounts[$key] ?? 0;
+
+            for($i=0; $i<$count; $i++){
+                if(!isset($products[$currentIndex])) break;
+
+                Product::create([
+                    'user_id' => $user->id,
+                    'category_id' => $products[$currentIndex]['category_id'],
+                    'name' => $products[$currentIndex]['name'],
+                    'description' => $descriptions[array_rand($descriptions)],
+                    'price' => rand(80,350),
+                    'approval_status' => 'approved',
+                    'size' => $sizes[array_rand($sizes)],
+                    'image' => 'https://via.placeholder.com/300x300.png?text='.urlencode($products[$currentIndex]['name']),
+                    'qty' => rand(1,10),
+                    'status' => 'available',
+                    'segment_id' => 1,
+                    'barangay_id' => 1,
+                    'qr_code' => 'QR'.rand(1000,9999),
+                    'admin_notes' => 'Seeded product',
+                ]);
+
+                $currentIndex++;
+            }
         }
     }
 }
