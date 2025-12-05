@@ -150,6 +150,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/password', [ProfileController::class, 'edit1'])->name('profile.edit1');
     Route::get('/profile/data-privacy', [ProfileController::class, 'edit2'])->name('profile.edit2');
     Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/{user}/dashboard-stats', [ProfileController::class, 'dashboardStats'])->name('profile.dashboard.stats');
 
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
