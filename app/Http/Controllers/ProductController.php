@@ -63,14 +63,14 @@ class ProductController extends Controller
         // Check if user is verified
         if (!Auth::user()->is_verified) {
             return redirect()
-                ->route('sell-item.final', $product->id)
-                ->with('info', 'Product created! Since your account is not verified, QR upload is disabled.');
+                ->route('products.index', $product->id)
+                ->with('success', 'Product created!');
         }
 
         // Verified users can upload a QR code (Step 2)
         return redirect()
             ->route('sell-item.qr', $product->id)
-            ->with('success', 'Product created! You can now upload a QR code before finalizing.');
+            ->with('success', 'Product created! You can now upload a QR code.');
     }
 
     public function edit(Product $product): View
