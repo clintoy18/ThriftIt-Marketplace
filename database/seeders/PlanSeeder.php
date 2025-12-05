@@ -16,18 +16,18 @@ class PlanSeeder extends Seeder
         $plans = [
             [
                 'name' => 'Starter Rack',
-                'stripe_plan_id' => 'prod_T4nVT7WiXSJe56',
-                'stripe_price_id' => 'price_1S8du4L7IAkQRknTmXfVczWh',
+                'stripe_plan_id' => 'prod_TXeLIH6C3eBbuY',
+                'stripe_price_id' => 'price_1SaZ39L7IAkQRknTexXoaHRB',
             ],
             [
                 'name' => 'Bargain Shelf',
-                'stripe_plan_id' => 'prod_T4nWTcrGuqLsx7',
-                'stripe_price_id' => 'price_1S8dveL7IAkQRknTkZXNOCQD',
+                'stripe_plan_id' => 'prod_TXeK42zx4mikcP',
+                'stripe_price_id' => 'price_1SaZ1ZL7IAkQRknTb8DrpVdY',
             ],
             [
                 'name' => 'Vintage Vault',
-                'stripe_plan_id' => 'prod_T4nWhIZz4Y2Aja',
-                'stripe_price_id' => 'price_1S8dvtL7IAkQRknToeFKnu9c',
+                'stripe_plan_id' => 'prod_TXeIKafMmVOk7B',
+                'stripe_price_id' => 'price_1SaYzoL7IAkQRknTvMcfoH07',
             ],
         ];
 
