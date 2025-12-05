@@ -35,7 +35,10 @@ class ProductRepository
 
     public function getByUser($userId)
     {
-        return Product::where('user_id', $userId)->get();
+        return Product::where('user_id', $userId)
+        ->orderByRaw("approval_status = 'pending' DESC")
+        ->orderBy("approval_status")
+        ->get();
     }
 
     public function findWithRelations($id)
