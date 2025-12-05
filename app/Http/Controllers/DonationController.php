@@ -192,7 +192,7 @@ class DonationController extends Controller
             $donationsQuery->where('barangay_id', $barangayId);
         }
 
-        $donations = $donationsQuery->get();
+        $donations = $donationsQuery->paginate(12);
 
         // Data for filters
         $categories = Categories::all();
