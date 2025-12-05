@@ -22,10 +22,10 @@ window.Echo = new Echo({
     enabledTransports: ['ws', 'wss'],
 });
 
-// Debug: Log Echo initialization
-console.log('Echo initialized:', !!window.Echo);
-console.log('Pusher key:', import.meta.env.VITE_PUSHER_APP_KEY ? 'Set' : 'Missing');
-console.log('CSRF token:', csrfToken ? 'Set' : 'Missing');
+// // Debug: Log Echo initialization
+// console.log('Echo initialized:', !!window.Echo);
+// console.log('Pusher key:', import.meta.env.VITE_PUSHER_APP_KEY ? 'Set' : 'Missing');
+// console.log('CSRF token:', csrfToken ? 'Set' : 'Missing');
 
 // Add error handler for authentication failures (only log once per error type)
 let errorLogCount = {};
@@ -54,13 +54,13 @@ let lastState = null;
 window.Echo.connector.pusher.connection.bind('state_change', function(states) {
     // Only log state changes, not every state check
     if (states.current !== lastState) {
-        console.log('Pusher connection state changed:', states.previous, '→', states.current);
+        // console.log('Pusher connection state changed:', states.previous, '→', states.current);
         lastState = states.current;
         
         if (states.current === 'failed') {
             console.error('❌ Pusher connection failed. Check authentication and network.');
         } else if (states.current === 'connected') {
-            console.log('✅ Pusher connection established');
+            // console.log('✅ Pusher connection established');
         }
     }
 });
@@ -68,7 +68,7 @@ window.Echo.connector.pusher.connection.bind('state_change', function(states) {
 // Public channel (optional if you’re only using private)
 window.Echo.channel('chat-channel')
     .listen('.message.sent', (e) => {
-        console.log('Received message:', e.message);
+        // console.log('Received message:', e.message);
 
         const newMessageHTML = `
             <div class="mb-4">
@@ -97,7 +97,7 @@ if (currentUserId && csrfToken) {
         
         // Listen for subscription success
         privateChannel.subscribed(() => {
-            console.log('✅ Successfully subscribed to private channel:', `chat.user.${currentUserId}`);
+            // console.log('✅ Successfully subscribed to private channel:', `chat.user.${currentUserId}`);
         });
         
         // Listen for subscription errors
@@ -109,7 +109,7 @@ if (currentUserId && csrfToken) {
         });
         
         privateChannel.listen('.private-message', (e) => {
-            console.log('Received real-time message:', e);
+            // console.log('Received real-time message:', e);
             
             // Only show message if we're in the correct chat
             if (!(e.sender.id === recipientId || e.sender.id === currentUserId)) return;
@@ -132,7 +132,7 @@ if (currentUserId && csrfToken) {
     }
 } else {
     console.warn('⚠️ Cannot subscribe to private channel: User ID or CSRF token missing');
-    console.log('User ID:', currentUserId, 'CSRF Token:', csrfToken ? 'Present' : 'Missing');
+    // console.log('User ID:', currentUserId, 'CSRF Token:', csrfToken ? 'Present' : 'Missing');
 }
 
 function createMessageBubble(message, sender, isOwnMessage) {
@@ -212,7 +212,7 @@ if (authUserId) {
 if (authUserId) {
     window.Echo.private(`notifications-channel.${authUserId}`)
         .listen('.product.status.notification', (e) => {
-            console.log("🔔 Product Status Notification:", e);
+            // console.log("🔔 Product Status Notification:", e);
 
             // Show friendly toast based on status
             showNotificationToast(e.message); // e.message already contains "approved" or "rejected" text
@@ -239,7 +239,7 @@ if (authUserId) {
 if (authUserId) {
     window.Echo.private(`notifications-channel.${authUserId}`)
         .listen('.order.placed.notification', (e) => {
-            console.log("🛒 New Order Notification:", e);
+            // console.log("🛒 New Order Notification:", e);
 
             // Show a nice toast message
             showNotificationToast(`🛍️ New Order: ${e.buyer_name} placed an order for ${e.product_name}`);
@@ -265,7 +265,7 @@ if (authUserId) {
 if (authUserId) {
     window.Echo.private(`notifications-channel.${authUserId}`)
         .listen('.appointment.booked.notification', (e) => {
-            console.log("📅 New Appointment Notification:", e);
+            // console.log("📅 New Appointment Notification:", e);
 
             const baseMessage = `${e.from_user} booked a new appointment.`;
             showNotificationToast(`📅 ${baseMessage}`, e.link);
