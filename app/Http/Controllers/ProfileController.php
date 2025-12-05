@@ -162,6 +162,72 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * Get filtered dashboard statistics based on time period
+     */
+    public function dashboardStats(User $user, Request $request)
+    {
+        $period = $request->query('period', 'all');
+        
+        // Calculate date range based on period
+        $dateFilter = null;
+        if ($period !== 'all') {
+            $days = (int) $period;
+            $dateFilter = now()->subDays($days);
+        }
+        
+        // Total Listings: filter by created_at (when listing was created)
+        $totalListingsQuery = $user->products()->where('approval_status', 'approved');
+        if ($dateFilter) {
+            $totalListingsQuery->where('created_at', '>=', $dateFilter);
+        }
+        $totalListings = $totalListingsQuery->count();
+        
+        // Items Sold: filter by updated_at (when marked as sold)
+        $itemsSoldQuery = $user->products()->where('status', 'sold');
+        if ($dateFilter) {
+            $itemsSoldQuery->where('updated_at', '>=', $dateFilter);
+        }
+        $itemsSold = $itemsSoldQuery->count();
+        
+        // Revenue: filter by updated_at (when marked as sold)
+        $revenueQuery = $user->products()->where('status', 'sold');
+        if ($dateFilter) {
+            $revenueQuery->where('updated_at', '>=', $dateFilter);
+        }
+        $revenue = $revenueQuery->sum('price') ?? 0;
+        
+        // Items Donated: filter by created_at or updated_at when status changed
+        $itemsDonatedQuery = $user->donations()->where('status', 'donated');
+        if ($dateFilter) {
+            $itemsDonatedQuery->where('updated_at', '>=', $dateFilter);
+        }
+        $itemsDonated = $itemsDonatedQuery->count();
+        
+        // Approved Works: filter by created_at or updated_at when approved
+        $approvedWorksQuery = $user->works()->where('approval_status', 'approved');
+        if ($dateFilter) {
+            $approvedWorksQuery->where('updated_at', '>=', $dateFilter);
+        }
+        $approvedWorks = $approvedWorksQuery->count();
+        
+        // Completed Appointments: filter by updated_at when completed
+        $completedAppointmentsQuery = $user->appointmentsAsUpcycler()->where('appstatus', 'completed');
+        if ($dateFilter) {
+            $completedAppointmentsQuery->where('updated_at', '>=', $dateFilter);
+        }
+        $completedAppointmentsAsUpcyclerCount = $completedAppointmentsQuery->count();
+        
+        return response()->json([
+            'totalListings' => $totalListings,
+            'itemsSold' => $itemsSold,
+            'revenue' => $revenue,
+            'itemsDonated' => $itemsDonated,
+            'approvedWorks' => $approvedWorks,
+            'completedAppointmentsAsUpcyclerCount' => $completedAppointmentsAsUpcyclerCount,
+        ]);
+    }
+
 
     /**
      * Delete the user's account.
