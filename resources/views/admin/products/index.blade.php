@@ -37,26 +37,106 @@
                 <!-- Tab Content -->
                 <div x-show="tab === 'pending'" x-cloak>
                     <div class="overflow-x-auto">
-                        @include('admin.products._table', ['products' => $pendingProducts])
-                        <div class="mt-4">{{ $pendingProducts->links() }}</div>
+                        <div id="pending-content">
+                            @include('admin.products._table', ['products' => $pendingProducts])
+                        </div>
+                        <div id="pending-pagination" class="mt-4">
+                            {{ $pendingProducts->links() }}
+                        </div>
                     </div>
                 </div>
 
                 <div x-show="tab === 'approved'" x-cloak>
                     <div class="overflow-x-auto">
-                        @include('admin.products._table', ['products' => $approvedProducts])
-                        <div class="mt-4">{{ $approvedProducts->links() }}</div>
+                        <div id="approved-content">
+                            @include('admin.products._table', ['products' => $approvedProducts])
+                        </div>
+                        <div id="approved-pagination" class="mt-4">
+                            {{ $approvedProducts->links() }}
+                        </div>
                     </div>
                 </div>
 
                 <div x-show="tab === 'rejected'" x-cloak>
                     <div class="overflow-x-auto">
-                        @include('admin.products._table', ['products' => $rejectedProducts])
-                        <div class="mt-4">{{ $rejectedProducts->links() }}</div>
+                        <div id="rejected-content">
+                            @include('admin.products._table', ['products' => $rejectedProducts])
+                        </div>
+                        <div id="rejected-pagination" class="mt-4">
+                            {{ $rejectedProducts->links() }}
+                        </div>
                     </div>
                 </div>
             </div>
 
         </div>
     </div>
+
+    <script>
+        let currentTab = 'pending';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            attachPaginationListeners();
+        });
+
+        function attachPaginationListeners() {
+            document.querySelectorAll('a[href*="?page="]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const url = this.getAttribute('href');
+                    if (!url) return;
+
+                    loadPaginatedData(url);
+                });
+            });
+        }
+
+        async function loadPaginatedData(url) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // Update the content and pagination for the current tab
+                const statuses = ['pending', 'approved', 'rejected'];
+                
+                statuses.forEach(status => {
+                    const newContent = doc.getElementById(`${status}-content`);
+                    const newPagination = doc.getElementById(`${status}-pagination`);
+                    
+                    if (newContent) {
+                        const currentContent = document.getElementById(`${status}-content`);
+                        if (currentContent) currentContent.innerHTML = newContent.innerHTML;
+                    }
+                    
+                    if (newPagination) {
+                        const currentPagination = document.getElementById(`${status}-pagination`);
+                        if (currentPagination) currentPagination.innerHTML = newPagination.innerHTML;
+                    }
+                });
+
+                // Reattach pagination listeners for new links
+                attachPaginationListeners();
+
+                // Scroll to table
+                document.querySelector('.overflow-x-auto')?.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+
+            } catch (error) {
+                console.error('Error loading paginated data:', error);
+                alert('Error loading data. Please try again.');
+            }
+        }
+    </script>
 </x-app-layout>
