@@ -75,4 +75,12 @@ class DonationRepository
             ->latest()
             ->paginate($perPage);
     }
+
+    public function getByVerificationStatusPaginated(string $status, int $perPage = 10)
+    {
+        return Donation::with(['user', 'category'])
+            ->where('verification_status', $status)
+            ->orderBy('updated_at','desc')
+            ->paginate($perPage);
+    }
 }

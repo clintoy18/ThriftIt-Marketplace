@@ -19,14 +19,14 @@
         <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Dashboard</h2>
         <p class="text-gray-500 dark:text-gray-400 mt-2">Welcome back! Here's your overview.</p>
     </div>
-    <div class="mt-4 sm:mt-0">
+    {{-- <div class="mt-4 sm:mt-0">
         <select id="timePeriodSelect" class="text-sm rounded-lg border border-gray-300 bg-white dark:bg-gray-800 px-3 py-2 dark:text-gray-200">
             <option value="7">Last 7 days</option>
             <option value="30">Last 30 days</option>
             <option value="90">Last 90 days</option>
             <option value="all" selected>All time</option>
         </select>
-    </div>
+    </div> --}}
 </div>
 
 <!-- Desktop Cards -->

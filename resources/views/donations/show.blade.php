@@ -57,12 +57,12 @@
                         <div class="space-y-4 mt-4">
                             <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Details</h2>
                             <p class="text-gray-600 dark:text-gray-400">{{ $donation->status }}</p>
-                                                        
+
                             <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-sm">
-                            <p class="text-gray-800 dark:text-gray-200 break-words overflow-hidden">
-                                {{ $donation->description ?? 'No description available' }}
-                            </p>
-                        </div>
+                                <p class="text-gray-800 dark:text-gray-200 break-words overflow-hidden">
+                                    {{ $donation->description ?? 'No description available' }}
+                                </p>
+                            </div>
                         </div>
 
                         <div class="mt-4 flex flex-col gap-3">
@@ -82,6 +82,30 @@
                                         <button type="button" onclick="openProofModal({{ $donation->id }})"
                                             class="w-full px-6 py-3 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800 transition-all duration-300 font-medium">
                                             Mark as Donated
+                                        </button>
+                                    @elseif ($donation->proof && $donation->verification_status === 'pending')
+                                        <!-- Proof submitted but awaiting verification -->
+                                        <button type="button" disabled
+                                            class="w-full px-6 py-3 bg-yellow-100 text-yellow-700 rounded-lg dark:bg-yellow-900 dark:text-yellow-300 transition-all duration-300 font-medium cursor-not-allowed opacity-75">
+                                            Awaiting Admin Verification
+                                        </button>
+                                    @elseif ($donation->proof && $donation->verification_status === 'approved')
+                                        <!-- Proof verified -->
+                                        <button type="button" disabled
+                                            class="w-full px-6 py-3 bg-green-100 text-green-600 rounded-lg dark:bg-green-900 dark:text-green-300 transition-all duration-300 font-medium cursor-not-allowed">
+                                            ✓ Verified | Points Redeemed
+                                        </button>
+                                    @elseif ($donation->proof && $donation->verification_status === 'rejected')
+                                        <!-- Proof rejected - allow re-upload -->
+                                        <button type="button" onclick="openProofModal({{ $donation->id }})"
+                                            class="w-full px-6 py-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800 transition-all duration-300 font-medium">
+                                            Proof Rejected - Resubmit
+                                        </button>
+                                    @else
+                                        <!-- Default state (status not available or not approved) -->
+                                        <button type="button" disabled
+                                            class="w-full px-6 py-3 bg-gray-100 text-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-400 transition-all duration-300 font-medium cursor-not-allowed opacity-75">
+                                            Not Available
                                         </button>
                                     @endif
                                 </div>
