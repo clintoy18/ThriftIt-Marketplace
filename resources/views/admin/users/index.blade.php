@@ -45,43 +45,134 @@
                 </div>
 
                 <!-- Tab Content -->
-                <div x-show="tab === 'pending'" x-cloak>
-                    @include('admin.users._table', [
-                        'users' => $pendingUsers,
-                        'showDocument' => true,
-                        'statusColors' => [
-                            'pending' => 'bg-yellow-100 text-yellow-800',
-                            'verified' => 'bg-green-100 text-green-800',
-                            'unverified' => 'bg-red-100 text-red-800',
-                        ],
-                    ])
-                    <div class="mt-4">
-                        {{ $pendingUsers->appends(['tab' => 'pending'])->links() }}
+                <div x-show="tab === 'pending'" x-cloak class="w-full">
+                    <div class="overflow-x-auto">
+                        <div id="pending-content">
+                            @include('admin.users._table', [
+                                'users' => $pendingUsers,
+                                'showDocument' => true,
+                                'statusColors' => [
+                                    'pending' => 'bg-yellow-100 text-yellow-800',
+                                    'verified' => 'bg-green-100 text-green-800',
+                                    'unverified' => 'bg-red-100 text-red-800',
+                                ],
+                            ])
+                        </div>
+                        <div id="pending-pagination" class="mt-4">
+                            {{ $pendingUsers->appends(['tab' => 'pending'])->links() }}
+                        </div>
                     </div>
                 </div>
 
-                <div x-show="tab === 'verified'" x-cloak>
-                    @include('admin.users._table', ['users' => $users, 'showDocument' => false])
-                    <div class="mt-4">
-                        {{ $users->appends(['tab' => 'verified'])->links() }}
+                <div x-show="tab === 'verified'" x-cloak class="w-full">
+                    <div class="overflow-x-auto">
+                        <div id="verified-content">
+                            @include('admin.users._table', ['users' => $users, 'showDocument' => false])
+                        </div>
+                        <div id="verified-pagination" class="mt-4">
+                            {{ $users->appends(['tab' => 'verified'])->links() }}
+                        </div>
                     </div>
                 </div>
 
-                <div x-show="tab === 'unverified'" x-cloak>
-                    @include('admin.users._table', ['users' => $unverifiedUsers, 'showDocument' => false])
-                    <div class="mt-4">
-                        {{ $unverifiedUsers->appends(['tab' => 'unverified'])->links() }}
+                <div x-show="tab === 'unverified'" x-cloak class="w-full">
+                    <div class="overflow-x-auto">
+                        <div id="unverified-content">
+                            @include('admin.users._table', ['users' => $unverifiedUsers, 'showDocument' => false])
+                        </div>
+                        <div id="unverified-pagination" class="mt-4">
+                            {{ $unverifiedUsers->appends(['tab' => 'unverified'])->links() }}
+                        </div>
                     </div>
                 </div>
 
-                <div x-show="tab === 'rejected'" x-cloak>
-                    @include('admin.users._table', ['users' => $rejectedUsers, 'showDocument' => false])
-                    <div class="mt-4">
-                        {{ $rejectedUsers->appends(['tab' => 'rejected'])->links() }}
+                <div x-show="tab === 'rejected'" x-cloak class="w-full">
+                    <div class="overflow-x-auto">
+                        <div id="rejected-content">
+                            @include('admin.users._table', ['users' => $rejectedUsers, 'showDocument' => false])
+                        </div>
+                        <div id="rejected-pagination" class="mt-4">
+                            {{ $rejectedUsers->appends(['tab' => 'rejected'])->links() }}
+                        </div>
                     </div>
                 </div>
 
             </div>
         </div>
     </div>
+
+    <script>
+        let currentTab = '{{ $activeTab }}';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            attachPaginationListeners();
+        });
+
+        function attachPaginationListeners() {
+            document.querySelectorAll('a[href*="?page="]').forEach(link => {
+                link.removeEventListener('click', handlePaginationClick);
+                link.addEventListener('click', handlePaginationClick);
+            });
+        }
+
+        function handlePaginationClick(e) {
+            e.preventDefault();
+            
+            const url = this.getAttribute('href');
+            if (!url) return;
+
+            loadPaginatedData(url);
+        }
+
+        async function loadPaginatedData(url) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // Update all tab contents and paginations
+                const tabs = ['pending', 'verified', 'unverified', 'rejected'];
+                
+                tabs.forEach(tab => {
+                    const newContent = doc.getElementById(`${tab}-content`);
+                    const newPagination = doc.getElementById(`${tab}-pagination`);
+                    
+                    if (newContent) {
+                        const currentContent = document.getElementById(`${tab}-content`);
+                        if (currentContent) {
+                            currentContent.innerHTML = newContent.innerHTML;
+                        }
+                    }
+                    
+                    if (newPagination) {
+                        const currentPagination = document.getElementById(`${tab}-pagination`);
+                        if (currentPagination) {
+                            currentPagination.innerHTML = newPagination.innerHTML;
+                        }
+                    }
+                });
+
+                // Reattach pagination listeners
+                attachPaginationListeners();
+
+                // Scroll to table
+                document.querySelector('.overflow-x-auto')?.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+
+            } catch (error) {
+                console.error('Error loading paginated data:', error);
+                alert('Error loading data. Please try again.');
+            }
+        }
+    </script>
 </x-app-layout>
