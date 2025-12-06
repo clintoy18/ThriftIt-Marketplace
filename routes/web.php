@@ -196,13 +196,50 @@ Route::middleware('auth')->group(function () {
     Route::get('/checkout-success', [App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
     
 
-    Route::post('/notifications/read', function () {
-        Notification::where('user_id', Auth::id())
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
-
-        return response()->json(['status' => 'ok']);
+    Route::post('/notifications/read', function (Request $request) {
+        try {
+            $user = Auth::user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated'
+                ], 401);
+            }
+            
+            // Mark all unread notifications as read
+            $updatedCount = Notification::where('user_id', $user->id)
+                ->where('is_read', false)
+                ->update(['is_read' => true]);
+            
+            // Get updated unread count
+            $unreadCount = Notification::where('user_id', $user->id)
+                ->where('is_read', false)
+                ->count();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'All notifications marked as read',
+                'unread_count' => $unreadCount,
+                'marked_count' => $updatedCount
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error marking notifications as read: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to mark notifications as read. Please try again.'
+            ], 500);
+        }
     })->name('notifications.read');
+
+
+    Route::post('/notifications/read', [NotificationController::class, 'markAllAsRead'])
+        ->name('notifications.read');
+
+    Route::get('/notifications/load-more', [NotificationController::class, 'loadMore'])
+        ->name('notifications.load-more');
+
     // // Notification routes
     // Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     // Route::get('/notifications/count', [NotificationController::class, 'count'])->name('notifications.count');
