@@ -30,19 +30,19 @@ class DonationController extends Controller
         $donations = $this->donationService->getDonationsByUser(Auth::id());
         return view('donations.index', compact('donations'));
     }
-  
+
     public function create()
     {
-        $categories = Categories::all(); 
+        $categories = Categories::all();
         $barangays = Barangay::all();
 
-        return view('donations.create', compact('categories','barangays'));
+        return view('donations.create', compact('categories', 'barangays'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-   
+
     public function store(StoreDonationRequest $request)
     {
         // Validate request data
@@ -64,7 +64,7 @@ class DonationController extends Controller
     }
 
 
-    
+
 
     /**
      * Display the specified resource.
@@ -118,16 +118,16 @@ class DonationController extends Controller
      */
     public function edit(string $id)
     {
-       $categories = Categories::all();
-       $donation = $this->donationService->getDonationById($id);
-    
-       return view('donations.edit', ['donation' => $donation, 'categories' => $categories]);
+        $categories = Categories::all();
+        $donation = $this->donationService->getDonationById($id);
+
+        return view('donations.edit', ['donation' => $donation, 'categories' => $categories]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-  public function update(UpdateDonationRequest $request, Donation $donation)
+    public function update(UpdateDonationRequest $request, Donation $donation)
     {
         // 1️⃣ Validate request
         $validated = $request->validated();
@@ -209,17 +209,15 @@ class DonationController extends Controller
 
     public function markAsDonated(SubmitProofRequest $request, Donation $donation): RedirectResponse
     {
-        // Store proof image
-        $proofPath = $request->file('proof')->store('proofs', 'public');
-
-        $this->donationService->updateDonation($donation, [
-            'proof' => $proofPath,
-            'verification_status' => 'pending',
-        ]);
+        // Pass the proof file to the service (not stored here)
+        $this->donationService->updateDonation(
+            $donation,
+            ['verification_status' => 'pending',],
+            ['proof' => $request->file('proof'),]
+        );
 
         return redirect()
             ->route('donations.index')
             ->with('success', 'Proof submitted successfully! Awaiting admin verification to redeem points.');
     }
-
 }

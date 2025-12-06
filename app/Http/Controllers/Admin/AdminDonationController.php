@@ -26,9 +26,9 @@ class AdminDonationController extends Controller
         $pendingDonations = $this->donationService->getDonationsByStatusPaginated('pending');
         $rejectedDonations = $this->donationService->getDonationsByStatusPaginated('rejected');
         //reward donate management
-        $pendingVerifications = Donation::where('verification_status', 'pending')->get();
-        $verifiedDonations = Donation::where('verification_status', 'approved')->get();
-        $rejectedProofs = Donation::where('verification_status', 'rejected')->get();
+        $pendingVerifications = $this->donationService->getDonationsByVerificationStatusPaginated('pending');
+        $verifiedDonations = $this->donationService->getDonationsByVerificationStatusPaginated('approved');
+        $rejectedProofs = $this->donationService->getDonationsByVerificationStatusPaginated('rejected');
 
         return view('admin.donations.index', compact('approvedDonations', 'pendingDonations','rejectedDonations','pendingVerifications',
             'verifiedDonations',

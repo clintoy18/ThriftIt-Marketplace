@@ -32,7 +32,7 @@ class DonationService
         // 1️⃣ Create donation record first
         $donation = $this->donationRepository->create($data);
 
-          // 2️⃣ Handle uploaded images (store in S3)
+        // 2️⃣ Handle uploaded images (store in S3)
         if ($images && count($images) > 0) {
             foreach ($images as $image) {
                 if ($image instanceof UploadedFile) {
@@ -64,7 +64,7 @@ class DonationService
             }
 
             // Store new main image in S3
-            $data['image'] = $images['main']->store('donations_images', [
+            $data['image'] = $images['main']->store('donation_images', [
                 'disk' => 's3',
                 'visibility' => 'public',
             ]);
@@ -94,11 +94,23 @@ class DonationService
                 $donation->donationImages()->create(['image' => $path]);
             }
         }
+        //handle donation proofs
+        // 4️⃣ Handle proof image
+        if (!empty($images['proof']) && $images['proof'] instanceof UploadedFile) {
+            if ($donation->proof && Storage::disk('s3')->exists($donation->proof)) {
+                Storage::disk('s3')->delete($donation->proof);
+            }
+
+            $data['proof'] = $images['proof']->store('donation_proofs', [
+                'disk' => 's3',
+                'visibility' => 'public', 
+            ]);
+        }
 
         // 4️⃣ Update other donation fields
         return $this->donationRepository->update($donation, $data);
     }
-    
+
     public function deleteDonation($donation)
     {
         return $this->donationRepository->delete($donation);
@@ -119,14 +131,18 @@ class DonationService
         return $this->donationRepository->getByStatusPaginated($status, $perPage);
     }
 
-        public function getDonationsByUser($userId)
-        {
-            return $this->donationRepository->getByUser($userId);
-        }
+    public function getDonationsByVerificationStatusPaginated(string $status, int $perPage = 10)
+    {
+        return $this->donationRepository->getByVerificationStatusPaginated($status, $perPage);
+    }
 
-        public function getMoreDonationsByUser($userId, $excludeDonationId, $limit = 6)
-        {
-            return $this->donationRepository->getMoreByUser($userId, $excludeDonationId, $limit);
-        }
+    public function getDonationsByUser($userId)
+    {
+        return $this->donationRepository->getByUser($userId);
+    }
 
+    public function getMoreDonationsByUser($userId, $excludeDonationId, $limit = 6)
+    {
+        return $this->donationRepository->getMoreByUser($userId, $excludeDonationId, $limit);
+    }
 }
