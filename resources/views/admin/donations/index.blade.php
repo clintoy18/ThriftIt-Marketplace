@@ -43,8 +43,12 @@
                             {{ $status }} Donations
                         </h3>
                         <div class="overflow-x-auto bg-white/30 dark:bg-gray-800/50 rounded-xl p-3 shadow-inner mb-6">
-                            @include('admin.donations._table', ['donations' => $donations])
-                            <div class="mt-4">{{ $donations->links() }}</div>
+                            <div id="approval-{{ strtolower($status) }}-content">
+                                @include('admin.donations._table', ['donations' => $donations])
+                            </div>
+                            <div id="approval-{{ strtolower($status) }}-pagination" class="mt-4">
+                                {{ $donations->links() }}
+                            </div>
                         </div>
                     @endforeach
                 </div>
@@ -61,10 +65,15 @@
                             {{ $status }} Donations
                         </h3>
                         <div class="overflow-x-auto bg-white/30 dark:bg-gray-800/50 rounded-xl p-3 shadow-inner mb-6">
-                            @include('admin.donations.reward-management._reward_table', [
-                                'donations' => $donations,
-                                'type' => strtolower($status),
-                            ])
+                            <div id="reward-{{ strtolower($status) }}-content">
+                                @include('admin.donations.reward-management._reward_table', [
+                                    'donations' => $donations,
+                                    'type' => strtolower($status),
+                                ])
+                            </div>
+                            <div id="reward-{{ strtolower($status) }}-pagination" class="mt-4">
+                                {{ $donations->links() }}
+                            </div>
                         </div>
                     @endforeach
                 </div>
@@ -73,9 +82,12 @@
         </div>
     </div>
 
-    {{-- Tab Switch Script --}}
+    {{-- Tab Switch & AJAX Pagination Script --}}
     <script>
+        let currentTab = 'approval';
+
         function switchTab(tab) {
+            currentTab = tab;
             const approvalSection = document.getElementById('approval-section');
             const rewardSection = document.getElementById('reward-section');
 
@@ -107,6 +119,85 @@
                 tabApproval.classList.add('text-gray-500', 'dark:text-gray-400');
             }
         }
-    </script>
 
+        // AJAX Pagination Handler
+        document.addEventListener('DOMContentLoaded', function() {
+            attachPaginationListeners();
+        });
+
+        function attachPaginationListeners() {
+            // Get all pagination links
+            document.querySelectorAll('a[href*="?page="]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const url = this.getAttribute('href');
+                    if (!url) return;
+
+                    loadPaginatedData(url);
+                });
+            });
+        }
+
+        async function loadPaginatedData(url) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // Determine which section is active and update
+                if (currentTab === 'approval') {
+                    const statuses = ['pending', 'approved', 'rejected'];
+                    statuses.forEach(status => {
+                        const newContent = doc.getElementById(`approval-${status}-content`);
+                        const newPagination = doc.getElementById(`approval-${status}-pagination`);
+                        
+                        if (newContent) {
+                            const currentContent = document.getElementById(`approval-${status}-content`);
+                            if (currentContent) currentContent.innerHTML = newContent.innerHTML;
+                        }
+                        
+                        if (newPagination) {
+                            const currentPagination = document.getElementById(`approval-${status}-pagination`);
+                            if (currentPagination) currentPagination.innerHTML = newPagination.innerHTML;
+                        }
+                    });
+                } else {
+                    const statuses = ['pending', 'verified', 'rejected'];
+                    statuses.forEach(status => {
+                        const newContent = doc.getElementById(`reward-${status}-content`);
+                        const newPagination = doc.getElementById(`reward-${status}-pagination`);
+                        
+                        if (newContent) {
+                            const currentContent = document.getElementById(`reward-${status}-content`);
+                            if (currentContent) currentContent.innerHTML = newContent.innerHTML;
+                        }
+                        
+                        if (newPagination) {
+                            const currentPagination = document.getElementById(`reward-${status}-pagination`);
+                            if (currentPagination) currentPagination.innerHTML = newPagination.innerHTML;
+                        }
+                    });
+                }
+
+                // Reattach pagination listeners for new links
+                attachPaginationListeners();
+
+                // Scroll to top of tables
+                document.querySelector('.bg-white\\/20')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            } catch (error) {
+                console.error('Error loading paginated data:', error);
+                alert('Error loading data. Please try again.');
+            }
+        }
+    </script>
 </x-app-layout>

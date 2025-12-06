@@ -26,7 +26,7 @@
 
                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                     @if($donation->proof)
-                        <a href="{{ asset('storage/' . $donation->proof) }}" target="_blank"
+                        <a href="{{ Storage::disk('s3')->url($donation->proof) }}" target="_blank"
                             class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline">
                             View Proof
                         </a>
@@ -61,7 +61,7 @@
                         </form>
 
                         {{-- Reject --}}
-                        <form action="{{ route('admin.donations.rejectProof', $donation) }}" method="POST" class="inline">
+                        <form action="{{ route('admin.donations.rejectDonationProof', $donation) }}" method="POST" class="inline">
                             @csrf
                             @method('PUT')
                             <button type="submit"
