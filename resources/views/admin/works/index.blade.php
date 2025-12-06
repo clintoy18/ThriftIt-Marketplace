@@ -35,28 +35,115 @@
                 </div>
 
                 <!-- Tab Content -->
-                <div x-show="tab === 'pending'" x-cloak>
+                <div x-show="tab === 'pending'" x-cloak class="w-full">
                     <div class="overflow-x-auto">
-                        @include('admin.works._table', ['works' => $pendingWorks])
-                        <div class="mt-4">{{ $pendingWorks->links() }}</div>
+                        <div id="pending-content">
+                            @include('admin.works._table', ['works' => $pendingWorks])
+                        </div>
+                        <div id="pending-pagination" class="mt-4">
+                            {{ $pendingWorks->links() }}
+                        </div>
                     </div>
                 </div>
 
-                <div x-show="tab === 'approved'" x-cloak>
+                <div x-show="tab === 'approved'" x-cloak class="w-full">
                     <div class="overflow-x-auto">
-                        @include('admin.works._table', ['works' => $approvedWorks])
-                        <div class="mt-4">{{ $approvedWorks->links() }}</div>
+                        <div id="approved-content">
+                            @include('admin.works._table', ['works' => $approvedWorks])
+                        </div>
+                        <div id="approved-pagination" class="mt-4">
+                            {{ $approvedWorks->links() }}
+                        </div>
                     </div>
                 </div>
 
-                <div x-show="tab === 'rejected'" x-cloak>
+                <div x-show="tab === 'rejected'" x-cloak class="w-full">
                     <div class="overflow-x-auto">
-                        @include('admin.works._table', ['works' => $rejectedWorks])
-                        <div class="mt-4">{{ $rejectedWorks->links() }}</div>
+                        <div id="rejected-content">
+                            @include('admin.works._table', ['works' => $rejectedWorks])
+                        </div>
+                        <div id="rejected-pagination" class="mt-4">
+                            {{ $rejectedWorks->links() }}
+                        </div>
                     </div>
                 </div>
             </div>
 
         </div>
     </div>
+
+    <script>
+        let currentTab = 'pending';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            attachPaginationListeners();
+        });
+
+        function attachPaginationListeners() {
+            document.querySelectorAll('a[href*="?page="]').forEach(link => {
+                link.removeEventListener('click', handlePaginationClick);
+                link.addEventListener('click', handlePaginationClick);
+            });
+        }
+
+        function handlePaginationClick(e) {
+            e.preventDefault();
+            
+            const url = this.getAttribute('href');
+            if (!url) return;
+
+            loadPaginatedData(url);
+        }
+
+        async function loadPaginatedData(url) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // Update all tab contents and paginations
+                const tabs = ['pending', 'approved', 'rejected'];
+                
+                tabs.forEach(tab => {
+                    const newContent = doc.getElementById(`${tab}-content`);
+                    const newPagination = doc.getElementById(`${tab}-pagination`);
+                    
+                    if (newContent) {
+                        const currentContent = document.getElementById(`${tab}-content`);
+                        if (currentContent) {
+                            currentContent.innerHTML = newContent.innerHTML;
+                        }
+                    }
+                    
+                    if (newPagination) {
+                        const currentPagination = document.getElementById(`${tab}-pagination`);
+                        if (currentPagination) {
+                            currentPagination.innerHTML = newPagination.innerHTML;
+                        }
+                    }
+                });
+
+                // Reattach pagination listeners
+                attachPaginationListeners();
+
+                // Scroll to table
+                document.querySelector('.overflow-x-auto')?.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+
+            } catch (error) {
+                console.error('Error loading paginated data:', error);
+                alert('Error loading data. Please try again.');
+            }
+        }
+    </script>
 </x-app-layout>
