@@ -27,6 +27,7 @@ use App\Http\Controllers\PricingController;
 use App\Http\Controllers\EcoPostController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\WorkController;
+use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\NotificationController;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
@@ -58,6 +59,9 @@ Route::get('upcycler/dashboard', function () {
     ->middleware(['auth', 'verified', 'rolemiddleware:upcycler'])
     ->name('upcycler');
 
+
+Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
+Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
 
 //to make sure only a verified user can access the user routes, 
 Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function () {
