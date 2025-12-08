@@ -21,6 +21,35 @@ class Notification extends Model
         'is_read' => 'boolean',
     ];
 
+    /**
+     * Accessor to ensure is_read is always a proper boolean
+     * and that notifications with read_at are always considered read
+     */
+    public function getIsReadAttribute($value)
+    {
+        // If read_at is set, the notification is definitely read
+        if (isset($this->attributes['read_at']) && $this->attributes['read_at'] !== null) {
+            return true;
+        }
+        // Ensure proper boolean conversion (handle 0/1 from database)
+        return (bool) ($value ?? false);
+    }
+
+    /**
+     * Boot method to ensure data consistency
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // Ensure that if read_at is set, is_read is also true
+        static::saving(function ($notification) {
+            if ($notification->read_at !== null && !$notification->is_read) {
+                $notification->is_read = true;
+            }
+        });
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

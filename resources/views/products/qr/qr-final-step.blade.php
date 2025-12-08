@@ -7,7 +7,49 @@
 
     <div class="py-8">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <x-step-progress :currentStep="$currentStep" />
+            @if ($product->user->is_verified)
+                <x-step-progress :currentStep="$currentStep" />
+            @else
+                <!-- Verification Notice for Unverified Users - Replaces Step Progress -->
+                <div class="bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-2xl p-6 mb-8">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/40 rounded-xl flex items-center justify-center">
+                                <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-lg font-bold text-amber-800 dark:text-amber-300 mb-2">
+                                Account Not Verified
+                            </h4>
+                            <div class="space-y-2 text-amber-700 dark:text-amber-400 text-sm">
+                                <p class="flex items-start gap-2">
+                                    <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    <span>You are <strong>not allowed to sell</strong> products until your account is verified.</span>
+                                </p>
+                                <p class="flex items-start gap-2">
+                                    <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    <span>You <strong>cannot upload QR codes</strong> as an unverified user.</span>
+                                </p>
+                            </div>
+                            <div class="mt-4">
+                                <a href="{{ route('profile.edit2') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-semibold transition-colors duration-200 text-sm">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Verify Your Account
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             <div class="bg-white dark:bg-gray-800 shadow-2xl sm:rounded-3xl overflow-hidden border-0">
                 <!-- Header Section -->
@@ -129,48 +171,6 @@
                             </div>
                         @endif
                     </div>
-
-                    <!-- Verification Notice for Unverified Users -->
-                    @if (!$product->user->is_verified)
-                        <div class="bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-2xl p-6 mb-8">
-                            <div class="flex items-start gap-4">
-                                <div class="flex-shrink-0">
-                                    <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/40 rounded-xl flex items-center justify-center">
-                                        <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="text-lg font-bold text-amber-800 dark:text-amber-300 mb-2">
-                                        Account Not Verified
-                                    </h4>
-                                    <div class="space-y-2 text-amber-700 dark:text-amber-400 text-sm">
-                                        <p class="flex items-start gap-2">
-                                            <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                            <span>You are <strong>not allowed to sell</strong> products until your account is verified.</span>
-                                        </p>
-                                        <p class="flex items-start gap-2">
-                                            <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                            <span>You <strong>cannot upload QR codes</strong> as an unverified user.</span>
-                                        </p>
-                                    </div>
-                                    <div class="mt-4">
-                                        <a href="{{ route('profile.edit2') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-semibold transition-colors duration-200 text-sm">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Verify Your Account
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
 
                     <!-- Action Buttons - Matching QR Step Design -->
                     <form action="{{ route('sell-item.finalize', $product->id) }}" method="POST">
