@@ -8,7 +8,7 @@
                 class="px-4 py-2 text-sm font-medium rounded-lg bg-white/20 dark:bg-gray-800/40 border border-white/10
                        text-gray-800 dark:text-gray-100 backdrop-blur-md hover:bg-white/30 dark:hover:bg-gray-700/50
                        transition duration-200 shadow-md">
-                ← Back to Products
+                ← Back to Items
             </a>
         </div>
     </x-slot>

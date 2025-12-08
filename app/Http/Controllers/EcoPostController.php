@@ -20,9 +20,10 @@ class EcoPostController extends Controller
     public function index()
     {
         $posts = $this->service->listPosts()->load('user');
-        return view('eco-posts.index', compact('posts'));
-    }
+        $leaderboard = $this->service->getLeaderboard();
 
+        return view('eco-posts.index', compact('posts', 'leaderboard'));
+    }
     public function create()
     {
         return view('eco-posts.create');
@@ -32,7 +33,7 @@ class EcoPostController extends Controller
     {
         $data = $request->validated();
         $data['user_id'] = Auth::id();
-       
+
         $this->service->createPost($data);
 
         return redirect()->route('eco-posts.index')->with('success', 'Post created successfully!');
@@ -56,7 +57,7 @@ class EcoPostController extends Controller
         $this->service->updatePost($id, $data);
         return redirect()->route('eco-posts.index')->with('success', 'Post updated successfully!');
     }
-    
+
     public function destroy($id)
     {
         $this->service->deletePost($id);

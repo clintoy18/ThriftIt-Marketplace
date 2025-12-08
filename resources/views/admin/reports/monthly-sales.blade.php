@@ -157,7 +157,7 @@
                 <div class="summary-value">₱{{ number_format($totalSales, 2) }}</div>
             </div>
             <div class="summary-item">
-                <div class="summary-label">Total Products Sold</div>
+                <div class="summary-label">Total Items Sold</div>
                 <div class="summary-value">{{ $totalProducts }}</div>
             </div>
             <div class="summary-item">

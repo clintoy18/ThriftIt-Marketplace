@@ -3,7 +3,7 @@
         @if ($user->isRegularUser())
             <button id="tab-products" type="button"
                 class="px-4 py-2 rounded-full bg-[#E1D5B6] text-gray-800 font-semibold shadow-md transition-all whitespace-nowrap">
-                Products
+                Items
             </button>
         @endif
         @if ($user->isUpcycler())

@@ -51,6 +51,6 @@
         @endforeach
     </div>
 @else
-    <x-empty-message message="No active products found." link="{{ route('products.create') }}" buttonText="Add Product"
+    <x-empty-message message="No active items found." link="{{ route('products.create') }}" buttonText="Add Product"
         icon="shopping-cart" />
 @endif

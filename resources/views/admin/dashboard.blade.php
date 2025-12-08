@@ -275,7 +275,7 @@
                                             Month</th>
                                         <th
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Products Sold</th>
+                                            Items Sold</th>
                                         <th
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Total Revenue</th>
@@ -365,7 +365,7 @@
                                             <span x-text="details.month_name"></span> Summary
                                         </h4>
                                         <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                            <span x-text="details.total_products"></span> Products Sold •
+                                            <span x-text="details.total_products"></span> Items Sold •
                                             ₱<span
                                                 x-text="Number(details.total_sales).toLocaleString(undefined, { minimumFractionDigits: 2 })"></span>
                                             Total Sales

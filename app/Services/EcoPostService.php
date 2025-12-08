@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Repositories\EcoPostRepository;
 use Illuminate\Support\Facades\Storage;
 use App\Models\EcoEducationalPost;
+use App\Models\User;
 
 class EcoPostService
 {
@@ -41,6 +42,19 @@ class EcoPostService
         return EcoEducationalPost::create($data);
     }
 
+    public function getLeaderboard()
+    {
+        return User::where('role', 0) // only regular users
+            ->withCount('ecoPosts') // count posts from eco_educational_posts
+            ->get()
+            ->map(function ($user) {
+                // Weighted score: 70% points + 30% post count
+                $user->score = ($user->points * 0.7) + ($user->eco_posts_count * 0.3);
+                return $user;
+            })
+            ->sortByDesc('score') // sort by combined score
+            ->take(5); // top 5 users
+    }
 
     public function updatePost($id, array $data)
     {

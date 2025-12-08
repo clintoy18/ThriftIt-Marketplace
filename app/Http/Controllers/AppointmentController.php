@@ -18,6 +18,9 @@ class AppointmentController extends Controller
     public function __construct(AppointmentService $appointmentService)
     {
         $this->appointmentService = $appointmentService;
+
+        // Apply middleware directly in the controller if all methods require auth/verified/user role
+        $this->middleware(['auth', 'verified', 'rolemiddleware:user']);
     }
 
     /**
@@ -34,7 +37,7 @@ class AppointmentController extends Controller
             $query->where('barangay_id', $selectedBarangayId);
         }
 
-        $upcyclers = $query->get(); // fetch (optionally filtered) active upcyclers
+        $upcyclers = $query->get();
         $barangays = Barangay::all();
 
         return view('appointments.index', compact('upcyclers', 'barangays', 'selectedBarangayId'));
@@ -45,11 +48,9 @@ class AppointmentController extends Controller
      */
     public function create(Request $request)
     {
-        $upcyclerId = $request->query('upcycler_id');
         $upcycler = null;
-
-        if ($upcyclerId) {
-            $upcycler = User::where('role', 1)->find($upcyclerId);
+        if ($request->query('upcycler_id')) {
+            $upcycler = User::where('role', 1)->find($request->query('upcycler_id'));
         }
 
         return view('appointments.create', compact('upcycler'));
@@ -63,11 +64,9 @@ class AppointmentController extends Controller
         $validated = $request->validated();
         $validated['user_id'] = Auth::id();
 
-        // Pass both validated data and image files
         $this->appointmentService->createAppointment($validated, $request->file('images'));
 
-        return redirect()->route('appointments.index')
-            ->with('success', 'Appointment created successfully!');
+        return redirect()->route('appointments.index')->with('success', 'Appointment created successfully!');
     }
 
     /**
@@ -76,7 +75,6 @@ class AppointmentController extends Controller
     public function show($appointmentid)
     {
         $appointment = $this->appointmentService->getAppointmentById($appointmentid);
-
         return view('appointments.show', compact('appointment'));
     }
 
@@ -98,6 +96,7 @@ class AppointmentController extends Controller
         $appointment = $this->appointmentService->getAppointmentById($appointmentid);
         $validated = $request->validated();
         $this->appointmentService->updateAppointment($appointment, $validated);
+
         return redirect()->route('appointments.index')->with('success', 'Appointment updated successfully!');
     }
 
@@ -108,31 +107,31 @@ class AppointmentController extends Controller
     {
         $appointment = $this->appointmentService->getAppointmentById($appointmentid);
         $this->appointmentService->deleteAppointment($appointment);
+
         return redirect()->route('appointments.myAppointments')->with('success', 'Appointment deleted successfully!');
     }
 
+    /**
+     * Display the logged-in user's appointments.
+     */
     public function myAppointments()
     {
-        $user = Auth::user();
-
-        if ($user->role == 1) { // Upcycler
-            $appointments = $this->appointmentService->getAppointmentsByUpcycler($user->id);
-            $viewMode = 'upcycler';
-        } else { // Default to regular user
-            $appointments = $this->appointmentService->getAppointmentsByUser($user->id);
-            $viewMode = 'user';
-        }
-
-        return view('appointments.myAppointments', compact('appointments', 'viewMode'));
+        $appointments = $this->appointmentService->getAppointmentsByUser(Auth::id());
+        return view('appointments.myAppointments', compact('appointments'));
     }
 
+    /**
+     * Cancel an appointment.
+     */
     public function cancel($appointmentid)
     {
         $appointment = $this->appointmentService->getAppointmentById($appointmentid);
         $result = $this->appointmentService->cancelAppointment($appointment);
+
         if (isset($result['error'])) {
             return redirect()->route('appointments.myAppointments')->withErrors($result['error']);
         }
+
         return redirect()->route('appointments.myAppointments')->with('success', $result['success']);
     }
 }

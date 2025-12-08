@@ -44,7 +44,7 @@
                         class="hidden md:flex items-center bg-[#F4F2ED] dark:bg-gray-800 px-4 rounded-full w-full max-w-md border border-gray-400 dark:text-gray-200  mx-4">
                         <form action="{{ route('search') }}" method="GET" class="flex w-full items-center">
                             <input type="text" name="query" value="{{ request('query') }}"
-                                placeholder="Search for a product..."
+                                placeholder="Search for a product... or a person"
                                 class="w-full dark:placeholder:text-gray-200 outline-none text-sm bg-transparent border-0 focus:outline-none focus:ring-0 focus:border-0 focus:shadow-none"
                                 required>
                             <button type="submit" class="ml-2">

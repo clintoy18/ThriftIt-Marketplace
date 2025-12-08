@@ -55,7 +55,7 @@
                 <!-- Text Content -->
                 <div class="md:w-1/2 font-poppins">
                     <h1 class="text-5xl lg:text-6xl font-extrabold text-[#634600] dark:text-[#B59F84] leading-tight">
-                        My Products
+                        My Items
                     </h1>
                     <p class="mt-4 text-xl text-[#603E14] dark:text-gray-200">
                         Manage your thrift store inventory 🌟

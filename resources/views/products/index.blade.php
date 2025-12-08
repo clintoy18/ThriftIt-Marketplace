@@ -7,7 +7,7 @@
             <div class="flex flex-col md:hidden text-center relative font-poppins">
                 <!-- Title -->
                 <h1 class="text-3xl font-extrabold text-[#634600] leading-tight dark:text-[#B59F84]">
-                    My Products
+                    My Items
                 </h1>
                 <p class="mt-2 text-lg text-[#603E14] dark:text-gray-200 mb-6">
                     Manage your sustainable fashion items 🌿
@@ -55,7 +55,7 @@
                 <!-- Text Content -->
                 <div class="md:w-1/2 font-poppins">
                     <h1 class="text-5xl lg:text-6xl font-extrabold text-[#634600] dark:text-[#B59F84] leading-tight">
-                        My Products
+                        My Items
                     </h1>
                     <p class="mt-4 text-xl text-[#603E14] dark:text-gray-200">
                         Manage your thrift store inventory 🌟
@@ -67,7 +67,7 @@
                             class="inline-block border border-[#B59F84] text-[#634600] hover:bg-[#F8EED6] 
                                   dark:border-[#B59F84] dark:text-[#B59F84] dark:hover:bg-gray-700 
                                   font-semibold px-6 py-3 rounded-full shadow-md transition">
-                            List New Product
+                            List New Item
                         </a>
 
                     </div>
@@ -88,7 +88,7 @@
     <div class="py-6 bg-white dark:bg-gray-900">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">My Products</h2>
+                <h2 class="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">My Items</h2>
 
                 <!-- Button to list or create product -->
                 <a href="{{ route('products.create') }}"
@@ -98,12 +98,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
-                    <span class="font-semibold">List a Product</span>
+                    <span class="font-semibold">List a Item</span>
                 </a>
             </div>
 
             <div class="rounded-xl shadow-sm overflow-hidden">
-                <div class="p-4 sm:p-6">
+                <div id="products-container" class="p-4 sm:p-6">
                     @if ($products->count() > 0)
                         <div
                             class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
@@ -183,9 +183,13 @@
                                 </div>
                             @endforeach
                         </div>
+                        <!-- Pagination Links -->
+                        <div class="mt-6">
+                            {{ $products->withQueryString()->links() }}
+                        </div>
                     @else
-                        <x-empty-message message="No active products found." link="{{ route('products.create') }}"
-                            buttonText="Add Product" icon="shopping-cart" />
+                        <x-empty-message message="No active items found." link="{{ route('products.create') }}"
+                            buttonText="Add Item" icon="shopping-cart" />
                     @endif
                 </div>
             </div>
@@ -206,6 +210,51 @@
                     this.classList.remove('text-gray-600');
                 }
             });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            function attachPaginationLinks() {
+                document.querySelectorAll('#products-container a[href*="?page="]').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        loadProducts(this.getAttribute('href'));
+                    });
+                });
+            }
+
+            async function loadProducts(url) {
+                try {
+                    const response = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    if (!response.ok) throw new Error('Network response was not ok');
+
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    const newProducts = doc.getElementById('products-container');
+                    if (newProducts) {
+                        document.getElementById('products-container').innerHTML = newProducts.innerHTML;
+                    }
+
+                    // Reattach pagination links after content update
+                    attachPaginationLinks();
+
+                    // Scroll to products
+                    document.getElementById('products-container').scrollIntoView({
+                        behavior: 'smooth'
+                    });
+
+                } catch (error) {
+                    console.error('Error loading products:', error);
+                    alert('Failed to load products. Please try again.');
+                }
+            }
+
+            attachPaginationLinks();
         });
     </script>
 </x-app-layout>

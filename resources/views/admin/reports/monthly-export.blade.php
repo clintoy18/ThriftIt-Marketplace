@@ -66,7 +66,7 @@
         </tbody>
     </table>
 
-    <h2>Sold Products</h2>
+    <h2>Sold Items</h2>
     <table>
         <thead>
             <tr>
