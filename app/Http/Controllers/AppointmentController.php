@@ -1,138 +1,128 @@
-<?php
+    <?php
 
-namespace App\Http\Controllers;
+    namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreAppointmentRequest;
-use App\Http\Requests\UpdateAppointmentRequest;
-use App\Models\Barangay;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use App\Models\Appointment;
-use App\Services\AppointmentService;
+    use App\Http\Requests\StoreAppointmentRequest;
+    use App\Http\Requests\UpdateAppointmentRequest;
+    use App\Models\Barangay;
+    use Illuminate\Http\Request;
+    use Illuminate\Support\Facades\Auth;
+    use App\Models\User;
+    use App\Models\Appointment;
+    use App\Services\AppointmentService;
 
-class AppointmentController extends Controller
-{
-    protected $appointmentService;
-
-    public function __construct(AppointmentService $appointmentService)
+    class AppointmentController extends Controller
     {
-        $this->appointmentService = $appointmentService;
-    }
+        protected $appointmentService;
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
-    {
-        $selectedBarangayId = $request->query('barangay');
-
-        $query = User::where('role', 1)
-            ->where('is_active', '1');
-
-        if ($selectedBarangayId) {
-            $query->where('barangay_id', $selectedBarangayId);
+        public function __construct(AppointmentService $appointmentService)
+        {
+            $this->appointmentService = $appointmentService;
         }
 
-        $upcyclers = $query->get(); // fetch (optionally filtered) active upcyclers
-        $barangays = Barangay::all();
+        /**
+         * Display a listing of the resource.
+         */
+        public function index(Request $request)
+        {
+            $selectedBarangayId = $request->query('barangay');
 
-        return view('appointments.index', compact('upcyclers', 'barangays', 'selectedBarangayId'));
-    }
+            $query = User::where('role', 1)
+                ->where('is_active', '1');
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(Request $request)
-    {
-        $upcyclerId = $request->query('upcycler_id');
-        $upcycler = null;
+            if ($selectedBarangayId) {
+                $query->where('barangay_id', $selectedBarangayId);
+            }
 
-        if ($upcyclerId) {
-            $upcycler = User::where('role', 1)->find($upcyclerId);
+            $upcyclers = $query->get(); // fetch (optionally filtered) active upcyclers
+            $barangays = Barangay::all();
+
+            return view('appointments.index', compact('upcyclers', 'barangays', 'selectedBarangayId'));
         }
 
-        return view('appointments.create', compact('upcycler'));
-    }
+        /**
+         * Show the form for creating a new resource.
+         */
+        public function create(Request $request)
+        {
+            $upcyclerId = $request->query('upcycler_id');
+            $upcycler = null;
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreAppointmentRequest $request)
-    {
-        $validated = $request->validated();
-        $validated['user_id'] = Auth::id();
+            if ($upcyclerId) {
+                $upcycler = User::where('role', 1)->find($upcyclerId);
+            }
 
-        // Pass both validated data and image files
-        $this->appointmentService->createAppointment($validated, $request->file('images'));
-
-        return redirect()->route('appointments.index')
-            ->with('success', 'Appointment created successfully!');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show($appointmentid)
-    {
-        $appointment = $this->appointmentService->getAppointmentById($appointmentid);
-
-        return view('appointments.show', compact('appointment'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($appointmentid)
-    {
-        $appointment = $this->appointmentService->getAppointmentById($appointmentid);
-        $upcyclers = User::where('role', 1)->get();
-        return view('appointments.edit', compact('appointment', 'upcyclers'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateAppointmentRequest $request, $appointmentid)
-    {
-        $appointment = $this->appointmentService->getAppointmentById($appointmentid);
-        $validated = $request->validated();
-        $this->appointmentService->updateAppointment($appointment, $validated);
-        return redirect()->route('appointments.index')->with('success', 'Appointment updated successfully!');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($appointmentid)
-    {
-        $appointment = $this->appointmentService->getAppointmentById($appointmentid);
-        $this->appointmentService->deleteAppointment($appointment);
-        return redirect()->route('appointments.myAppointments')->with('success', 'Appointment deleted successfully!');
-    }
-
-    public function myAppointments()
-    {
-        $user = Auth::user();
-
-        if ($user->role == 1) { // Upcycler
-            $appointments = $this->appointmentService->getAppointmentsByUpcycler($user->id);
-            $viewMode = 'upcycler';
-        } else { // Default to regular user
-            $appointments = $this->appointmentService->getAppointmentsByUser($user->id);
-            $viewMode = 'user';
+            return view('appointments.create', compact('upcycler'));
         }
 
-        return view('appointments.myAppointments', compact('appointments', 'viewMode'));
-    }
+        /**
+         * Store a newly created resource in storage.
+         */
+        public function store(StoreAppointmentRequest $request)
+        {
+            $validated = $request->validated();
+            $validated['user_id'] = Auth::id();
 
-    public function cancel($appointmentid)
-    {
-        $appointment = $this->appointmentService->getAppointmentById($appointmentid);
-        $result = $this->appointmentService->cancelAppointment($appointment);
-        if (isset($result['error'])) {
-            return redirect()->route('appointments.myAppointments')->withErrors($result['error']);
+            // Pass both validated data and image files
+            $this->appointmentService->createAppointment($validated, $request->file('images'));
+
+            return redirect()->route('appointments.index')
+                ->with('success', 'Appointment created successfully!');
         }
-        return redirect()->route('appointments.myAppointments')->with('success', $result['success']);
+
+        /**
+         * Display the specified resource.
+         */
+        public function show($appointmentid)
+        {
+            $appointment = $this->appointmentService->getAppointmentById($appointmentid);
+
+            return view('appointments.show', compact('appointment'));
+        }
+
+        /**
+         * Show the form for editing the specified resource.
+         */
+        public function edit($appointmentid)
+        {
+            $appointment = $this->appointmentService->getAppointmentById($appointmentid);
+            $upcyclers = User::where('role', 1)->get();
+            return view('appointments.edit', compact('appointment', 'upcyclers'));
+        }
+
+        /**
+         * Update the specified resource in storage.
+         */
+        public function update(UpdateAppointmentRequest $request, $appointmentid)
+        {
+            $appointment = $this->appointmentService->getAppointmentById($appointmentid);
+            $validated = $request->validated();
+            $this->appointmentService->updateAppointment($appointment, $validated);
+            return redirect()->route('appointments.index')->with('success', 'Appointment updated successfully!');
+        }
+
+        /**
+         * Remove the specified resource from storage.
+         */
+        public function destroy($appointmentid)
+        {
+            $appointment = $this->appointmentService->getAppointmentById($appointmentid);
+            $this->appointmentService->deleteAppointment($appointment);
+            return redirect()->route('appointments.myAppointments')->with('success', 'Appointment deleted successfully!');
+        }
+
+        public function myAppointments()
+        {
+            $appointments = $this->appointmentService->getAppointmentsByUser(Auth::id());
+            return view('appointments.myAppointments', compact('appointments'));
+        }
+        public function cancel($appointmentid)
+        {
+            $appointment = $this->appointmentService->getAppointmentById($appointmentid);
+            $result = $this->appointmentService->cancelAppointment($appointment);
+            if (isset($result['error'])) {
+                return redirect()->route('appointments.myAppointments')->withErrors($result['error']);
+            }
+            return redirect()->route('appointments.myAppointments')->with('success', $result['success']);
+        }
     }
-}

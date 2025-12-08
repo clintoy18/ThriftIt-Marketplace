@@ -52,7 +52,7 @@ Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])
 Route::get('/admin/export', [AdminReportController::class, 'exportAllPdf'])
     ->middleware(['auth', 'verified', 'rolemiddleware:admin'])
     ->name('admin.export.pdf');
-    
+
 Route::get('upcycler/dashboard', function () {
     return view('upcycler');
 })
@@ -67,6 +67,8 @@ Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name
 Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function () {
     Route::resource('products', ProductController::class);
     Route::resource('categories', CategoriesController::class);
+    Route::get('appointments/myAppointments', [AppointmentController::class, 'myAppointments'])
+        ->name('appointments.myAppointments');
     Route::resource('appointments', AppointmentController::class);
     Route::resource('comments', CommentController::class);
     Route::post('comments/{comment}/like', [CommentLikeController::class, 'toggleLike'])->name('comments.like');
@@ -77,6 +79,7 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function (
     Route::get('segments/{segment}/products', [SegmentController::class, 'products'])->name('segments.products');
 
     Route::patch('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
+
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/users/{user}/report', [ReportController::class, 'create'])->name('reports.create');
     Route::post('/users/{user}/report', [ReportController::class, 'store'])->name('reports.store');
@@ -85,14 +88,14 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function (
     Route::get('/users/{user}/review', [ReviewController::class, 'create'])->name('reviews.create');
     Route::post('/users/{user}/review', [ReviewController::class, 'store'])->name('reviews.store');
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])
-    ->name('leaderboard.index');
+        ->name('leaderboard.index');
 
 
 
 
     Route::post('/orders/{product}', [OrderController::class, 'store'])->name('orders.store');
     Route::patch('/orders/{order}/{status}', [OrderController::class, 'updateStatus'])
-    ->name('orders.updateStatus');
+        ->name('orders.updateStatus');
 });
 
 //Upcycler Routes
@@ -114,24 +117,24 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:admin'])->prefix('admin')
     Route::get('/sales/monthly-report/{month}', [App\Http\Controllers\Admin\SalesReportController::class, 'generateMonthlyReport'])->name('sales.monthly-report');
     Route::get('/sales/yearly-report', [App\Http\Controllers\Admin\SalesReportController::class, 'generateYearlyReport'])->name('sales.yearly-report');
     Route::get('/sales/monthly-export/{month}', [App\Http\Controllers\Admin\SalesReportController::class, 'exportMonthlyDataPdf'])->name('sales.monthly-export');
-   
+
     //approve and reject product
     Route::put('/products/{product}/approve', [AdminProductController::class, 'approve'])
-    ->name('products.approve');
+        ->name('products.approve');
     Route::put('/products/{product}/reject', [AdminProductController::class, 'reject'])
-    ->name('products.reject');
- 
-     //approve and reject donations
-    Route::put('/donations/{donation}/approve', [AdminDonationController::class, 'approve'])
-    ->name('donations.approve');
-    Route::put('/donations/{donation}/reject', [AdminDonationController::class, 'reject'])
-    ->name('donations.reject');
+        ->name('products.reject');
 
-        //approve and reject work
+    //approve and reject donations
+    Route::put('/donations/{donation}/approve', [AdminDonationController::class, 'approve'])
+        ->name('donations.approve');
+    Route::put('/donations/{donation}/reject', [AdminDonationController::class, 'reject'])
+        ->name('donations.reject');
+
+    //approve and reject work
     Route::put('/works/{work}/approve', [AdminWorkController::class, 'approve'])
-    ->name('works.approve');
+        ->name('works.approve');
     Route::put('/works/{work}/reject', [AdminWorkController::class, 'reject'])
-    ->name('works.reject');
+        ->name('works.reject');
 
     //verify donations and add points to donor/user
     Route::get('/donations/reward-management', [AdminDonationController::class, 'rewardManagement'])->name('donations.rewardManagement');
@@ -171,13 +174,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/blocked', [PrivateChatController::class, 'getBlockedUsers'])->name('users.blocked');
     Route::post('/users/{user}/unblock', [PrivateChatController::class, 'unblock'])->name('users.unblock');
     Route::get('/proxy-image', [PrivateChatController::class, 'proxyImage'])->name('proxy.image');
-    
-    Route::get('appointments/myAppointments', [AppointmentController::class, 'myAppointments'])
-        ->middleware('verified')
-        ->name('appointments.myAppointments');
+
+
 
     //upload verification document user/upcycler 
-     Route::post('/profile/verification-document', [ProfileController::class, 'uploadVerificationDocument'])
+    Route::post('/profile/verification-document', [ProfileController::class, 'uploadVerificationDocument'])
         ->name('profile.verification.upload');
 
     //show works globally
@@ -185,12 +186,12 @@ Route::middleware('auth')->group(function () {
 
     //mark item as sold
     Route::put('/products/{product}/mark-as-sold', [ProductController::class, 'markAsSold'])
-    ->name('products.markAsSold')
-    ->middleware('auth');   
+        ->name('products.markAsSold')
+        ->middleware('auth');
 
-        //mark item as sold
+    //mark item as sold
     Route::put('/donations/{donation}/mark-as-donated', [DonationController::class, 'markAsDonated'])
-    ->name('donations.markAsDonated');   
+        ->name('donations.markAsDonated');
 
     //route for pricing page
     Route::get('/pricing', [PricingController::class, 'index'])->name('pricing.index');
@@ -198,7 +199,7 @@ Route::middleware('auth')->group(function () {
     //route for cehckout
     Route::get('/checkout/{name}', [App\Http\Controllers\CheckoutController::class, 'checkout'])->name('checkout');
     Route::get('/checkout-success', [App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
-    
+
 
     Route::post('/notifications/read', function () {
         Notification::where('user_id', Auth::id())
@@ -212,26 +213,26 @@ Route::middleware('auth')->group(function () {
     // Route::get('/notifications/count', [NotificationController::class, 'count'])->name('notifications.count');
     // Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     // Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
- 
+
 });
 Route::post('/messages/mark-read', function () {
     if (Auth::check()) {
         $userId = Auth::id();
-        
+
         // Mark all messages as read
         \App\Models\Message::where('receiver_id', $userId)
             ->where('is_read', false)
             ->update(['is_read' => true]);
-        
+
         // Get updated count
         $unreadCount = \App\Models\Message::where('receiver_id', $userId)
             ->where('is_read', false)
             ->count();
-        
+
         // Broadcast update if using real-time
         // event(new MessagesRead($userId));
     }
-    
+
     return response()->json(['success' => true, 'unread_count' => $unreadCount ?? 0]);
 })->name('messages.mark-read')->middleware('auth');
 
@@ -254,10 +255,10 @@ Route::get('/messages/conversation-unread-count/{userId}', function ($userId) {
         $currentUserId = Auth::id();
         $unreadCount = \App\Models\Message::where(function ($query) use ($currentUserId, $userId) {
             $query->where('user_id', $userId)
-                  ->where('receiver_id', $currentUserId);
+                ->where('receiver_id', $currentUserId);
         })
-        ->where('is_read', false)
-        ->count();
+            ->where('is_read', false)
+            ->count();
         return response()->json(['unread_count' => $unreadCount]);
     }
     return response()->json(['unread_count' => 0]);
