@@ -211,13 +211,16 @@
                                 return groups;
                             },
                             markAsRead() {
+    // Show loading state
+    const originalNotifications = [...this.notifications];
+    
     fetch('{{ route('notifications.read') }}', {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': '{{ csrf_token() }}',
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-        }
+        }                
     })
     .then(response => {
         if (!response.ok) {
@@ -229,22 +232,18 @@
         console.log('Mark as read response:', data);
         
         if (data.success) {
-            // Update all notifications to read locally
-            this.notifications.forEach(n => n.is_read = true);
-            
-            // Re-group notifications
-            this.groupedNotifications = this.getGroupedNotifications();
-            
-            // Update badge globally
-            window.dispatchEvent(new CustomEvent('notifications-marked-read'));
-            
-            // Show success message (optional)
-            if (typeof this.showToast === 'function') {
-                this.showToast(data.message || 'All notifications marked as read', 'success');
-            } else {
-                // Simple alert if showToast is not available
-                alert('All notifications marked as read');
-            }
+            // Reload notifications from server to ensure we have the latest state
+            this.reloadNotifications().then(() => {
+                // Update badge globally
+                window.dispatchEvent(new CustomEvent('notifications-marked-read', {
+                    detail: { unread_count: data.unread_count || 0 }
+                }));
+                
+                // Show success message
+                if (typeof this.showToast === 'function') {
+                    this.showToast(data.message || 'All notifications marked as read', 'success');
+                }
+            });
         } else {
             throw new Error(data.message || 'Failed to mark notifications as read');
         }
@@ -252,13 +251,37 @@
     .catch(error => {
         console.error('Error marking notifications as read:', error);
         
-        // Fallback: Update locally even if server fails
-        this.notifications.forEach(n => n.is_read = true);
+        // Restore original state on error
+        this.notifications = originalNotifications;
         this.groupedNotifications = this.getGroupedNotifications();
-        window.dispatchEvent(new CustomEvent('notifications-marked-read'));
         
         // Show error message
-       
+        if (typeof this.showToast === 'function') {
+            this.showToast('Failed to mark notifications as read. Please try again.', 'error');
+        }
+    });
+},
+                            reloadNotifications() {
+    return fetch('{{ route('notifications.load-more') }}?page=1', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.notifications) {
+            // Update notifications with fresh data from server
+            this.notifications = data.notifications;
+            this.groupedNotifications = this.getGroupedNotifications();
+            this.hasMore = data.has_more || false;
+        }
+    })
+    .catch(error => {
+        console.error('Error reloading notifications:', error);
+        // Fallback: reload page to get fresh data
+        // window.location.reload();
     });
 },
                             loadMoreNotifications() {
@@ -295,23 +318,42 @@
                                                 ->map(function($notification) {
                                                     $data = $notification->data;
                                                     $data['profile_pic_url'] = $notification->from_user_profile_pic;
-                                                    $notification->data = $data;
-                                                    // Ensure is_read is explicitly included
+                                                    // Use the accessor which ensures read_at takes precedence
+                                                    $isRead = $notification->is_read;
+                                                    // Double-check: if read_at exists, it's definitely read
+                                                    if ($notification->read_at !== null) {
+                                                        $isRead = true;
+                                                    }
                                                     return [
                                                         'id' => $notification->id,
                                                         'user_id' => $notification->user_id,
                                                         'type' => $notification->type,
                                                         'data' => $data,
-                                                        'is_read' => (bool) $notification->is_read,
-                                                        'read_at' => $notification->read_at,
-                                                        'created_at' => $notification->created_at,
-                                                        'updated_at' => $notification->updated_at,
+                                                        'is_read' => (bool) $isRead,
+                                                        'read_at' => $notification->read_at ? $notification->read_at->toIso8601String() : null,
+                                                        'created_at' => $notification->created_at->toIso8601String(),
+                                                        'updated_at' => $notification->updated_at->toIso8601String(),
                                                     ];
                                                 });
                                         @endphp
                                         this.notifications = {!! Js::from($notifications) !!};
                                         this.groupedNotifications = this.getGroupedNotifications();
                                         this.hasMore = {{ \App\Models\Notification::where('user_id', Auth::id())->count() > 50 ? 'true' : 'false' }};
+                                        
+                                        // Reload notifications when page becomes visible (after refresh or tab switch)
+                                        document.addEventListener('visibilitychange', () => {
+                                            if (!document.hidden) {
+                                                // Small delay to ensure page is fully loaded
+                                                setTimeout(() => {
+                                                    this.reloadNotifications();
+                                                }, 500);
+                                            }
+                                        });
+                                        
+                                        // Also reload on focus (when user switches back to tab)
+                                        window.addEventListener('focus', () => {
+                                            this.reloadNotifications();
+                                        });
                                     } catch(e) {
                                         console.error('Error loading notifications:', e);
                                         this.notifications = [];
@@ -735,6 +777,9 @@
                             return groups;
                         },
                         markAsRead() {
+                            // Show loading state
+                            const originalNotifications = [...this.notifications];
+                            
                             fetch('{{ route('notifications.read') }}', {
                                 method: 'POST',
                                 headers: {
@@ -753,14 +798,13 @@
                                 console.log('Mark as read response:', data);
                                 
                                 if (data.success) {
-                                    // Update all notifications to read locally
-                                    this.notifications.forEach(n => n.is_read = true);
-                                    
-                                    // Re-group notifications
-                                    this.groupedNotifications = this.getGroupedNotifications();
-                                    
-                                    // Update badge globally
-                                    window.dispatchEvent(new CustomEvent('notifications-marked-read'));
+                                    // Reload notifications from server to ensure we have the latest state
+                                    this.reloadNotifications().then(() => {
+                                        // Update badge globally
+                                        window.dispatchEvent(new CustomEvent('notifications-marked-read', {
+                                            detail: { unread_count: data.unread_count || 0 }
+                                        }));
+                                    });
                                 } else {
                                     throw new Error(data.message || 'Failed to mark notifications as read');
                                 }
@@ -768,10 +812,30 @@
                             .catch(error => {
                                 console.error('Error marking notifications as read:', error);
                                 
-                                // Fallback: Update locally even if server fails
-                                this.notifications.forEach(n => n.is_read = true);
+                                // Restore original state on error
+                                this.notifications = originalNotifications;
                                 this.groupedNotifications = this.getGroupedNotifications();
-                                window.dispatchEvent(new CustomEvent('notifications-marked-read'));
+                            });
+                        },
+                        reloadNotifications() {
+                            return fetch('{{ route('notifications.load-more') }}?page=1', {
+                                method: 'GET',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json',
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.notifications) {
+                                    // Update notifications with fresh data from server
+                                    this.notifications = data.notifications;
+                                    this.groupedNotifications = this.getGroupedNotifications();
+                                    this.hasMore = data.has_more || false;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error reloading notifications:', error);
                             });
                         },
                         loadMoreNotifications() {
@@ -807,22 +871,42 @@
                                             ->map(function($notification) {
                                                 $data = $notification->data;
                                                 $data['profile_pic_url'] = $notification->from_user_profile_pic;
-                                                // Ensure is_read is explicitly included
+                                                // Use the accessor which ensures read_at takes precedence
+                                                $isRead = $notification->is_read;
+                                                // Double-check: if read_at exists, it's definitely read
+                                                if ($notification->read_at !== null) {
+                                                    $isRead = true;
+                                                }
                                                 return [
                                                     'id' => $notification->id,
                                                     'user_id' => $notification->user_id,
                                                     'type' => $notification->type,
                                                     'data' => $data,
-                                                    'is_read' => (bool) $notification->is_read,
-                                                    'read_at' => $notification->read_at,
-                                                    'created_at' => $notification->created_at,
-                                                    'updated_at' => $notification->updated_at,
+                                                    'is_read' => (bool) $isRead,
+                                                    'read_at' => $notification->read_at ? $notification->read_at->toIso8601String() : null,
+                                                    'created_at' => $notification->created_at->toIso8601String(),
+                                                    'updated_at' => $notification->updated_at->toIso8601String(),
                                                 ];
                                             });
                                     @endphp
                                     this.notifications = {!! Js::from($mobileNotifications) !!};
                                     this.groupedNotifications = this.getGroupedNotifications();
                                     this.hasMore = {{ \App\Models\Notification::where('user_id', Auth::id())->count() > 30 ? 'true' : 'false' }};
+                                    
+                                    // Reload notifications when page becomes visible (after refresh or tab switch)
+                                    document.addEventListener('visibilitychange', () => {
+                                        if (!document.hidden) {
+                                            // Small delay to ensure page is fully loaded
+                                            setTimeout(() => {
+                                                this.reloadNotifications();
+                                            }, 500);
+                                        }
+                                    });
+                                    
+                                    // Also reload on focus (when user switches back to tab)
+                                    window.addEventListener('focus', () => {
+                                        this.reloadNotifications();
+                                    });
                                 } catch(e) {
                                     console.error('Error loading notifications:', e);
                                     this.notifications = [];
@@ -834,6 +918,27 @@
                                 this.groupedNotifications = {};
                                 this.hasMore = false;
                             @endif
+                        },
+                        reloadNotifications() {
+                            return fetch('{{ route('notifications.load-more') }}?page=1', {
+                                method: 'GET',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json',
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.notifications) {
+                                    // Update notifications with fresh data from server
+                                    this.notifications = data.notifications;
+                                    this.groupedNotifications = this.getGroupedNotifications();
+                                    this.hasMore = data.has_more || false;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error reloading notifications:', error);
+                            });
                         }
                     }" @new-notification.window="notifications.unshift($event.detail); groupedNotifications = getGroupedNotifications();"
                     @notifications-marked-read.window="notifications.forEach(n => n.is_read = true);">

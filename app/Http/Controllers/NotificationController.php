@@ -23,28 +23,53 @@ class NotificationController extends Controller
                 ], 401);
             }
             
-            // Mark all unread notifications as read with timestamp
-            $updatedCount = Notification::where('user_id', $user->id)
-                ->where('is_read', false)
-                ->update([
-                    'is_read' => true,
-                    'read_at' => now()
+            // Use DB transaction to ensure data consistency
+            \DB::beginTransaction();
+            
+            try {
+                // Mark all unread notifications as read with timestamp
+                // Use raw update to ensure boolean is stored correctly (1 for true)
+                // Update notifications that are either unread OR have null read_at (for consistency)
+                $updatedCount = \DB::table('notifications')
+                    ->where('user_id', $user->id)
+                    ->where(function($query) {
+                        $query->where('is_read', 0) // Use 0 instead of false for raw query
+                              ->orWhereNull('read_at'); // Also update any that have null read_at
+                    })
+                    ->update([
+                        'is_read' => 1, // Use 1 instead of true for raw query
+                        'read_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                
+                \DB::commit();
+                
+                // Log for debugging
+                \Log::info("Marked {$updatedCount} notifications as read for user {$user->id}");
+                
+                // Refresh cache if using any
+                \Cache::forget("notifications_unread_count_{$user->id}");
+                
+                // Get updated unread count
+                $unreadCount = Notification::where('user_id', $user->id)
+                    ->where('is_read', false)
+                    ->count();
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'All notifications marked as read',
+                    'unread_count' => $unreadCount,
+                    'marked_count' => $updatedCount
                 ]);
-            
-            // Get updated unread count
-            $unreadCount = Notification::where('user_id', $user->id)
-                ->where('is_read', false)
-                ->count();
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'All notifications marked as read',
-                'unread_count' => $unreadCount,
-                'marked_count' => $updatedCount
-            ]);
+                
+            } catch (\Exception $e) {
+                \DB::rollBack();
+                throw $e;
+            }
             
         } catch (\Exception $e) {
             \Log::error('Error marking notifications as read: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to mark notifications as read. Please try again.'
@@ -57,10 +82,10 @@ class NotificationController extends Controller
      */
     public function loadMore(Request $request)
     {
-        $page = (int) $request->get('page', 2); // Page 1 is initial load (50 items), page 2 starts from item 51
+        $page = (int) $request->get('page', 1); // Page 1 = first 50 items, page 2 = items 51-100, etc.
         $perPage = 50;
         
-        // Calculate offset: page 2 = skip 50 (already loaded), page 3 = skip 100, etc.
+        // Calculate offset: page 1 = skip 0, page 2 = skip 50, page 3 = skip 100, etc.
         $offset = ($page - 1) * $perPage;
         
         $notifications = Notification::where('user_id', Auth::id())
@@ -71,16 +96,21 @@ class NotificationController extends Controller
             ->map(function($notification) {
                 $data = $notification->data;
                 $data['profile_pic_url'] = $notification->from_user_profile_pic;
-                // Ensure is_read is explicitly included
+                // Use the accessor which ensures read_at takes precedence
+                $isRead = $notification->is_read;
+                // Double-check: if read_at exists, it's definitely read
+                if ($notification->read_at !== null) {
+                    $isRead = true;
+                }
                 return [
                     'id' => $notification->id,
                     'user_id' => $notification->user_id,
                     'type' => $notification->type,
                     'data' => $data,
-                    'is_read' => (bool) $notification->is_read,
-                    'read_at' => $notification->read_at,
-                    'created_at' => $notification->created_at,
-                    'updated_at' => $notification->updated_at,
+                    'is_read' => (bool) $isRead,
+                    'read_at' => $notification->read_at ? $notification->read_at->toIso8601String() : null,
+                    'created_at' => $notification->created_at->toIso8601String(),
+                    'updated_at' => $notification->updated_at->toIso8601String(),
                 ];
             });
         
