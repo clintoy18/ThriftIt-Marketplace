@@ -17,7 +17,7 @@
                 {{-- No query entered --}}
                 @if (!request('query'))
                     <x-empty-state icon="magnifying-glass" title="Start your search"
-                        message="Enter a keyword above to discover products and people." />
+                        message="Enter a keyword above to discover items and people." />
                 @else
 
                     {{-- Decide section order --}}
@@ -102,8 +102,8 @@
                                 </div>
                             </div>
                         @else
-                            <x-empty-state icon="box" title="No products found"
-                                message="No products match your search query." />
+                            <x-empty-state icon="box" title="No items found"
+                                message="No items match your search query." />
                         @endif
 
                     @else
@@ -198,7 +198,7 @@
                             <div class="p-6 border-b border-gray-200 dark:border-gray-800">
                                 <div class="flex items-baseline justify-between mb-4">
                                     <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                        Products ({{ $products->total() }})
+                                        Items ({{ $products->total() }})
                                     </h2>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">
                                         Showing {{ $products->firstItem() }}–{{ $products->lastItem() }}

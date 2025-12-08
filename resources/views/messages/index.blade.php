@@ -214,11 +214,11 @@
                         <div class="flex flex-col sm:flex-row justify-center gap-3">
                             <a href="{{ route('dashboard') }}"
                                 class="px-4 py-2 bg-[#634600] dark:bg-yellow-600 text-white rounded-lg hover:bg-[#56432C] dark:hover:bg-yellow-500 transition-colors">
-                                Browse Products
+                                Browse Items
                             </a>
                             <a href="{{ route('products.index') }}"
                                 class="px-4 py-2 border border-[#B59F84] dark:border-yellow-400 text-[#634600] dark:text-white rounded-lg hover:bg-[#B59F84] hover:bg-opacity-20 dark:hover:bg-yellow-700 transition-colors">
-                                My Products
+                                My Items
                             </a>
                         </div>
                     </div>

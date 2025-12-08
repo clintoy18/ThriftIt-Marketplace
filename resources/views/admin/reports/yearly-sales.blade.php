@@ -241,7 +241,7 @@
                     <div class="summary-value">₱{{ number_format($totalYearlySales, 2) }}</div>
                 </div>
                 <div class="summary-item">
-                    <div class="summary-label">Total Products Sold</div>
+                    <div class="summary-label">Total Items Sold</div>
                     <div class="summary-value">{{ $totalYearlyProducts }}</div>
                 </div>
                 <div class="summary-item">
@@ -249,7 +249,7 @@
                     <div class="summary-value">₱{{ number_format($totalYearlySales / 12, 2) }}</div>
                 </div>
                 <div class="summary-item">
-                    <div class="summary-label">Average Products per Month</div>
+                    <div class="summary-label">Average Items per Month</div>
                     <div class="summary-value">{{ round($totalYearlyProducts / 12) }}</div>
                 </div>
             </div>
@@ -278,7 +278,7 @@
                                 <div class="monthly-stat-value">₱{{ number_format($data['totalSales'], 2) }}</div>
                             </div>
                             <div class="monthly-stat">
-                                <div class="monthly-stat-label">Products Sold</div>
+                                <div class="monthly-stat-label">Items Sold</div>
                                 <div class="monthly-stat-value">{{ $data['totalProducts'] }}</div>
                             </div>
                             <div class="monthly-stat">

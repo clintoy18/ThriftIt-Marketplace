@@ -40,7 +40,7 @@
         </tbody>
     </table>
 
-    <h2>Products ({{ $products->count() }})</h2>
+    <h2>Items ({{ $products->count() }})</h2>
     <table>
         <thead>
             <tr>
@@ -99,7 +99,7 @@
         <thead>
             <tr>
                 <th>Month</th>
-                <th>Products Sold</th>
+                <th>Items Sold</th>
                 <th>Total Revenue</th>
             </tr>
         </thead>

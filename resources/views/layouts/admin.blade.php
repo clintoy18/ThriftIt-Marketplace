@@ -37,7 +37,7 @@
                                 {{ __('Users') }}
                             </x-nav-link>
                             <x-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
-                                {{ __('Products') }}
+                                {{ __('Items') }}
                             </x-nav-link>
                             <x-nav-link :href="route('admin.reports.index')" :active="request()->routeIs('admin.reports.*')">
                                 {{ __('Reports') }}
@@ -100,7 +100,7 @@
                         {{ __('Users') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
-                        {{ __('Products') }}
+                        {{ __('Items') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('admin.reports.index')" :active="request()->routeIs('admin.reports.*')">
                         {{ __('Reports') }}

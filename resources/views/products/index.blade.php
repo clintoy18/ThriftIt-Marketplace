@@ -7,7 +7,7 @@
             <div class="flex flex-col md:hidden text-center relative font-poppins">
                 <!-- Title -->
                 <h1 class="text-3xl font-extrabold text-[#634600] leading-tight dark:text-[#B59F84]">
-                    My Products
+                    My Items
                 </h1>
                 <p class="mt-2 text-lg text-[#603E14] dark:text-gray-200 mb-6">
                     Manage your sustainable fashion items 🌿
@@ -55,7 +55,7 @@
                 <!-- Text Content -->
                 <div class="md:w-1/2 font-poppins">
                     <h1 class="text-5xl lg:text-6xl font-extrabold text-[#634600] dark:text-[#B59F84] leading-tight">
-                        My Products
+                        My Items
                     </h1>
                     <p class="mt-4 text-xl text-[#603E14] dark:text-gray-200">
                         Manage your thrift store inventory 🌟
@@ -88,7 +88,7 @@
     <div class="py-6 bg-white dark:bg-gray-900">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">My Products</h2>
+                <h2 class="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">My Items</h2>
 
                 <!-- Button to list or create product -->
                 <a href="{{ route('products.create') }}"

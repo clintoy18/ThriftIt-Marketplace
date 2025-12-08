@@ -46,7 +46,7 @@
                     <div
                         class="bg-white/10 dark:bg-gray-800/40 backdrop-blur-lg border border-white/20 
                                rounded-2xl shadow-xl p-8">
-                        <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Products</h3>
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Items</h3>
                         <div class="space-y-3 max-h-60 overflow-y-auto pr-2">
                             @forelse($user->products as $product)
                                 <div class="flex justify-between items-center text-gray-700 dark:text-gray-300">

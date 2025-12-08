@@ -85,7 +85,7 @@
     <div class="py-6 bg-white dark:bg-gray-900">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center mb-6 relative">
-                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">{{ $segment->name }} Products</h2>
+                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">{{ $segment->name }} Items</h2>
                 
                 <x-segment-filters 
                     :segment="$segment" 
@@ -99,7 +99,7 @@
             <div class="rounded-xl shadow-sm overflow-hidden">
                 <div id="loadingIndicator" class="hidden flex items-center justify-center py-4">
                     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#634600]"></div>
-                    <span class="ml-2 text-gray-600 dark:text-gray-300">Loading products...</span>
+                    <span class="ml-2 text-gray-600 dark:text-gray-300">Loading items...</span>
                 </div>
                 <div id="productsGrid" class="p-4 sm:p-6">
                     @include('segments.partials.products-grid', ['products' => $products])
@@ -162,7 +162,7 @@
                     const json = await res.json();
                     container.innerHTML = json.html;
                   } catch (error) {
-                    console.error('Error filtering products:', error);
+                    console.error('Error filtering items:', error);
                   } finally {
                     hideLoading();
                   }
@@ -213,7 +213,7 @@
                     const json = await res.json();
                     container.innerHTML = json.html;
                   } catch (error) {
-                    console.error('Error filtering products:', error);
+                    console.error('Error filtering items:', error);
                   } finally {
                     hideLoading();
                   }

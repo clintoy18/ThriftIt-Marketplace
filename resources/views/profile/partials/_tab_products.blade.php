@@ -8,7 +8,7 @@
                 </svg>
                 Product Inventory
             </h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm">Manage your sustainable products...</p>
+            <p class="text-gray-600 dark:text-gray-400 text-sm">Manage your sustainable items...</p>
         </div>
         <div class="flex gap-4 text-right">
             <div>
@@ -29,7 +29,7 @@
                 </svg>
             </div>
             <div>
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Available Products</h3>
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Available Items</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400">Active listings ready for purchase or donation</p>
             </div>
         </div>
@@ -48,7 +48,7 @@
         @else
             @include('profile.partials._empty_state', [
                 'icon' => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
-                'title' => 'No Active Products',
+                'title' => 'No Active Items',
                 'message' => 'Start your sustainable journey by listing your first upcycled product!',
                 'button' => ['text' => 'Create First Product', 'url' => route('products.create')],
             ])
@@ -66,7 +66,7 @@
                 </svg>
             </div>
             <div>
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Sold Products</h3>
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Sold Items</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400">Your successful sales and donations history</p>
             </div>
         </div>

@@ -150,7 +150,7 @@
                                             <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                             </svg>
-                                            <span>You are <strong>not allowed to sell</strong> products until your account is verified.</span>
+                                            {{-- <span>You are <strong>not allowed to upload QR</strong> until your account is verified.</span> --}}
                                         </p>
                                         <p class="flex items-start gap-2">
                                             <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
