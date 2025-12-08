@@ -49,7 +49,7 @@
                     {{ __('Log in') }}
                 </button>
             </div>
-
+{{-- 
             <!-- Google Login -->
             <div class="flex flex-col items-center mt-4">
                 <a href="{{ route('google.redirect') }}"
@@ -68,7 +68,7 @@
 
                     <span>Continue with Google</span>
                 </a>
-            </div>
+            </div> --}}
 
             <!-- Remember Me -->
             <div class="flex items-center mt-5 ml-[40px]">

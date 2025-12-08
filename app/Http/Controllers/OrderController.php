@@ -75,6 +75,7 @@ class OrderController extends Controller
 
         // Update product status if order is approved IMPORTANT! --- MUST ADD NOTIFICATIONS AFTER UPDATING STATUS ---
         if ($status === 'approved' && $order->product) {
+            
             $order->product->update(['status' => 'sold']);
         }
 
