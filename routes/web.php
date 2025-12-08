@@ -201,19 +201,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/checkout-success', [App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
 
 
-    Route::post('/notifications/read', function () {
-        Notification::where('user_id', Auth::id())
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
-
-        return response()->json(['status' => 'ok']);
-    })->name('notifications.read');
-    // // Notification routes
-    // Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    // Route::get('/notifications/count', [NotificationController::class, 'count'])->name('notifications.count');
-    // Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
-    // Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
-
+    // Notification routes
+    Route::post('/notifications/read', [NotificationController::class, 'markAllAsRead'])->name('notifications.read');
+    Route::get('/notifications/load-more', [NotificationController::class, 'loadMore'])->name('notifications.load-more');
+ 
 });
 Route::post('/messages/mark-read', function () {
     if (Auth::check()) {
