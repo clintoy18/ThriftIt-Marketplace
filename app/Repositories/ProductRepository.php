@@ -38,7 +38,7 @@ class ProductRepository
         return Product::where('user_id', $userId)
         ->orderByRaw("approval_status = 'pending' DESC")
         ->orderBy("approval_status")
-        ->get();
+        ->paginate(8);
     }
 
     public function findWithRelations($id)

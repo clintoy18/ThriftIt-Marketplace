@@ -103,7 +103,7 @@
             </div>
 
             <div class="rounded-xl shadow-sm overflow-hidden">
-                <div class="p-4 sm:p-6">
+                <div id="products-container" class="p-4 sm:p-6">
                     @if ($products->count() > 0)
                         <div
                             class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
@@ -183,9 +183,13 @@
                                 </div>
                             @endforeach
                         </div>
+                        <!-- Pagination Links -->
+                        <div class="mt-6">
+                            {{ $products->withQueryString()->links() }}
+                        </div>
                     @else
                         <x-empty-message message="No active items found." link="{{ route('products.create') }}"
-                            buttonText="Add Product" icon="shopping-cart" />
+                            buttonText="Add Item" icon="shopping-cart" />
                     @endif
                 </div>
             </div>
@@ -206,6 +210,51 @@
                     this.classList.remove('text-gray-600');
                 }
             });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            function attachPaginationLinks() {
+                document.querySelectorAll('#products-container a[href*="?page="]').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        loadProducts(this.getAttribute('href'));
+                    });
+                });
+            }
+
+            async function loadProducts(url) {
+                try {
+                    const response = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    if (!response.ok) throw new Error('Network response was not ok');
+
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    const newProducts = doc.getElementById('products-container');
+                    if (newProducts) {
+                        document.getElementById('products-container').innerHTML = newProducts.innerHTML;
+                    }
+
+                    // Reattach pagination links after content update
+                    attachPaginationLinks();
+
+                    // Scroll to products
+                    document.getElementById('products-container').scrollIntoView({
+                        behavior: 'smooth'
+                    });
+
+                } catch (error) {
+                    console.error('Error loading products:', error);
+                    alert('Failed to load products. Please try again.');
+                }
+            }
+
+            attachPaginationLinks();
         });
     </script>
 </x-app-layout>
