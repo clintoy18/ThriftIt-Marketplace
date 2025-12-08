@@ -67,7 +67,7 @@
                             class="inline-block border border-[#B59F84] text-[#634600] hover:bg-[#F8EED6] 
                                   dark:border-[#B59F84] dark:text-[#B59F84] dark:hover:bg-gray-700 
                                   font-semibold px-6 py-3 rounded-full shadow-md transition">
-                            List New Product
+                            List New Item
                         </a>
 
                     </div>
@@ -98,7 +98,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
-                    <span class="font-semibold">List a Product</span>
+                    <span class="font-semibold">List a Item</span>
                 </a>
             </div>
 
@@ -184,7 +184,7 @@
                             @endforeach
                         </div>
                     @else
-                        <x-empty-message message="No active products found." link="{{ route('products.create') }}"
+                        <x-empty-message message="No active items found." link="{{ route('products.create') }}"
                             buttonText="Add Product" icon="shopping-cart" />
                     @endif
                 </div>
