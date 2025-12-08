@@ -47,7 +47,7 @@
                     <!-- donation Info Card -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
                         <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                            {{ $donation->name }}
+                        {{ $donation->name }}
                         </h1>
                         <p class="text-sm text-gray-500 dark:text-gray-400">
                             Size: {{ $donation->size }} ·
