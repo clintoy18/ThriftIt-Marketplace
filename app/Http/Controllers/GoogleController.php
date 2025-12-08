@@ -18,7 +18,6 @@ class GoogleController extends Controller
     {
         $googleUser = Socialite::driver('google')->stateless()->user();
 
-        // Find or create user
         $user = User::firstOrCreate(
             ['email' => $googleUser->getEmail()],
             [
@@ -27,12 +26,17 @@ class GoogleController extends Controller
                 'password' => bcrypt('google_' . $googleUser->getId()),
                 'google_id' => $googleUser->getId(),
                 'email_verified_at' => now()
-
             ]
         );
 
         Auth::login($user);
 
+        // Redirect to role selection if no role
+        if ($user->role === null) {
+            return redirect()->route('google.role.select');
+        }
+
+        // Otherwise, normal dashboard redirect
         return redirect('/dashboard');
     }
 }

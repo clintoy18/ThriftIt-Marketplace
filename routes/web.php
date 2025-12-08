@@ -62,6 +62,14 @@ Route::get('upcycler/dashboard', function () {
 
 Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
+Route::get('/auth/google/role', [GoogleRoleController::class, 'show'])
+    ->name('google.role.select')
+    ->middleware('auth');
+
+// Handle role assignment
+Route::post('/auth/google/role', [GoogleRoleController::class, 'assign'])
+    ->name('google.role.assign')
+    ->middleware('auth');
 
 //to make sure only a verified user can access the user routes, 
 Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function () {
@@ -204,7 +212,6 @@ Route::middleware('auth')->group(function () {
     // Notification routes
     Route::post('/notifications/read', [NotificationController::class, 'markAllAsRead'])->name('notifications.read');
     Route::get('/notifications/load-more', [NotificationController::class, 'loadMore'])->name('notifications.load-more');
- 
 });
 Route::post('/messages/mark-read', function () {
     if (Auth::check()) {
