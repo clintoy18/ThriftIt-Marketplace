@@ -8,7 +8,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Notification;
 use App\Events\OrderPlacedNotification;
-use Illuminate\Support\Facades\Storage; 
+use Illuminate\Support\Facades\Storage;
 
 
 class OrderController extends Controller
@@ -50,7 +50,7 @@ class OrderController extends Controller
             'data'    => [
                 'order_id'   => $order->id,
                 'buyer_name' => Auth::user()->fname . ' ' . Auth::user()->lname,
-                'message'    => "You received a new order from <b>" . Auth::user()->fname . ' ' . Auth::user()->lname . "</b>.",
+                'message'    => "You received a new order from" . Auth::user()->fname . ' ' . Auth::user()->lname,
             ],
         ]);
 
@@ -62,9 +62,6 @@ class OrderController extends Controller
             ->with('success', 'Proof of payment uploaded successfully. Please wait for seller confirmation.');
     }
 
-
-
-
     public function updateStatus(Order $order, string $status)
     {
         $allowedStatuses = ['pending', 'approved', 'delivering', 'completed', 'cancelled'];
@@ -73,17 +70,41 @@ class OrderController extends Controller
             return back()->with('error', 'Invalid status.');
         }
 
-        // Update product status if order is approved IMPORTANT! --- MUST ADD NOTIFICATIONS AFTER UPDATING STATUS ---
+        // Update product status if order is approved or cancelled
         if ($status === 'approved' && $order->product) {
             $order->product->update(['status' => 'sold']);
         }
 
-        // Update product status if order is approved
         if ($status === 'cancelled' && $order->product) {
             $order->product->update(['status' => 'available']);
         }
 
+        // Update order status
         $order->update(['status' => $status]);
+
+        // Prepare notification message based on status
+        $message = match ($status) {
+            'approved'   => "Your order for <b>{$order->product->name}</b> has been approved by the seller.",
+            'delivering' => "Your order for <b>{$order->product->name}</b> is now out for delivery.",
+            'completed'  => "Your order for {$order->product->name} has been completed. Enjoy your item!",
+            'cancelled'  => "Your order for {$order->product->name} has been cancelled.",
+            default      => "The status of your order for {$order->product->name} has been updated to <b>" . ucfirst($status) . "</b>.",
+        };
+
+        // Create notification for buyer
+        Notification::create([
+            'user_id' => $order->buyer_id,
+            'type'    => 'order_status_update',
+            'data'    => [
+                'order_id'     => $order->id,
+                'product_name' => $order->product->name ?? 'product',
+                'status'       => $status,
+                'message'      => $message,
+            ],
+        ]);
+
+        // Broadcast notification in real-time
+        event(new \App\Events\OrderPlacedNotification($order, $order->buyer_id));
 
         return back()->with('success', 'Order status updated to ' . ucfirst($status));
     }
