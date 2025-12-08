@@ -50,7 +50,7 @@ class OrderController extends Controller
             'data'    => [
                 'order_id'   => $order->id,
                 'buyer_name' => Auth::user()->fname . ' ' . Auth::user()->lname,
-                'message'    => "You received a new order from <b>" . Auth::user()->fname . ' ' . Auth::user()->lname . "</b>.",
+                'message'    => "You received a new order from" . Auth::user()->fname . ' ' . Auth::user()->lname,
             ],
         ]);
 
@@ -86,9 +86,9 @@ class OrderController extends Controller
         $message = match ($status) {
             'approved'   => "Your order for <b>{$order->product->name}</b> has been approved by the seller.",
             'delivering' => "Your order for <b>{$order->product->name}</b> is now out for delivery.",
-            'completed'  => "Your order for <b>{$order->product->name}</b> has been completed. Enjoy your item!",
-            'cancelled'  => "Your order for <b>{$order->product->name}</b> has been cancelled.",
-            default      => "The status of your order for <b>{$order->product->name}</b> has been updated to <b>" . ucfirst($status) . "</b>.",
+            'completed'  => "Your order for {$order->product->name} has been completed. Enjoy your item!",
+            'cancelled'  => "Your order for {$order->product->name} has been cancelled.",
+            default      => "The status of your order for {$order->product->name} has been updated to <b>" . ucfirst($status) . "</b>.",
         };
 
         // Create notification for buyer
