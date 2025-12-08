@@ -240,9 +240,7 @@
                 }));
                 
                 // Show success message
-                if (typeof this.showToast === 'function') {
-                    this.showToast(data.message || 'All notifications marked as read', 'success');
-                }
+                
             });
         } else {
             throw new Error(data.message || 'Failed to mark notifications as read');

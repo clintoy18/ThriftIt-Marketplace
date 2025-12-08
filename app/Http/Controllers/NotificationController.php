@@ -57,7 +57,7 @@ class NotificationController extends Controller
                 
                 return response()->json([
                     'success' => true,
-                    'message' => 'All notifications marked as read',
+                   
                     'unread_count' => $unreadCount,
                     'marked_count' => $updatedCount
                 ]);
