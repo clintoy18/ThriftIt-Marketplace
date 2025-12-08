@@ -55,9 +55,7 @@
                             {{ $donation->category->name ?? 'No Category' }}
                         </p>
                         <div class="space-y-4 mt-4">
-                            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Details</h2>
-                            <p class="text-gray-600 dark:text-gray-400">{{ $donation->status }}</p>
-
+                            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Description</h2>
                             <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-sm">
                                 <p class="text-gray-800 dark:text-gray-200 break-words overflow-hidden">
                                     {{ $donation->description ?? 'No description available' }}
