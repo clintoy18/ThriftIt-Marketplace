@@ -90,6 +90,17 @@
                                                 clip-rule="evenodd" />
                                         </svg>
                                     </span>
+                                @else
+                                    <span
+                                        class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700/30 dark:text-gray-400">
+                                        Unverified
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-1 h-3 w-3" viewBox="0 0 20 20"
+                                            fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9a1 1 0 112 0v3a1 1 0 11-2 0V9zm1-4a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </span>
                                 @endif
                             </p>
                             <p>
