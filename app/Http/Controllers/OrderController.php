@@ -104,7 +104,7 @@ class OrderController extends Controller
         ]);
 
         // Broadcast notification in real-time
-        event(new \App\Events\OrderPlacedNotification($order, $order->buyer_id));
+        event(new OrderPlacedNotification($order, $order->buyer_id));
 
         return back()->with('success', 'Order status updated to ' . ucfirst($status));
     }

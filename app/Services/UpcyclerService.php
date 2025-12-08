@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Mail\UpcycleBookingApproved;
 use App\Mail\UpcycleBookingCompleted;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Notification;
+use App\Events\AppointmentStatusUpdated;
 
 class UpcyclerService
 {
@@ -65,9 +67,6 @@ class UpcyclerService
         return $ordered;
     }
 
-
-
-
     public function getAppointmentById($appointmentId)
     {
         return $this->appointmentRepository->find($appointmentId);
@@ -76,21 +75,45 @@ class UpcyclerService
     public function updateAppointmentStatus($appointmentId, array $data, $currentUpcyclerId)
     {
         $appointment = $this->appointmentRepository->find($appointmentId);
+
         if ($appointment->upcycler_id !== $currentUpcyclerId) {
             abort(403, 'Unauthorized action.');
         }
+
         $previousStatus = $appointment->getOriginal('appstatus');
         $updatedAppointment = $this->appointmentRepository->update($appointment, $data);
-        // Send approval email
+
+        // Determine notification message
+        $message = '';
         if ($previousStatus !== 'approved' && $updatedAppointment->appstatus === 'approved') {
+            $message = 'Your upcycling appointment has been approved.';
             Mail::to($updatedAppointment->user->email)->send(new UpcycleBookingApproved($updatedAppointment));
         }
-        // Send completed email
+
         if ($previousStatus !== 'completed' && $updatedAppointment->appstatus === 'completed') {
+            $message = 'Your upcycling appointment has been marked as completed.';
             Mail::to($updatedAppointment->user->email)->send(new UpcycleBookingCompleted($updatedAppointment));
         }
+
+        // Save notification in DB
+        if ($message) {
+            Notification::create([
+                'user_id' => $updatedAppointment->user_id,
+                'type' => 'appointment_status',
+                'data' => [
+                    'appointment_id' => $updatedAppointment->id,
+                    'message' => $message,
+                ],
+            ]);
+
+            // Broadcast notification in real-time
+            event(new AppointmentStatusUpdated($updatedAppointment, $updatedAppointment->user_id, $message));
+        }
+
         return $updatedAppointment;
     }
+
+
 
     public function deleteAppointment($appointmentId, $currentUpcyclerId)
     {
