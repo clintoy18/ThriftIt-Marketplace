@@ -32,7 +32,7 @@ class UpdateProductRequest extends FormRequest
             'segment_id' => 'required|exists:segments,id',
             'barangay_id' => 'required|exists:barangays,id',
             'qr_code' => 'nullable|image|max:2048',
-
+            
         ];
     }
 }

@@ -143,9 +143,21 @@
                             @endif
 
                             <!-- Buy Now Button -->
-                            @if (
+                            @if (Auth::id() === $product->user_id)
+                                @if ($product->qr_code)
+                                    <div class="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Your Payment QR Code</h4>
+                                            <span class="text-xs text-gray-500">Visible only to you</span>
+                                        </div>
+                                        <div class="flex justify-center">
+                                            <img src="{{ Storage::disk('s3')->url($product->qr_code) }}" alt="QR Code"
+                                                class="w-40 h-40 object-contain rounded-lg border border-gray-200 dark:border-gray-700">
+                                        </div>
+                                    </div>
+                                @endif
+                            @elseif (
                                 $product->listingtype !== 'for donation' &&
-                                    Auth::id() !== $product->user_id &&
                                     (!$existingOrder || $existingOrder->status === 'cancelled') &&
                                     $product->status !== 'sold')
                                 @if ($product->qr_code)

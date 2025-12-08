@@ -234,22 +234,68 @@
                     <p id="productImageError" class="mt-2 text-sm text-red-600 hidden"></p>
                     <p id="productReachLimitError" class="mt-2 text-sm text-red-600 hidden">You can only upload up to
                         8 photos.</p>
+                    
+                    <!-- QR Code upload (verified users only) -->
+                    @if (auth()->user() && auth()->user()->is_verified)
+                        <div class="mt-8">
+                            <div class="flex items-center justify-between">
+                                <x-input-label for="qr_code" :value="__('Payment QR Code (optional)')" />
+                                <span class="text-xs text-gray-500">PNG/JPG up to 2MB</span>
+                            </div>
+
+                            <div class="mt-3 space-y-4">
+                                @if ($product->qr_code)
+                                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                        <div class="w-32 h-32 rounded-xl overflow-hidden border bg-white">
+                                            <img src="{{ Storage::disk('s3')->url($product->qr_code) }}"
+                                                alt="Current QR Code" class="w-full h-full object-cover">
+                                        </div>
+                                        <p class="text-sm text-gray-600">Upload a new file to replace this QR code.</p>
+                                    </div>
+                                @endif
+
+                                <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                                    <input id="qr_code" name="qr_code" type="file" accept="image/*"
+                                        class="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#E1D5B6] file:text-[#5c4a3e] hover:file:bg-[#d4c6a2] cursor-pointer">
+                                    <p class="text-xs text-gray-500">Uploading a new file replaces the current one.</p>
+                                </div>
+
+                                @error('qr_code')
+                                    <p class="text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                    @else
+                        <div
+                            class="mt-8 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+                            <p class="text-sm text-amber-800 dark:text-amber-200">
+                                Uploading a payment QR code is available once your account is verified.
+                                <a href="{{ route('profile.edit') }}"
+                                    class="underline font-semibold text-amber-700 dark:text-amber-300 hover:text-amber-900">Verify
+                                    your account</a>
+                                to enable this feature.
+                            </p>
+                        </div>
+                    @endif
+
+                    <!-- Submit Button -->
+                    <div class="flex items-center justify-between gap-4 pt-4">
+                        <button type="submit"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white bg-[#B59F84] hover:bg-[#a08e77] shadow-sm transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Update Product
+                        </button>
+                        <a href="{{ route('products.index') }}"
+                            class="text-gray-600 hover:text-gray-800 underline-offset-2 hover:underline">Cancel</a>
+                    </div>
+                </div>
+
+            </form>
             </div>
 
-            <!-- Submit Button -->
-            <div class="flex items-center justify-between gap-4 pt-2">
-                <button type="submit"
-                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white bg-[#B59F84] hover:bg-[#a08e77] shadow-sm transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Update Product
-                </button>
-                <a href="{{ route('products.index') }}"
-                    class="text-gray-600 hover:text-gray-800 underline-offset-2 hover:underline">Cancel</a>
-            </div>
-            </form>
         </div>
     </div>
     </div>

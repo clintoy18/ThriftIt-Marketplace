@@ -87,6 +87,19 @@ class ProductController extends Controller
         // 1️⃣ Validate request
         $validated = $request->validated();
 
+        // 1a️⃣ Handle QR code only for verified users
+        if ($request->user()?->is_verified && $request->hasFile('qr_code')) {
+            if ($product->qr_code && Storage::disk('s3')->exists($product->qr_code)) {
+                Storage::disk('s3')->delete($product->qr_code);
+            }
+            $validated['qr_code'] = $request->file('qr_code')->store('qr_codes', [
+                'disk' => 's3',
+                'visibility' => 'public',
+            ]);
+        } else {
+            unset($validated['qr_code']);
+        }
+
         // 2️⃣ Prepare images array for service
         $images = [
             'main' => $request->file('image'),       // Main product image
