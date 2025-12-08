@@ -104,6 +104,18 @@
                     @enderror
                 </div>
 
+                <!-- Terms and Conditions -->
+                <div class="flex items-start space-x-2">
+                    <input type="checkbox" name="terms" id="terms" required
+                        class="mt-1 rounded border-gray-300 text-green-600 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600">
+                    <label for="terms" class="text-sm text-gray-700 dark:text-gray-300">
+                        I agree to the
+                        <a href="#termsModal"
+                            @click.prevent="document.getElementById('termsModal').classList.remove('hidden')"
+                            class="text-green-600 hover:underline">Terms and Conditions</a>.
+                    </label>
+                </div>
+
                 <div class="flex justify-end gap-2">
                     <button type="button" @click="showUpload = false"
                         class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
@@ -115,6 +127,34 @@
                     </button>
                 </div>
             </form>
+
+            <!-- Terms Modal -->
+            <div id="termsModal"
+                class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-lg max-w-lg w-full p-6 overflow-y-auto max-h-[80vh] relative">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Terms and Conditions</h2>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        By submitting your verification document, you agree to:
+                    </p>
+                    <ul class="list-disc list-inside text-sm text-gray-700 dark:text-gray-300 space-y-1">
+                        <li>Provide accurate and authentic identification documents.</li>
+                        <li>Allow the platform to temporarily store your document for verification purposes only.</li>
+                        <li>Understand that providing false or fraudulent documents may lead to account suspension or
+                            banning.</li>
+                        <li>Your personal information will be handled in accordance with our privacy policy.</li>
+                        <li>The platform reserves the right to reject verification submissions that do not meet the
+                            criteria.</li>
+                    </ul>
+                    <div class="mt-4 flex justify-end">
+                        <button type="button" @click="document.getElementById('termsModal').classList.add('hidden')"
+                            class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </div>
     @endif
 </section>

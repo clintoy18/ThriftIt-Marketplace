@@ -57,20 +57,22 @@ class ProductController extends Controller
         $validated = $request->validated();
         $validated['user_id'] = Auth::id();
 
+        // Set approval status based on user verification
+        $validated['approval_status'] = Auth::user()->is_verified ? 'approved' : 'pending';
+
         $images = $request->file('images', []);
         $product = $this->productService->createProduct($validated, $images);
 
-        // Check if user is verified
         if (!Auth::user()->is_verified) {
             return redirect()
-                ->route('products.index', $product->id)
-                ->with('success', 'Product created!');
+                ->route('products.index')
+                ->with('success', 'Product created! Waiting for approval.');
         }
 
         // Verified users can upload a QR code (Step 2)
         return redirect()
             ->route('sell-item.qr', $product->id)
-            ->with('success', 'Product created! You can now upload a QR code.');
+            ->with('success', 'Product created and automatically approved! You can now upload a QR code.');
     }
 
     public function edit(Product $product): View
@@ -251,6 +253,6 @@ class ProductController extends Controller
     public function finalize(Product $product): RedirectResponse
     {
         return redirect()->route('products.show', $product->id)
-            ->with('success', 'Item Listed successfully! Wait for approval.');
+            ->with('success', 'QR uploaded successfully!');
     }
 }
