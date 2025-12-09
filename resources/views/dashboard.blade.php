@@ -284,7 +284,7 @@
                             class="font-poppins text-[#603E14] mb-6 text-lg leading-[30px] tracking-[0.1em] dark:text-[#f5d68b] animate-fade-in animation-delay-400">
                             Fashion with a Purpose—Shop, Upcycle, and Donate to Create a Sustainable Tomorrow.
                         </p>
-                        <a href="#"
+                        <a href="{{ route('appointments.index')}}"
                             class="inline-flex items-center justify-center bg-[#816849] dark:text-[#f5d68b] text-white px-4 py-3 rounded-[30px] text-lg font-semibold hover:bg-[#a08e77] hover:scale-105 transition-all duration-200 w-[200px] animate-pulse-soft hover:animate-none relative z-10">
                             Upcycle Now
                         </a>
@@ -374,7 +374,7 @@
                 </div>
 
                 <div class="text-center mt-6">
-                    <a href="#"
+                     <a href="{{ route('appointments.index')}}"
                         class="inline-flex items-center justify-center bg-[#816849] dark:text-[#f5d68b] text-white px-8 py-4 rounded-full text-base font-semibold hover:bg-[#a08e77] transition-all duration-300 shadow-md transform hover:scale-105 animate-bounce-in relative z-10">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
