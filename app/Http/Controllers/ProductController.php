@@ -233,29 +233,38 @@ class ProductController extends Controller
         // 1️⃣ Validate request
         $validated = $request->validated();
 
+        // If the item was rejected, editing it resets status to 'pending' for review.
+        if ($product->approval_status === 'rejected') {
+            $validated['approval_status'] = 'pending';
+        }
+        // --------------------------------------------
+
         // 1a️⃣ Handle QR code only for verified users
         if ($request->user()?->is_verified && $request->hasFile('qr_code')) {
+            // Delete old QR from S3 if exists
             if ($product->qr_code && Storage::disk('s3')->exists($product->qr_code)) {
                 Storage::disk('s3')->delete($product->qr_code);
             }
+            // Upload new QR
             $validated['qr_code'] = $request->file('qr_code')->store('qr_codes', [
                 'disk' => 's3',
                 'visibility' => 'public',
             ]);
         } else {
+            // Prevent users from tampering with QR code field if they didn't upload one
             unset($validated['qr_code']);
         }
 
         // 2️⃣ Prepare images array for service
         $images = [
-            'main' => $request->file('image'),       // Main product image
+            'main' => $request->file('image'),       // Main product image (if you have one)
             'gallery' => $request->file('images', []) // Gallery images
         ];
 
         // 3️⃣ Call service to handle update including S3 uploads
         $this->productService->updateProduct($product, $validated, $images);
 
-        // 4️⃣ Handle deletion of gallery images if any
+        // 4️⃣ Handle deletion of gallery images (User clicked 'X')
         $deleteIds = collect($request->input('deleted_images', []))
             ->map(fn($id) => (int)$id)
             ->filter()
@@ -273,9 +282,13 @@ class ProductController extends Controller
             Image::where('product_id', $product->id)->whereIn('id', $deleteIds)->delete();
         }
 
-        // 5️⃣ Redirect with success message
+        // 5️⃣ Redirect with appropriate message
+        $message = ($product->approval_status === 'rejected')
+            ? 'Product updated and resubmitted for approval!'
+            : 'Product updated successfully!';
+
         return redirect()->route('products.show', $product)
-            ->with('success', 'Product updated successfully!');
+            ->with('success', $message);
     }
 
     public function show($id)

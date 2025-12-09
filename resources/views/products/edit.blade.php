@@ -7,6 +7,37 @@
 
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+
+            {{-- 1. REJECTION NOTICE BANNER --}}
+            @if ($product->approval_status === 'rejected')
+                <div class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 mb-6 rounded-r-xl shadow-sm">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-bold text-red-800 dark:text-red-200">Action Required: Product
+                                Rejected</h3>
+
+                            @if ($product->admin_notes)
+                                <div class="mt-1 text-sm text-red-700 dark:text-red-300">
+                                    <strong>Reason:</strong> {{ $product->admin_notes }}
+                                </div>
+                            @endif
+
+                            <p class="mt-2 text-xs text-red-600 dark:text-red-400">
+                                Please correct the details below. Clicking "Update & Resubmit" will automatically
+                                <strong>send this item back to Pending</strong> for admin review.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <div
                 class="bg-[#F4F2ED] dark:bg-gray-800/90 backdrop-blur overflow-hidden shadow-xl sm:rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
                 <form id="productEditForm" method="POST" action="{{ route('products.update', $product) }}"
@@ -15,14 +46,15 @@
                     @method('PATCH')
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Product Name -->
                         <div class="col-span-1 md:col-span-2">
                             <x-input-label for="name" :value="__('Product Name')" />
                             <x-text-input id="name" name="name" type="text"
                                 class="mt-2 block w-full rounded-xl" :value="old('name', $product->name)" required autofocus />
+                            @error('name')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
-                        <!-- Category -->
                         <div>
                             <x-input-label for="category_id" :value="__('Category')" />
                             <select name="category_id" id="category_id"
@@ -36,7 +68,6 @@
                             </select>
                         </div>
 
-                        <!-- Segment -->
                         <div>
                             <x-input-label for="segment_id" :value="__('Segment')" />
                             <select name="segment_id" id="segment_id"
@@ -57,7 +88,6 @@
                             @enderror
                         </div>
 
-                        <!-- Barangay -->
                         <div>
                             <x-input-label for="barangay_id" :value="__('Barangay')" />
                             <select name="barangay_id" id="barangay_id"
@@ -78,27 +108,25 @@
                             @enderror
                         </div>
 
-                        <!-- Price -->
                         <div>
                             <x-input-label for="price" :value="__('Price')" />
                             <x-text-input id="price" name="price" type="number" step="0.01"
                                 class="mt-2 block w-full rounded-xl" :value="old('price', $product->price)" required />
+                            @error('price')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
-                        <!-- Status -->
                         <div>
                             <x-input-label for="status" :value="__('Status')" />
                             <select id="status" name="status"
                                 class="w-full mt-2 px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#E1D5B6] focus:outline-none"
                                 required>
                                 <option value="available" @if ($product->status === 'sold') disabled @endif
-                                    {{ old('status', $product->status) === 'available' ? 'selected' : '' }}>
-                                    Available
+                                    {{ old('status', $product->status) === 'available' ? 'selected' : '' }}>Available
                                 </option>
                                 <option value="sold"
-                                    {{ old('status', $product->status) === 'sold' ? 'selected' : '' }}>
-                                    Sold
-                                </option>
+                                    {{ old('status', $product->status) === 'sold' ? 'selected' : '' }}>Sold</option>
                             </select>
                             @if ($product->status === 'sold')
                                 <p class="text-sm text-red-600 mt-1">Product is sold and cannot be marked as available
@@ -107,11 +135,9 @@
                         </div>
                     </div>
 
-                    <!-- Image Upload -->
                     <div>
                         <x-input-label for="images" :value="__('Product Images')" />
 
-                        <!-- Photo Guidelines -->
                         <div
                             class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-4">
                             <h4
@@ -124,47 +150,29 @@
                                 Photo Guidelines
                             </h4>
                             <ul class="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                                <li class="flex items-start gap-2">
-                                    <span class="text-blue-500 mt-0.5">•</span>
-                                    <span><strong>Cover Photo:</strong> Main product shot</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-blue-500 mt-0.5">•</span>
-                                    <span><strong>Front & Back:</strong> Clear views from both sides</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-blue-500 mt-0.5">•</span>
-                                    <span><strong>Side Views:</strong> Left and right side angles</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-blue-500 mt-0.5">•</span>
-                                    <span><strong>Labels/Tags:</strong> Brand, size, and care labels</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-blue-500 mt-0.5">•</span>
-                                    <span><strong>Details:</strong> Close-ups of special features</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-blue-500 mt-0.5">•</span>
-                                    <span><strong>Flaws:</strong> Any imperfections or wear</span>
-                                </li>
+                                <li class="flex items-start gap-2"><span
+                                        class="text-blue-500 mt-0.5">•</span><span><strong>Cover Photo:</strong> Main
+                                        product shot</span></li>
+                                <li class="flex items-start gap-2"><span
+                                        class="text-blue-500 mt-0.5">•</span><span><strong>Details:</strong> Close-ups
+                                        of features or flaws</span></li>
                             </ul>
                         </div>
 
-                        <!-- Add Photos Button (matched to create style) -->
                         <div class="mb-4">
                             <label for="productImages" id="productDropZone"
                                 class="upload-tile group cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-gray-300/80 rounded-3xl transition-all duration-500 hover:border-primary-400 hover:shadow-xl bg-white/80 hover:bg-white backdrop-blur-sm p-8 min-h-[192px] sm:min-h-[208px]">
 
-                                <!-- Preview Grid INSIDE the drop zone -->
                                 <div id="productPreviews" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 w-full">
                                 </div>
-                                <!-- Existing images -->
+
                                 <div id="existingImagesContainer" class="flex flex-wrap gap-3 mb-4 w-full">
                                     @foreach ($product->images as $img)
                                         <div class="relative group existing-img-item">
-                                            <img src="{{ Storage::disk('s3')->url($img->image) }}" alt="Product Image"
-                                                class="w-24 h-24 object-cover rounded-xl border">
+
+                                            {{-- FIX: Change from url() to temporaryUrl() --}}
+                                            <img src="{{ Storage::disk('s3')->temporaryUrl($img->image, now()->addMinutes(60)) }}"
+                                                alt="Product Image" class="w-24 h-24 object-cover rounded-xl border">
 
                                             <button type="button" data-id="{{ $img->id }}"
                                                 class="absolute top-0 right-0 -translate-x-1/4 -translate-y-1/4 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-70 hover:opacity-100 delete-image-btn">
@@ -174,70 +182,55 @@
                                     @endforeach
                                 </div>
 
-                        </div>
-
-                        <div id="donationAddMoreText" class="text-center mb-4 hidden">
-                            <p class="text-sm text-[#B59F84] font-medium">Tap to add more photos</p>
-                        </div>
-
-                        <!-- Drop zone content - only show when no images or can add more -->
-                        <div id="dropZoneContent" class="flex flex-col items-center justify-center gap-5 w-full">
-                            <!-- Icon Container with Gradient -->
-                            <div class="flex justify-center w-full">
-                                <div
-                                    class="shrink-0 w-18 h-18 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center text-gray-600 transition-all duration-500 group-hover:scale-110 group-hover:from-primary-50 group-hover:to-primary-100 group-hover:text-primary-600 shadow-sm group-hover:shadow-md">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9" viewBox="0 0 24 24"
-                                        fill="currentColor">
-                                        <path
-                                            d="M3 5a2 2 0 0 1 2-2h3l2 2h6a2 2 0 0 1 2 2v2H3V5Zm0 6h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8Zm9 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-                                    </svg>
+                                {{-- "Add More" Text --}}
+                                <div id="donationAddMoreText" class="text-center mb-4 hidden">
+                                    <p class="text-sm text-[#B59F84] font-medium">Tap to add more photos</p>
                                 </div>
-                            </div>
 
-                            <!-- Content Container -->
-                            <div class="flex flex-col items-center justify-center gap-4 text-center">
-                                <!-- Browse Files Button -->
-                                <span
-                                    class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-full bg-gradient-to-r from-[#E1D5B6] to-[#d4c6a2] text-[#6f5e49] transition-all duration-500 group-hover:scale-105 group-hover:shadow-lg group-hover:from-[#d4c6a2] group-hover:to-[#c8b994] transform hover:-translate-y-0.5">
-                                    Browse files
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5"
-                                        viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 16l-6-6h12l-6 6z" />
-                                    </svg>
-                                </span>
-
-                                <!-- File Info -->
-                                <div class="flex flex-col gap-2">
-                                    <p
-                                        class="text-sm font-semibold text-gray-700 bg-gray-100/50 px-3 py-1.5 rounded-lg">
-                                        PNG or JPG up to 5MB each</p>
-                                    <span class="text-sm text-gray-600 font-medium">Add or Drag & Drop photos</span>
+                                <div id="dropZoneContent"
+                                    class="flex flex-col items-center justify-center gap-5 w-full">
+                                    <div class="flex justify-center w-full">
+                                        <div
+                                            class="shrink-0 w-18 h-18 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center text-gray-600 transition-all duration-500 group-hover:scale-110 shadow-sm group-hover:shadow-md">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9" viewBox="0 0 24 24"
+                                                fill="currentColor">
+                                                <path
+                                                    d="M3 5a2 2 0 0 1 2-2h3l2 2h6a2 2 0 0 1 2 2v2H3V5Zm0 6h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8Zm9 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col items-center justify-center gap-4 text-center">
+                                        <span
+                                            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-full bg-gradient-to-r from-[#E1D5B6] to-[#d4c6a2] text-[#6f5e49] transition-all duration-500 group-hover:scale-105 shadow-lg group-hover:from-[#d4c6a2] group-hover:to-[#c8b994]">
+                                            Browse files
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                                                viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 16l-6-6h12l-6 6z" />
+                                            </svg>
+                                        </span>
+                                        <div class="flex flex-col gap-2">
+                                            <p
+                                                class="text-sm font-semibold text-gray-700 bg-gray-100/50 px-3 py-1.5 rounded-lg">
+                                                PNG or JPG up to 5MB each</p>
+                                            <span class="text-sm text-gray-600 font-medium">Add or Drag & Drop
+                                                photos</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            </label>
                         </div>
 
-                        <!-- Hover Glow Effect -->
-                        <div
-                            class="absolute inset-0 rounded-3xl bg-gradient-to-r from-primary-100/20 to-blue-100/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10">
-                        </div>
-                        </label>
+                        <input id="productImages" name="images[]" type="file" accept="image/*" multiple
+                            class="hidden">
+                        <p class="mt-2 text-xs text-gray-500">Upload 2–8 photos. You currently have <span
+                                id="currentImageCount">{{ count($product->images) }}</span> images.</p>
+                        <p id="productImageError" class="mt-2 text-sm text-red-600 hidden"></p>
+                        <p id="productReachLimitError" class="mt-2 text-sm text-red-600 hidden">You can only upload up
+                            to 8 photos.</p>
                     </div>
 
-                    <!-- Hidden multiple input -->
-                    <input id="productImages" name="images[]" type="file" accept="image/*" multiple
-                        class="hidden">
-
-                    <!-- Helper and error -->
-                    <p class="mt-2 text-xs text-gray-500">Upload 2–8 photos. You currently have <span
-                            id="currentImageCount">{{ count($product->images) }}</span> images.</p>
-                    <p id="productImageError" class="mt-2 text-sm text-red-600 hidden"></p>
-                    <p id="productReachLimitError" class="mt-2 text-sm text-red-600 hidden">You can only upload up to
-                        8 photos.</p>
-                    
-                    <!-- QR Code upload (verified users only) -->
                     @if (auth()->user() && auth()->user()->is_verified)
-                        <div class="mt-8">
+                        <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                             <div class="flex items-center justify-between">
                                 <x-input-label for="qr_code" :value="__('Payment QR Code (optional)')" />
                                 <span class="text-xs text-gray-500">PNG/JPG up to 2MB</span>
@@ -246,8 +239,8 @@
                             <div class="mt-3 space-y-4">
                                 @if ($product->qr_code)
                                     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                        <div class="w-32 h-32 rounded-xl overflow-hidden border bg-white">
-                                            <img src="{{ Storage::disk('s3')->url($product->qr_code) }}"
+                                        <div class="w-32 h-32 rounded-xl overflow-hidden border bg-white shadow-sm">
+                                            <img src="{{ Storage::disk('s3')->temporaryUrl($product->qr_code, now()->addMinutes(60)) }}"
                                                 alt="Current QR Code" class="w-full h-full object-cover">
                                         </div>
                                         <p class="text-sm text-gray-600">Upload a new file to replace this QR code.</p>
@@ -257,51 +250,40 @@
                                 <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                                     <input id="qr_code" name="qr_code" type="file" accept="image/*"
                                         class="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#E1D5B6] file:text-[#5c4a3e] hover:file:bg-[#d4c6a2] cursor-pointer">
-                                    <p class="text-xs text-gray-500">Uploading a new file replaces the current one.</p>
                                 </div>
-
                                 @error('qr_code')
                                     <p class="text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
-                    @else
-                        <div
-                            class="mt-8 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-                            <p class="text-sm text-amber-800 dark:text-amber-200">
-                                Uploading a payment QR code is available once your account is verified.
-                                <a href="{{ route('profile.edit') }}"
-                                    class="underline font-semibold text-amber-700 dark:text-amber-300 hover:text-amber-900">Verify
-                                    your account</a>
-                                to enable this feature.
-                            </p>
-                        </div>
                     @endif
 
-                    <!-- Submit Button -->
-                    <div class="flex items-center justify-between gap-4 pt-4">
+                    <div
+                        class="flex items-center justify-between gap-4 pt-4 border-t border-gray-200 dark:border-gray-700 mt-6">
                         <button type="submit"
-                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white bg-[#B59F84] hover:bg-[#a08e77] shadow-sm transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white bg-[#B59F84] hover:bg-[#a08e77] shadow-lg transition-transform transform hover:scale-[1.02]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7" />
                             </svg>
-                            Update Product
+                            {{-- 2. DYNAMIC BUTTON TEXT --}}
+                            @if ($product->approval_status === 'rejected')
+                                Update & Resubmit
+                            @else
+                                Update Product
+                            @endif
                         </button>
                         <a href="{{ route('products.index') }}"
                             class="text-gray-600 hover:text-gray-800 underline-offset-2 hover:underline">Cancel</a>
                     </div>
-                </div>
 
-            </form>
+                </form>
             </div>
-
         </div>
-    </div>
     </div>
 
     <script>
-        // Multi-image selection with previews, drag & drop, and 2–8 enforcement for products
         document.addEventListener('DOMContentLoaded', function() {
             const input = document.getElementById('productImages');
             const previews = document.getElementById('productPreviews');
@@ -316,29 +298,30 @@
             let selectedFiles = [];
 
             function showError(msg) {
-                if (!errorEl) return;
-                errorEl.textContent = msg;
-                errorEl.classList.remove('hidden');
+                if (errorEl) {
+                    errorEl.textContent = msg;
+                    errorEl.classList.remove('hidden');
+                }
             }
 
             function hideError() {
-                if (!errorEl) return;
-                errorEl.classList.add('hidden');
+                if (errorEl) errorEl.classList.add('hidden');
             }
 
             function showReachLimit() {
-                if (!reachLimitEl) return;
-                reachLimitEl.classList.remove('hidden');
-                setTimeout(() => reachLimitEl.classList.add('hidden'), 2500);
+                if (reachLimitEl) {
+                    reachLimitEl.classList.remove('hidden');
+                    setTimeout(() => reachLimitEl.classList.add('hidden'), 2500);
+                }
             }
 
             function hideReachLimit() {
-                if (!reachLimitEl) return;
-                reachLimitEl.classList.add('hidden');
+                if (reachLimitEl) reachLimitEl.classList.add('hidden');
             }
 
             function getExistingCount() {
                 if (!existingImagesContainer) return 0;
+                // Count items that are NOT marked for deletion
                 return existingImagesContainer.querySelectorAll('.existing-img-item:not([data-deleted="true"])')
                     .length;
             }
@@ -352,9 +335,7 @@
             }
 
             function updateImageCount() {
-                if (currentImageCountEl) {
-                    currentImageCountEl.textContent = getTotalCount();
-                }
+                if (currentImageCountEl) currentImageCountEl.textContent = getTotalCount();
             }
 
             function renderPreviews(files) {
@@ -363,7 +344,6 @@
                     const wrapper = document.createElement('div');
                     wrapper.className = 'preview-item relative';
                     const img = document.createElement('img');
-                    img.alt = 'Preview ' + (index + 1);
                     img.className = 'w-full h-24 object-cover rounded-lg';
                     const badge = document.createElement('span');
                     badge.className =
@@ -378,18 +358,18 @@
                         e.stopPropagation();
                         removeAt(index);
                     };
+
                     wrapper.appendChild(img);
                     wrapper.appendChild(badge);
                     wrapper.appendChild(removeBtn);
                     previews.appendChild(wrapper);
+
                     const r = new FileReader();
                     r.onload = (ev) => {
                         img.src = ev.target.result;
                     };
                     r.readAsDataURL(file);
                 });
-
-                // Update drop zone content visibility and auto-height
                 updateDropZoneVisibility();
                 updateImageCount();
             }
@@ -401,10 +381,6 @@
             }
 
             function removeAt(idx) {
-                if (getTotalCount() <= 2) {
-                    showError('You must keep at least 2 images.');
-                    return;
-                }
                 selectedFiles.splice(idx, 1);
                 syncInput();
                 renderPreviews(selectedFiles);
@@ -416,16 +392,11 @@
             }
 
             function updateDropZoneVisibility() {
-                const totalNew = selectedFiles.length;
-                const totalExisting = getExistingCount();
-
-                if (totalNew > 0 || totalExisting > 0) {
+                const total = getTotalCount();
+                if (total > 0) {
                     dropZoneContent.classList.add('hidden');
-                    if (canAddMore()) {
-                        addMoreText.classList.remove('hidden');
-                    } else {
-                        addMoreText.classList.add('hidden');
-                    }
+                    if (canAddMore()) addMoreText.classList.remove('hidden');
+                    else addMoreText.classList.add('hidden');
                     dropZone.style.minHeight = 'auto';
                 } else {
                     dropZoneContent.classList.remove('hidden');
@@ -441,13 +412,10 @@
                 }
             }
 
-            // Clear input before opening via label (ensures first pick registers)
             const label = document.querySelector('label[for="productImages"]');
-            if (label) {
-                label.addEventListener('mousedown', () => {
-                    if (input) input.value = '';
-                });
-            }
+            if (label) label.addEventListener('mousedown', () => {
+                if (input) input.value = '';
+            });
 
             input.addEventListener('change', () => {
                 hideError();
@@ -461,22 +429,17 @@
                     selectedFiles.push(f);
                     keys.add(k);
                 }
-                if (getTotalCount() >= 8 && newly.length > 0) {
-                    showReachLimit();
-                }
+                if (getTotalCount() >= 8 && newly.length > 0) showReachLimit();
                 syncInput();
                 renderPreviews(selectedFiles);
             });
 
-            // Drag & Drop support
+            // Drag & Drop
             if (dropZone) {
                 dropZone.addEventListener('dragover', (e) => {
                     e.preventDefault();
-                    if (canAddMore()) {
-                        dropZone.classList.add('ring-2', 'ring-blue-400');
-                    } else {
-                        dropZone.classList.add('ring-2', 'ring-red-400');
-                    }
+                    if (canAddMore()) dropZone.classList.add('ring-2', 'ring-blue-400');
+                    else dropZone.classList.add('ring-2', 'ring-red-400');
                 });
                 dropZone.addEventListener('dragleave', () => {
                     dropZone.classList.remove('ring-2', 'ring-blue-400', 'ring-red-400');
@@ -488,6 +451,7 @@
                         showReachLimit();
                         return;
                     }
+
                     const files = Array.from(e.dataTransfer.files || []);
                     const makeKey = (f) => `${f.name}|${f.size}|${f.lastModified}`;
                     const keys = new Set(selectedFiles.map(makeKey));
@@ -505,24 +469,23 @@
                         renderPreviews(selectedFiles);
                     }
                 });
-                dropZone.addEventListener('click', (e) => {
-                    if (!canAddMore()) {
-                        e.preventDefault();
-                        showReachLimit();
-                    }
-                });
             }
 
-            // Delete existing images
+            // 3. Delete existing images logic
             document.querySelectorAll('.delete-image-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation(); // prevent opening file dialog
                     const imageId = this.getAttribute('data-id');
-                    const wrapper = this.closest('div');
-                    if (wrapper) wrapper.remove();
+                    const wrapper = this.closest('.existing-img-item');
 
-                    // Mark for deletion (append to the form and avoid duplicates)
+                    // Mark as deleted visually
+                    wrapper.style.display = 'none';
+                    wrapper.setAttribute('data-deleted', 'true'); // helper attribute for counting
+
+                    // Create hidden input to tell controller to delete
                     if (form && !form.querySelector(
-                            `input[type="hidden"][name="deleted_images[]"][value="${imageId}"]`)) {
+                            `input[name="deleted_images[]"][value="${imageId}"]`)) {
                         const deletedInput = document.createElement('input');
                         deletedInput.type = 'hidden';
                         deletedInput.name = 'deleted_images[]';
@@ -539,20 +502,16 @@
                 const count = getTotalCount();
                 if (count < 2) {
                     e.preventDefault();
-                    showError('Please upload at least 2 photos.');
-                } else if (count > 8) {
-                    e.preventDefault();
-                    showError('Please upload up to 8 photos only.');
+                    showError('Please keep at least 2 photos.');
                 }
             });
 
-            // Initialize
-            renderPreviews(selectedFiles);
+            // Initial render
+            updateDropZoneVisibility();
         });
     </script>
 
     <style>
-        /* Simple tiles for the photo grid */
         .upload-tile {
             border: 2px dashed rgba(209, 213, 219, 1);
             border-radius: 0.5rem;
@@ -588,7 +547,6 @@
             pointer-events: none;
         }
 
-        /* Preview grid styling */
         #productPreviews .preview-item {
             position: relative;
             height: 100px;
