@@ -106,7 +106,8 @@ class ProductController extends Controller
     public function storeQr(Request $request)
     {
         if ($request->hasFile('qr_code')) {
-            $tempQr = $request->file('qr_code')->store('temp_qr', 'public');
+            // FIX: Use 's3' disk with public visibility so the preview works
+            $tempQr = $request->file('qr_code')->storePublicly('temp_qr', 's3');
             session(['product_qr' => $tempQr]);
         }
 
