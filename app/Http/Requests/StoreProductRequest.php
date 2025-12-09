@@ -30,8 +30,10 @@ class StoreProductRequest extends FormRequest
             'approval_status' => 'in:approved,pending,rejected',
             'size' => 'required|string',
 
-            // Multi-image input from the form: images[]
-            'images'   => 'required|array|min:2|max:8',
+            // --- CHANGED HERE ---
+            // 1. Changed 'required' to 'nullable' (so it doesn't fail if you already have images in session)
+            // 2. Removed 'min:2' (We check the total count in the Controller now)
+            'images'   => 'nullable|array|max:8', 
             'images.*' => 'image|mimes:jpg,jpeg,png,webp,gif|max:5120',
 
             'qty' => 'integer',
@@ -46,11 +48,11 @@ class StoreProductRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'images.required' => 'You must upload at least 2 images.',
+            // We removed the generic 'required' message since the controller handles the specific error now
             'images.array' => 'Images must be uploaded as an array.',
-            'images.min' => 'You must upload at least 2 images.',
+            'images.max' => 'You cannot upload more than 8 images.',
             'images.*.image' => 'Each file must be an image.',
-            'images.*.mimes' => 'Images must be JPG or PNG.',
+            'images.*.mimes' => 'Images must be JPG, PNG, WEBP or GIF.',
             'images.*.max' => 'Each image cannot exceed 5MB.',
         ];
     }
