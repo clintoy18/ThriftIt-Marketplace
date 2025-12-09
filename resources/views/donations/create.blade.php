@@ -15,7 +15,7 @@
             <div class="hidden md:block flex flex-col relative left-[-150px] top-[-30px]">
                 <h2 class="text-xl sm:text-2xl font-bold text-custom-dark">
                     <div class="flex flex-col relative left-[-90px]">
-                        <i>Sell
+                        <i>Donate an Item
                             <img src="{{ asset('images/image 147.png') }}" alt="emoji"
                                 class="inline-block flex flex-col relative top-[-33px] left-[50px] h-4 w-3 align-middle h-[25px] w-[20px]">
                         </i>
