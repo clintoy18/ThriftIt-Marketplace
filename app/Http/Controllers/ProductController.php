@@ -18,6 +18,7 @@ use App\Services\CategoriesService;
 use App\Models\Segment;
 use App\Models\Barangay;
 use App\Models\Image;
+use Illuminate\Support\Arr;
 
 class ProductController extends Controller
 {
@@ -28,8 +29,174 @@ class ProductController extends Controller
         $this->productService = $productService;
         $this->categoryService = $categoryService;
         $this->middleware('subscribed')->only(['create', 'store']);
-        //us middleware to ensure seller is verified before accessing qr upload routes
         $this->middleware('verified.seller')->only(['qrStep', 'storeQr']);
+    }
+
+    /**
+     * STEP 1: Save product details to session
+     */
+    public function storeStep1(StoreProductRequest $request)
+    {
+        $validated = $request->validated();
+        $validated['user_id'] = Auth::id();
+        $validated['approval_status'] = Auth::user()->is_verified ? 'approved' : 'pending';
+
+        // 1. Save Text Data (exclude images and removed_images from this part)
+        $dataToSession = \Illuminate\Support\Arr::except($validated, ['images', 'image', 'removed_images']);
+        session(['product_step1' => $dataToSession]);
+
+        // 2. Handle Image Management
+        // Get current list of images from session
+        $currentSessionImages = session('product_images', []);
+
+        // A. DELETE REMOVED IMAGES FROM S3
+        if ($request->has('removed_images')) {
+            $removedPaths = $request->input('removed_images');
+
+            foreach ($removedPaths as $path) {
+                // Delete from S3 if it exists
+                if (Storage::disk('s3')->exists($path)) {
+                    Storage::disk('s3')->delete($path);
+                }
+            }
+
+            // Remove these paths from our PHP array so they don't get saved back to session
+            $currentSessionImages = array_filter($currentSessionImages, function ($path) use ($removedPaths) {
+                return !in_array($path, $removedPaths);
+            });
+        }
+
+        // B. Add Newly Uploaded Images
+        if ($request->hasFile('images')) {
+            $newImages = [];
+            foreach ($request->file('images') as $img) {
+                // Upload to S3 (Temp Folder) with public visibility
+                $newImages[] = $img->storePublicly('temp_products', 's3');
+            }
+            // Merge kept old images + new images
+            $currentSessionImages = array_merge($currentSessionImages, $newImages);
+        }
+
+        // 3. Save updated list back to session (array_values re-indexes the array keys 0,1,2...)
+        session(['product_images' => array_values($currentSessionImages)]);
+
+        // 4. Redirect
+        if (Auth::user()->is_verified) {
+            return redirect()->route('sell-item.qr-step')
+                ->with('success', 'Step 1 complete. Proceed to QR upload.');
+        }
+
+        return redirect()->route('sell-item.final-step')
+            ->with('success', 'Step 1 complete. Review your product.');
+    }
+
+    /**
+     * STEP 2: Show optional QR upload page
+     */
+    public function qrStep(): View
+    {
+        return view('products.qr.qr-step', [
+            'currentStep' => 2
+        ]);
+    }
+
+    /**
+     * STEP 2: Store QR code to session
+     */
+    public function storeQr(Request $request)
+    {
+        if ($request->hasFile('qr_code')) {
+            // FIX: Use 's3' disk with public visibility so the preview works
+            $tempQr = $request->file('qr_code')->storePublicly('temp_qr', 's3');
+            session(['product_qr' => $tempQr]);
+        }
+
+        return redirect()->route('sell-item.final-step')
+            ->with('success', 'QR uploaded! Review and finalize.');
+    }
+
+    /**
+     * STEP 2: Skip QR upload
+     */
+    public function skipQr(): RedirectResponse
+    {
+        session()->forget('product_qr');
+
+        return redirect()->route('sell-item.final-step')
+            ->with('info', 'QR skipped. Review your product.');
+    }
+
+    /**
+     * STEP 3: Final review (read from session)
+     */
+    public function finalStep(): View
+    {
+        return view('products.qr.qr-final-step', [
+            'step1'       => session('product_step1'),
+            'images'      => session('product_images'),
+            'qr'          => session('product_qr'),
+            'currentStep' => 3
+        ]);
+    }
+
+    /**
+     * FINAL SUBMIT: Create product in DB and Upload to S3
+     */
+    public function finalize()
+    {
+        $step1  = session('product_step1');
+        $images = session('product_images', []);
+        $qr     = session('product_qr');
+
+        if (!$step1) {
+            return redirect()->route('products.create')
+                ->withErrors('Session expired. Please start again.');
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // 1. Create Product
+            $product = Product::create($step1);
+
+            // 2. Move Images within S3 (temp_products -> products)
+            foreach ($images as $tempPath) {
+                // Check if file still exists in S3 temp
+                if (Storage::disk('s3')->exists($tempPath)) {
+
+                    $fileName = basename($tempPath);
+                    $finalPath = 'products/' . $fileName;
+
+                    // Move = Copy + Delete (Atomic in Laravel S3 driver)
+                    Storage::disk('s3')->move($tempPath, $finalPath);
+
+                    // Ensure visibility is public after move
+                    Storage::disk('s3')->setVisibility($finalPath, 'public');
+
+                    // Save to DB
+                    $product->images()->create(['image' => $finalPath]);
+                }
+            }
+
+            // 3. Handle QR Code (if exists)
+            if ($qr && Storage::disk('public')->exists($qr)) {
+                // ... (Your existing QR logic is fine, usually QR is small enough to keep local or move similarly)
+                // If you want QR on S3 too, follow the same logic as above.
+                $qrName = basename($qr);
+                $s3QrPath = 'qr_codes/' . $qrName;
+                Storage::disk('s3')->put($s3QrPath, Storage::disk('public')->get($qr), 'public');
+                $product->update(['qr_code' => $s3QrPath]);
+            }
+
+            DB::commit();
+            session()->forget(['product_step1', 'product_images', 'product_qr']);
+
+            return redirect()->route('products.show', $product->id)
+                ->with('success', 'Product published!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors('Error: ' . $e->getMessage());
+        }
     }
 
     public function index(): View
@@ -48,31 +215,8 @@ class ProductController extends Controller
             'categories' => $categories,
             'segments' => $segments,
             'barangays' => $barangays,
-            'currentStep' => 1, // <-- pass current step
+            'currentStep' => 1,
         ]);
-    }
-
-    public function store(StoreProductRequest $request)
-    {
-        $validated = $request->validated();
-        $validated['user_id'] = Auth::id();
-
-        // Set approval status based on user verification
-        $validated['approval_status'] = Auth::user()->is_verified ? 'approved' : 'pending';
-
-        $images = $request->file('images', []);
-        $product = $this->productService->createProduct($validated, $images);
-
-        if (!Auth::user()->is_verified) {
-            return redirect()
-                ->route('products.index')
-                ->with('success', 'Product created! Waiting for approval.');
-        }
-
-        // Verified users can upload a QR code (Step 2)
-        return redirect()
-            ->route('sell-item.qr', $product->id)
-            ->with('success', 'Product created and automatically approved! You can now upload a QR code.');
     }
 
     public function edit(Product $product): View
@@ -89,29 +233,38 @@ class ProductController extends Controller
         // 1️⃣ Validate request
         $validated = $request->validated();
 
+        // If the item was rejected, editing it resets status to 'pending' for review.
+        if ($product->approval_status === 'rejected') {
+            $validated['approval_status'] = 'pending';
+        }
+        // --------------------------------------------
+
         // 1a️⃣ Handle QR code only for verified users
         if ($request->user()?->is_verified && $request->hasFile('qr_code')) {
+            // Delete old QR from S3 if exists
             if ($product->qr_code && Storage::disk('s3')->exists($product->qr_code)) {
                 Storage::disk('s3')->delete($product->qr_code);
             }
+            // Upload new QR
             $validated['qr_code'] = $request->file('qr_code')->store('qr_codes', [
                 'disk' => 's3',
                 'visibility' => 'public',
             ]);
         } else {
+            // Prevent users from tampering with QR code field if they didn't upload one
             unset($validated['qr_code']);
         }
 
         // 2️⃣ Prepare images array for service
         $images = [
-            'main' => $request->file('image'),       // Main product image
+            'main' => $request->file('image'),       // Main product image (if you have one)
             'gallery' => $request->file('images', []) // Gallery images
         ];
 
         // 3️⃣ Call service to handle update including S3 uploads
         $this->productService->updateProduct($product, $validated, $images);
 
-        // 4️⃣ Handle deletion of gallery images if any
+        // 4️⃣ Handle deletion of gallery images (User clicked 'X')
         $deleteIds = collect($request->input('deleted_images', []))
             ->map(fn($id) => (int)$id)
             ->filter()
@@ -129,12 +282,14 @@ class ProductController extends Controller
             Image::where('product_id', $product->id)->whereIn('id', $deleteIds)->delete();
         }
 
-        // 5️⃣ Redirect with success message
+        // 5️⃣ Redirect with appropriate message
+        $message = ($product->approval_status === 'rejected')
+            ? 'Product updated and resubmitted for approval!'
+            : 'Product updated successfully!';
+
         return redirect()->route('products.show', $product)
-            ->with('success', 'Product updated successfully!');
+            ->with('success', $message);
     }
-
-
 
     public function show($id)
     {
@@ -142,7 +297,8 @@ class ProductController extends Controller
         Cache::forget("product_{$id}_with_comments");
 
         $product = Product::with(['user', 'category', 'images'])->findOrFail($id);
-        // Load ALL comments for this product and build an unlimited-depth flattened replies list per top-level
+
+        // Load comments logic...
         $allComments = \App\Models\Comment::with(['user'])
             ->where('product_id', $id)
             ->orderBy('created_at', 'asc')
@@ -159,7 +315,6 @@ class ProductController extends Controller
                 $stack[] = $child;
             }
             while (!empty($stack)) {
-                /** @var \App\Models\Comment $node */
                 $node = array_pop($stack);
                 foreach ($byParent->get($node->id, collect()) as $child) {
                     $flatReplies->push($child);
@@ -170,7 +325,6 @@ class ProductController extends Controller
         });
 
         $product->setRelation('comments', $topLevel);
-
         $moreProducts = $this->productService->getMoreProductsByUser($product->user_id, $product->id);
 
         return response()->view('products.show', compact('product', 'moreProducts'))
@@ -189,70 +343,13 @@ class ProductController extends Controller
 
     public function markAsSold(Product $product): RedirectResponse
     {
-        // only owner may mark as sold
         if (!Auth::check() || Auth::id() !== $product->user_id) {
             abort(403);
         }
 
-        // update status
         $product->update(['status' => 'sold']);
 
         return redirect()->route('products.show', $product)
             ->with('success', 'Item marked as sold.');
-    }
-
-    // ✅ Step 2: Show optional QR upload page
-    public function qrStep(Product $product): View
-    {
-        return view('products.qr.qr-step', [
-            'product' => $product,
-            'currentStep' => 2, // <-- pass current step
-        ]);
-    }
-
-    // ✅ Step 2: Store QR if uploaded
-    public function storeQr(Request $request, Product $product): RedirectResponse
-    {
-        if ($request->hasFile('qr_code')) {
-
-            // Delete the old QR code from S3 if it exists
-            if ($product->qr_code && Storage::disk('s3')->exists($product->qr_code)) {
-                Storage::disk('s3')->delete($product->qr_code);
-            }
-
-            // Upload the new QR code to S3 with public visibility
-            $path = $request->file('qr_code')->storePublicly('qr_codes', 's3');
-
-            // Save the S3 file path to the product
-            $product->qr_code = $path;
-            $product->save();
-        }
-
-        // Redirect to final review page with a success message
-        return redirect()->route('sell-item.final', $product->id)
-            ->with('success', 'QR code uploaded! Review and finalize your product.');
-    }
-
-
-    // ✅ Step 2: Skip QR upload
-    public function skipQr(Product $product): RedirectResponse
-    {
-        return redirect()->route('sell-item.final', $product->id)
-            ->with('info', 'You chose to skip the QR code. Review and finalize your product.');
-    }
-
-    // Step 3: Finalize
-    public function finalStep(Product $product): View
-    {
-        return view('products.qr.qr-final-step', [
-            'product' => $product,
-            'currentStep' => 3, // <-- pass current step
-        ]);
-    }
-    // ✅ Step 3: Finalize product
-    public function finalize(Product $product): RedirectResponse
-    {
-        return redirect()->route('products.show', $product->id)
-            ->with('success', 'QR uploaded successfully!');
     }
 }

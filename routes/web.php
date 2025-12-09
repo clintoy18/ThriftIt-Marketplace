@@ -65,39 +65,74 @@ Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name
 
 //to make sure only a verified user can access the user routes, 
 Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function () {
+
+    // --- START: Multi-Step Selling Flow ---
+
+    // Step 1: Form Submission 
+    Route::post('/sell/step-1', [ProductController::class, 'storeStep1'])
+        ->name('sell-item.store-step1');
+
+    // Step 2: QR Code Upload
+    Route::get('/sell/qr', [ProductController::class, 'qrStep'])
+        ->name('sell-item.qr-step');
+
+    Route::post('/sell/qr', [ProductController::class, 'storeQr'])
+        ->name('sell-item.store-qr');
+
+    Route::post('/sell/qr/skip', [ProductController::class, 'skipQr'])
+        ->name('sell-item.skip-qr');
+
+    // Step 3: Final Review & Publish
+    Route::get('/sell/review', [ProductController::class, 'finalStep'])
+        ->name('sell-item.final-step');
+
+    Route::post('/sell/finalize', [ProductController::class, 'finalize'])
+        ->name('sell-item.finalize');
+
+    // Resources
     Route::resource('products', ProductController::class);
     Route::resource('categories', CategoriesController::class);
+
+    // Appointments
     Route::get('appointments/myAppointments', [AppointmentController::class, 'myAppointments'])
         ->name('appointments.myAppointments');
     Route::resource('appointments', AppointmentController::class);
+    Route::patch('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])
+        ->name('appointments.cancel');
+
+    // Comments & Reactions
     Route::resource('comments', CommentController::class);
     Route::post('comments/{comment}/like', [CommentLikeController::class, 'toggleLike'])->name('comments.like');
     Route::get('comments/{comment}/reactions', [CommentLikeController::class, 'getReactions'])->name('comments.reactions');
+
+    // Donations
     Route::get('/donation-hub', [DonationController::class, 'getAllDonations'])->name('donations.hub');
     Route::resource('donations', DonationController::class);
+
+    // Segments
     Route::resource('segments', SegmentController::class)->only(['show']);
     Route::get('segments/{segment}/products', [SegmentController::class, 'products'])->name('segments.products');
 
-    Route::patch('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
-
+    // Reports
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/users/{user}/report', [ReportController::class, 'create'])->name('reports.create');
     Route::post('/users/{user}/report', [ReportController::class, 'store'])->name('reports.store');
+
+    // Reviews
     Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
     Route::get('reviews/{review}', [ReviewController::class, 'show'])->name('reviews.show');
     Route::get('/users/{user}/review', [ReviewController::class, 'create'])->name('reviews.create');
     Route::post('/users/{user}/review', [ReviewController::class, 'store'])->name('reviews.store');
+
+    // Leaderboard
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])
         ->name('leaderboard.index');
 
-
-
-
+    // Orders
     Route::post('/orders/{product}', [OrderController::class, 'store'])->name('orders.store');
     Route::patch('/orders/{order}/{status}', [OrderController::class, 'updateStatus'])
         ->name('orders.updateStatus');
 });
-
 //Upcycler Routes
 Route::middleware(['auth', 'verified', 'rolemiddleware:upcycler'])->group(function () {
     Route::resource('upcycler', UpcyclerController::class);
@@ -204,7 +239,6 @@ Route::middleware('auth')->group(function () {
     // Notification routes
     Route::post('/notifications/read', [NotificationController::class, 'markAllAsRead'])->name('notifications.read');
     Route::get('/notifications/load-more', [NotificationController::class, 'loadMore'])->name('notifications.load-more');
- 
 });
 Route::post('/messages/mark-read', function () {
     if (Auth::check()) {
@@ -255,13 +289,13 @@ Route::get('/messages/conversation-unread-count/{userId}', function ($userId) {
     return response()->json(['unread_count' => 0]);
 })->name('messages.conversation-unread-count')->middleware('auth');
 
-Route::get('/sell-item/qr/{product}', [ProductController::class, 'qrStep'])->name('sell-item.qr');
-Route::post('/sell-item/qr/{product}', [ProductController::class, 'storeQr'])->name('sell-item.qr.store');
-Route::get('/sell-item/qr/{product}/skip', [ProductController::class, 'skipQr'])->name('sell-item.qr.skip');
+// Route::get('/sell-item/qr/{product}', [ProductController::class, 'qrStep'])->name('sell-item.qr');
+// Route::post('/sell-item/qr/{product}', [ProductController::class, 'storeQr'])->name('sell-item.qr.store');
+// Route::get('/sell-item/qr/{product}/skip', [ProductController::class, 'skipQr'])->name('sell-item.qr.skip');
 
 // Step 3: Final review / finalize product
-Route::get('/sell-item/final/{product}', [ProductController::class, 'finalStep'])->name('sell-item.final');
-Route::post('/sell-item/final/{product}', [ProductController::class, 'finalize'])->name('sell-item.finalize');
+// Route::get('/sell-item/final/{product}', [ProductController::class, 'finalStep'])->name('sell-item.final');
+// Route::post('/sell-item/final/{product}', [ProductController::class, 'finalize'])->name('sell-item.finalize');
 
 
 require __DIR__ . '/auth.php';

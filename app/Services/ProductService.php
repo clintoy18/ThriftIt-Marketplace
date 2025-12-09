@@ -6,6 +6,8 @@ use App\Repositories\ProductRepository;
 use App\Models\Product;
 use App\Models\Segment;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 
 class ProductService
 {
@@ -66,47 +68,61 @@ class ProductService
 
     public function updateProduct(Product $product, array $data, ?array $images = null, ?array $deleteGalleryIds = null)
     {
-        // 1️⃣ Handle main image
-        if (!empty($images['main']) && $images['main'] instanceof \Illuminate\Http\UploadedFile) {
-            // Delete old main image from S3 if exists
-            if ($product->image && Storage::disk('s3')->exists($product->image)) {
-                Storage::disk('s3')->delete($product->image);
+        return DB::transaction(function () use ($product, $data, $images, $deleteGalleryIds) {
+
+            // 1️⃣ Handle Main Image (Single Column 'image')
+            // Only run this if you have a specific file input named 'image' for a cover photo
+            if (!empty($images['main']) && $images['main'] instanceof UploadedFile) {
+                // Delete old main image from S3
+                if ($product->image && Storage::disk('s3')->exists($product->image)) {
+                    Storage::disk('s3')->delete($product->image);
+                }
+
+                // Store new main image directly to S3 (Public)
+                $data['image'] = $images['main']->storePublicly('products', 's3');
             }
 
-            // Store new main image in S3
-            $data['image'] = $images['main']->store('products_images', [
-                'disk' => 's3',
-                'visibility' => 'public',
-            ]);
-        }
+            // 2️⃣ Handle Deletion of Gallery Images
+            if (!empty($deleteGalleryIds)) {
+                // Find the image records
+                $imagesToDelete = $product->images()->whereIn('id', $deleteGalleryIds)->get();
 
-        // 2️⃣ Handle deletion of gallery images
-        if (!empty($deleteGalleryIds)) {
-            $imagesToDelete = $product->images()->whereIn('id', $deleteGalleryIds)->get();
-            foreach ($imagesToDelete as $img) {
-                if ($img->image && Storage::disk('s3')->exists($img->image)) {
-                    Storage::disk('s3')->delete($img->image);
+                foreach ($imagesToDelete as $img) {
+                    // Delete actual file from S3
+                    if ($img->image && Storage::disk('s3')->exists($img->image)) {
+                        Storage::disk('s3')->delete($img->image);
+                    }
+                }
+                // Delete database records
+                $product->images()->whereIn('id', $deleteGalleryIds)->delete();
+            }
+
+            // 3️⃣ Handle New Gallery Images
+            if (!empty($images['gallery'])) {
+                // Calculate remaining slots (Max 8)
+                $currentCount = $product->images()->count();
+                $remainingSlots = max(0, 8 - $currentCount);
+
+                // Slice the array to prevent over-uploading
+                $filesToUpload = array_slice($images['gallery'], 0, $remainingSlots);
+
+                foreach ($filesToUpload as $img) {
+                    if ($img instanceof UploadedFile) {
+                        // Upload to S3 (Public)
+                        $path = $img->storePublicly('products', 's3');
+
+                        // Create DB Record
+                        $product->images()->create(['image' => $path]);
+                    }
                 }
             }
-            $product->images()->whereIn('id', $deleteGalleryIds)->delete();
-        }
 
-        // 3️⃣ Handle new gallery images (limit to 8)
-        if (!empty($images['gallery'])) {
-            $currentCount = $product->images()->count();
-            $remainingSlots = max(0, 8 - $currentCount);
+            // 4️⃣ Update other product fields (Name, Price, etc.)
+            // If you don't have a Repository, use: $product->update($data);
+            $this->productRepository->update($product, $data);
 
-            foreach (array_slice($images['gallery'], 0, $remainingSlots) as $img) {
-                $path = $img->store('products_images', [
-                    'disk' => 's3',
-                    'visibility' => 'public',
-                ]);
-                $product->images()->create(['image' => $path]);
-            }
-        }
-
-        // 4️⃣ Update other product fields
-        return $this->productRepository->update($product, $data);
+            return $product;
+        });
     }
 
 
@@ -131,4 +147,3 @@ class ProductService
         return $this->productRepository->getMoreByUser($userId, $excludeProductId, $limit);
     }
 }
-
