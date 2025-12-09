@@ -14,11 +14,8 @@
             <!-- Desktop Header -->
             <div class="hidden md:block flex flex-col relative left-[-150px] top-[-30px]">
                 <h2 class="text-xl sm:text-2xl font-bold text-custom-dark">
-                    <div class="flex flex-col relative left-[-90px]">
-                        <i>Donate an Item
-                            <img src="{{ asset('images/image 147.png') }}" alt="emoji"
-                                class="inline-block flex flex-col relative top-[-33px] left-[50px] h-4 w-3 align-middle h-[25px] w-[20px]">
-                        </i>
+                    <div class="flex flex-col relative left-[-90px] mt-1">
+                     Donate an Item
                     </div>
                     <hr
                         class="w-[1270px] mb-9 flex flex-col relative right-[90px] h-px bg-gray-800 border-0 dark:bg-gray-700">
