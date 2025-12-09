@@ -15,7 +15,10 @@
 
 <x-app-layout>
     <div class="pt-8 sm:pt-12 pb-8">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {{-- Added overflow-x-hidden to main container to prevent any horizontal scrolling issues on mobile --}}
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-hidden lg:overflow-visible">
+            
+            {{-- Mobile Header --}}
             <div class="block md:hidden mb-8">
                 <h2 class="text-xl font-bold text-custom-dark text-center">
                     <i>Sell <img src="{{ asset('images/image 165.png') }}" alt="emoji" class="inline-block h-5 w-4 align-middle ml-1"></i>
@@ -25,38 +28,22 @@
 
             <x-step-progress :currentStep="$currentStep" />
 
-            @if (!auth()->user()->is_verified)
-                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 mb-8">
-                    <div class="flex items-center gap-4">
-                        <div class="flex-shrink-0">
-                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center">
-                                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                            <div>
-                                <h4 class="text-sm font-bold text-blue-900 dark:text-blue-200">Standard Listing Mode</h4>
-                                <p class="text-xs text-blue-700 dark:text-blue-300 mt-0.5">You can upload items directly.</p>
-                            </div>
-                            <a href="{{ route('profile.edit') }}" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 underline whitespace-nowrap">Get Verified &rarr;</a>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
             <form id="productForm" action="{{ route('sell-item.store-step1') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                 @csrf
                 
                 {{-- Hidden Container for Removed Images --}}
                 <div id="removedImagesContainer"></div>
 
+                {{-- GRID LAYOUT: Stacks vertically (cols-1) on mobile, becomes 5-col grid on Desktop (lg) --}}
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10 items-start lg:relative lg:left-[-150px]">
+                    
+                    {{-- LEFT COLUMN (Photos) --}}
+                    {{-- FIX: Added 'w-full' for mobile, kept 'lg:w-[450px]' for desktop --}}
                     <div class="lg:col-span-2 flex flex-col w-full lg:w-[450px]">
                         <div class="space-y-4">
                             <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Photos</h3>
                             
+                            {{-- Photo Guidelines --}}
                             <div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
                                 <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -70,31 +57,20 @@
                                 </ul>
                             </div>
 
-                            <div class="mb-4 mt-[30px]">
-                                <label for="productImages" id="productDropZone" class="upload-tile group cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-gray-300/80 rounded-3xl transition-all duration-500 hover:border-primary-400 hover:shadow-xl bg-white/80 hover:bg-white backdrop-blur-sm p-8 min-h-[192px] sm:min-h-[208px]">
+                            {{-- Drop Zone --}}
+                            <div class="mb-4 mt-6 lg:mt-[30px]">
+                                <label for="productImages" id="productDropZone" class="upload-tile group cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-gray-300/80 rounded-3xl transition-all duration-500 hover:border-primary-400 hover:shadow-xl bg-white/80 hover:bg-white backdrop-blur-sm p-8 min-h-[192px]">
                                     
                                     {{-- PREVIEW CONTAINER --}}
                                     <div id="allPreviews" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 w-full">
-                                        
-                                        {{-- 1. RENDER EXISTING IMAGES FROM SESSION (Server-Side) --}}
+                                        {{-- Existing images loop... --}}
                                         @foreach($existingImages as $index => $img)
                                             <div id="existing-{{ $index }}" class="preview-item existing-item relative h-24 rounded-lg overflow-hidden border border-gray-200">
                                                 <img src="{{ $img['url'] }}" class="w-full h-full object-cover">
-                                                
-                                                {{-- REMOVE BUTTON FOR EXISTING IMAGE --}}
-                                                <button type="button" 
-                                                        class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors z-20"
-                                                        onclick="removeExistingImage('{{ $img['path'] }}', 'existing-{{ $index }}')">
-                                                    ×
-                                                </button>
-                                                
-                                                <span class="preview-number absolute top-1 left-1 bg-black bg-opacity-70 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                                                    {{ $index + 1 }}
-                                                </span>
+                                                <button type="button" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors z-20" onclick="removeExistingImage('{{ $img['path'] }}', 'existing-{{ $index }}')">×</button>
+                                                <span class="preview-number absolute top-1 left-1 bg-black bg-opacity-70 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">{{ $index + 1 }}</span>
                                             </div>
                                         @endforeach
-
-                                        {{-- 2. NEW PREVIEWS (Will be injected here by JS) --}}
                                     </div>
                                     
                                     <div id="donationAddMoreText" class="text-center mb-4 {{ count($existingImages) > 0 ? '' : 'hidden' }}">
@@ -103,16 +79,14 @@
                                     
                                     <div id="dropZoneContent" class="flex flex-col items-center justify-center gap-5 w-full {{ count($existingImages) > 0 ? 'hidden' : '' }}">
                                         <div class="flex justify-center w-full">
-                                            <div class="shrink-0 w-18 h-18 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center text-gray-600 transition-all duration-500 group-hover:scale-110 group-hover:from-primary-50 group-hover:to-primary-100 group-hover:text-primary-600 shadow-sm group-hover:shadow-md">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9" viewBox="0 0 24 24" fill="currentColor">
+                                            <div class="shrink-0 w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center text-gray-600">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 sm:h-9 sm:w-9" viewBox="0 0 24 24" fill="currentColor">
                                                     <path d="M3 5a2 2 0 0 1 2-2h3l2 2h6a2 2 0 0 1 2 2v2H3V5Zm0 6h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8Zm9 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
                                                 </svg>
                                             </div>
                                         </div>
                                         <div class="flex flex-col items-center justify-center gap-4 text-center">
-                                            <span class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-full bg-gradient-to-r from-[#E1D5B6] to-[#d4c6a2] text-[#6f5e49] transition-all duration-500 group-hover:scale-105 group-hover:shadow-lg group-hover:from-[#d4c6a2] group-hover:to-[#c8b994] transform hover:-translate-y-0.5">
-                                                Browse files
-                                            </span>
+                                            <span class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-full bg-gradient-to-r from-[#E1D5B6] to-[#d4c6a2] text-[#6f5e49]">Browse files</span>
                                             <div class="flex flex-col gap-2">
                                                 <p class="text-sm font-semibold text-gray-700 bg-gray-100/50 px-3 py-1.5 rounded-lg">PNG or JPG up to 5MB</p>
                                                 <span class="text-sm text-gray-600 font-medium">Add 2 to 8 photos</span>
@@ -128,8 +102,12 @@
                         </div>
                     </div>
 
-                    <div class="lg:col-span-3 flex lg:justify-end lg:relative lg:left-[250px] w-[640px] ">
-                        <div class="bg-[#F4F2ED] dark:bg-gray-800 shadow-lg rounded-lg overflow-visible w-[150px] lg:w-[680px] ml-auto">
+                    {{-- RIGHT COLUMN (Form Details) --}}
+                    {{-- FIX: Changed w-[640px] to w-full lg:w-[640px] --}}
+                    <div class="lg:col-span-3 flex lg:justify-end lg:relative lg:left-[250px] w-full lg:w-[640px]">
+                        
+                        {{-- FIX: Changed w-[150px] to w-full lg:w-[680px]. This was the main cause of the squished form. --}}
+                        <div class="bg-[#F4F2ED] dark:bg-gray-800 shadow-lg rounded-lg overflow-visible w-full lg:w-[680px] ml-auto">
                             <div class="p-4 sm:p-6">
                                 <div class="space-y-4">
                                     <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">Step 1: Product Details</h3>
@@ -142,9 +120,7 @@
                                             class="mt-1 block w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#B59F84] focus:border-[#B59F84] transition" 
                                             placeholder="e.g., Vintage Denim Jacket" 
                                             value="{{ old('name', session('product_step1.name')) }}" required>
-                                        @error('name')
-                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                        @enderror
+                                        @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                                     </div>
 
                                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -153,14 +129,9 @@
                                             <select id="category_id" name="category_id" class="mt-1 block w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#B59F84] focus:border-[#B59F84] transition" required>
                                                 <option value="" disabled selected>Select category</option>
                                                 @foreach ($categories as $category)
-                                                    <option value="{{ $category->id }}" {{ old('category_id', session('product_step1.category_id')) == $category->id ? 'selected' : '' }}>
-                                                        {{ $category->name }}
-                                                    </option>
+                                                    <option value="{{ $category->id }}" {{ old('category_id', session('product_step1.category_id')) == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                                                 @endforeach
                                             </select>
-                                            @error('category_id')
-                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                            @enderror
                                         </div>
 
                                         <div>
@@ -168,14 +139,9 @@
                                             <select id="segment_id" name="segment_id" class="mt-1 block w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#B59F84] focus:border-[#B59F84] transition" required>
                                                 <option value="" disabled selected>Select segment</option>
                                                 @foreach ($segments as $segment)
-                                                    <option value="{{ $segment->id }}" {{ old('segment_id', session('product_step1.segment_id')) == $segment->id ? 'selected' : '' }}>
-                                                        {{ ucfirst($segment->name) }}
-                                                    </option>
+                                                    <option value="{{ $segment->id }}" {{ old('segment_id', session('product_step1.segment_id')) == $segment->id ? 'selected' : '' }}>{{ ucfirst($segment->name) }}</option>
                                                 @endforeach
                                             </select>
-                                            @error('segment_id')
-                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                            @enderror
                                         </div>
                                     </div>
 
@@ -185,27 +151,19 @@
                                             <select id="barangay_id" name="barangay_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500" required>
                                                 <option value="" disabled selected>Select a barangay</option>
                                                 @foreach ($barangays as $barangay)
-                                                    <option value="{{ $barangay->id }}" {{ old('barangay_id', session('product_step1.barangay_id')) == $barangay->id ? 'selected' : '' }}>
-                                                        {{ $barangay->name }}
-                                                    </option>
+                                                    <option value="{{ $barangay->id }}" {{ old('barangay_id', session('product_step1.barangay_id')) == $barangay->id ? 'selected' : '' }}>{{ $barangay->name }}</option>
                                                 @endforeach
                                             </select>
-                                            @error('barangay_id')
-                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                            @enderror
                                         </div>
                                     </div>
 
                                     <div>
                                         <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
                                         <textarea id="description" name="description" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500" placeholder="Enter detailed description" required>{{ old('description', session('product_step1.description')) }}</textarea>
-                                        @error('description')
-                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                        @enderror
                                     </div>
                                 </div>
 
-                                <div class="space-y-4">
+                                <div class="space-y-4 mt-4">
                                     <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Specifics</h3>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                         <div>
@@ -214,9 +172,6 @@
                                                 <option value="new" {{ old('condition', session('product_step1.condition')) == 'new' ? 'selected' : '' }}>New</option>
                                                 <option value="used" {{ old('condition', session('product_step1.condition')) == 'used' ? 'selected' : '' }}>Used</option>
                                             </select>
-                                            @error('condition')
-                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                            @enderror
                                         </div>
                                         
                                         <input type="hidden" name="status" value="available">
@@ -233,21 +188,12 @@
                                                     <option value="XL">XL</option>
                                                 </optgroup>
                                             </select>
-                                            @error('size')
-                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                            @enderror
                                         </div>
                                     </div>
 
                                     <div>
                                         <label for="price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Price (PHP)</label>
-                                        <input type="number" step="0.01" id="price" name="price" 
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500" 
-                                            placeholder="Enter price" 
-                                            value="{{ old('price', session('product_step1.price')) }}" required>
-                                        @error('price')
-                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                        @enderror
+                                        <input type="number" step="0.01" id="price" name="price" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500" placeholder="Enter price" value="{{ old('price', session('product_step1.price')) }}" required>
                                     </div>
                                     
                                     <div class="flex justify-center sm:justify-end mt-9 mb-[-40px]">
@@ -267,7 +213,6 @@
             </form>
         </div>
     </div>
-
     <script>
         // GLOBAL FUNCTION: Handle deletion of Existing (Session) images
         window.removeExistingImage = function(path, elementId) {
