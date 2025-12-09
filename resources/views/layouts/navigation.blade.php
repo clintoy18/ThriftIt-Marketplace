@@ -336,7 +336,7 @@
                                                 <span class="text-xs font-semibold text-gray-600 dark:text-gray-300" x-text="groupName"></span>
                                             </div>
                                             <template x-for="notif in groupNotifications" :key="notif.id">
-                                                <a :href="notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data.donation_id ? `/donations/${notif.data.donation_id}` : (notif.data.appointment_id ? `/products/${notif.data.product_id}` : (notif.data.link || '${notif.data.donation_id}')))"
+                                                <a :href="notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data.donation_id ? `/donations/${notif.data.donation_id}` : (notif.data.appointment_id ? '{{ route('upcycler.index') }}' : (notif.data.link || '')))"
                                                     class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 last:border-b-0"
                                                     @click="open = false">
                                                     <div class="flex items-start gap-3">
