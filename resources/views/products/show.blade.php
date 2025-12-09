@@ -11,9 +11,9 @@
                             @if ($product->images && $product->images->count() > 0)
                                 @foreach ($product->images as $image)
                                     <div class="swiper-slide flex items-center justify-center bg-white h-full">
-                                        <img src="{{ Storage::disk('s3')->url($image->image) }}"
-                                            alt="{{ $product->name }}"
-                                            class="w-full h-full object-cover transition-transform duration-500 ease-out hover:scale-105">
+                                        <img src="{{ Storage::disk('s3')->temporaryUrl($image->image, now()->addMinutes(60)) }}" 
+                                            alt="{{ $product->name }}" 
+                                            class="w-full h-full object-cover rounded-lg">
                                     </div>
                                 @endforeach
                             @else
@@ -72,7 +72,7 @@
                                     For Donation
                                 </p>
                             @else
-                                <p class="text-2xl font-bold text-gray-900 dark:text-white">
+                                <p class="text-2xl font-bold text-gray-900 dark:text-white mt-3">
                                     ₱{{ number_format($product->price, 2) }}
                                 </p>
                             @endif

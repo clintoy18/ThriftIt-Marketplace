@@ -60,8 +60,8 @@ class ProductStatusNotification implements ShouldBroadcast
     {
         // Create a friendly message based on status
         $message = $this->status === 'approved'
-            ? "Your product {$this->product->name} has been approved"
-            : "Your product {$this->product->name} has been rejected";
+            ? "Your item {$this->product->name} has been approved"
+            : "Your item {$this->product->name} has been rejected";
 
         return [
             'id'         => $this->product->id,

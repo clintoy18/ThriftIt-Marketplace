@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
+            <h2 class="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100 mt-1">
                 {{ __('Request an Appointment') }}
             </h2>
         </div>
