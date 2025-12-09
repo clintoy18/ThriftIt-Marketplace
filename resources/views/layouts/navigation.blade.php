@@ -1,5 +1,4 @@
-<nav class="fixed top-0 left-0 w-full bg-[#F4F2ED] dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-4 sm:px-6 md:px-6 py-4 z-50 shadow-sm">
-    <div class="max-w-7xl mx-auto" x-data="{ mobileMenuOpen: false }">
+<nav class="fixed top-0 left-0 w-full bg-[#F4F2ED] dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-4 sm:px-6 md:px-6 py-4 z-[999] shadow-sm">    <div class="max-w-7xl mx-auto" x-data="{ mobileMenuOpen: false }">
         <div class="flex justify-between items-center">
             <a href="{{ Auth::check() ? (Auth::user()->role === 2 ? route('admin.dashboard') : (Auth::user()->role === 1 ? route('upcycler') : route('dashboard'))) : url('/') }}"
                 class="flex-shrink-0">
