@@ -155,7 +155,8 @@
                                 <div>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Scheduled Date & Time</p>
                                     <p class="font-medium text-gray-900 dark:text-gray-100">
-                                        {{ \Carbon\Carbon::parse($appointment->appdate)->format('F j, Y g:i A') }}</p>
+                                        {{ \Carbon\Carbon::parse($appointment->appdate)->setTimezone('Asia/Manila')->format('F j, Y g:i A') }}
+                                    </p>
                                 </div>
                             </div>
 
@@ -195,6 +196,7 @@
                                 <p class="text-sm text-gray-500 dark:text-gray-400">Created At</p>
                                 <p class="font-medium text-gray-900 dark:text-gray-100">
                                     {{ $appointment->created_at->setTimezone('Asia/Manila')->format('F j, Y g:i A') }}
+                                </p>
                             </div>
                         </div>
                     </div>
