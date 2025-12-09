@@ -1,6 +1,4 @@
-<nav
-    class="fixed top-0 left-0 w-full bg-[#F4F2ED] dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-4 sm:px-6 md:px-6 py-4 z-[999] shadow-sm">
-    <div class="max-w-7xl mx-auto" x-data="{ mobileMenuOpen: false }">
+<nav class="fixed top-0 left-0 w-full bg-[#F4F2ED] dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-4 sm:px-6 md:px-6 py-4 z-[999] shadow-sm">    <div class="max-w-7xl mx-auto" x-data="{ mobileMenuOpen: false }">
         <div class="flex justify-between items-center">
             <a href="{{ Auth::check() ? (Auth::user()->role === 2 ? route('admin.dashboard') : (Auth::user()->role === 1 ? route('upcycler') : route('dashboard'))) : url('/') }}"
                 class="flex-shrink-0">
@@ -36,8 +34,7 @@
 
             @auth
                 @if ($role !== 2)
-                    <div
-                        class="hidden md:flex items-center bg-[#F4F2ED] dark:bg-gray-800 px-4 rounded-full w-full max-w-md border border-gray-400 dark:text-gray-200  mx-4">
+                    <div class="hidden md:flex items-center bg-[#F4F2ED] dark:bg-gray-800 px-4 rounded-full w-full max-w-md border border-gray-400 dark:text-gray-200  mx-4">
                         <form action="{{ route('search') }}" method="GET" class="flex w-full items-center">
                             <input type="text" name="query" value="{{ request('query') }}"
                                 placeholder="Search for a product... or a person"
@@ -76,19 +73,19 @@
                                             this.unreadCount = e.detail?.unread_count || 0;
                                 });
                         } @endif
-                            
-                                    // Fallback event listeners
-                                    window.addEventListener('new-message-received', () => {
-                                        if (!window.location.pathname.includes('messages')) {
-                                            this.unreadCount++;
-                                        }
-                                    });
-                            
-                                    window.addEventListener('messages-marked-read', (e) => {
-                                        this.unreadCount = e.detail?.unread_count || 0;
-                                    });
-                                }
-                            }">
+                                    
+                                        // Fallback event listeners
+                                        window.addEventListener('new-message-received', () => {
+                                            if (!window.location.pathname.includes('messages')) {
+                                                this.unreadCount++;
+                                            }
+                                        });
+                                    
+                                        window.addEventListener('messages-marked-read', (e) => {
+                                            this.unreadCount = e.detail?.unread_count || 0;
+                                        });
+                                    }
+                                }">
                             <svg class="w-6 h-6 dark:text-gray-200" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -100,36 +97,36 @@
                                 <span x-text="unreadCount > 9 ? '9+' : unreadCount"></span>
                             </span>
                         </a>
-
+                        
                         <div id="notif-bell" x-data="{
                             open: false,
                             notifications: [],
                             groupedNotifications: {},
                             // REMOVED: loadingMore, hasMore, page, perPage
-                        
+
                             showToast(message, type = 'info') {
                                 const toast = document.createElement('div');
                                 toast.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300 transform translate-y-[-20px] opacity-0 ${
-                                                            type === 'success' ? 'bg-green-500 text-white' : 
-                                                            type === 'error' ? 'bg-red-500 text-white' : 
-                                                            type === 'info' ? 'bg-blue-500 text-white' : 
-                                                            'bg-gray-500 text-white'
-                                                        }`;
+                                    type === 'success' ? 'bg-green-500 text-white' : 
+                                    type === 'error' ? 'bg-red-500 text-white' : 
+                                    type === 'info' ? 'bg-blue-500 text-white' : 
+                                    'bg-gray-500 text-white'
+                                }`;
                                 toast.textContent = message;
                                 toast.id = 'notification-toast';
-                        
+                                
                                 const existingToast = document.getElementById('notification-toast');
                                 if (existingToast) {
                                     existingToast.remove();
                                 }
-                        
+                                
                                 document.body.appendChild(toast);
-                        
+                                
                                 setTimeout(() => {
                                     toast.classList.remove('translate-y-[-20px]', 'opacity-0');
                                     toast.classList.add('translate-y-0', 'opacity-100');
                                 }, 10);
-                        
+                                
                                 setTimeout(() => {
                                     toast.classList.remove('translate-y-0', 'opacity-100');
                                     toast.classList.add('translate-y-[-20px]', 'opacity-0');
@@ -140,178 +137,177 @@
                                     }, 300);
                                 }, 3000);
                             },
-                        
+                            
                             getGroupedNotifications() {
                                 const groups = {};
                                 const today = new Date();
                                 today.setHours(0, 0, 0, 0);
                                 const todayStr = today.toDateString();
-                        
+                                
                                 this.notifications.forEach(notif => {
                                     const notifDate = new Date(notif.created_at);
                                     notifDate.setHours(0, 0, 0, 0);
                                     const notifDateStr = notifDate.toDateString();
-                        
+                                    
                                     let groupName;
                                     if (notifDateStr === todayStr) {
                                         groupName = 'Today';
                                     } else {
                                         const yesterday = new Date(today);
                                         yesterday.setDate(yesterday.getDate() - 1);
-                        
+                                        
                                         if (notifDateStr === yesterday.toDateString()) {
                                             groupName = 'Yesterday';
                                         } else {
                                             const weekAgo = new Date(today);
                                             weekAgo.setDate(weekAgo.getDate() - 7);
-                        
+                                            
                                             if (notifDate >= weekAgo) {
                                                 groupName = 'This week';
                                             } else {
                                                 const currentYear = new Date().getFullYear();
                                                 const notifYear = notifDate.getFullYear();
-                                                const dateOptions = {
-                                                    month: 'short',
+                                                const dateOptions = { 
+                                                    month: 'short', 
                                                     day: 'numeric'
                                                 };
-                        
+                                                
                                                 if (notifYear !== currentYear) {
                                                     dateOptions.year = 'numeric';
                                                 }
-                        
+                                                
                                                 groupName = notifDate.toLocaleDateString('en-US', dateOptions);
                                             }
                                         }
                                     }
-                        
+                                    
                                     if (!groups[groupName]) {
                                         groups[groupName] = [];
                                     }
                                     groups[groupName].push(notif);
                                 });
-                        
+                                
                                 return groups;
                             },
-                        
+
                             markAsRead() {
                                 const originalNotifications = [...this.notifications];
-                        
+                                
                                 fetch('{{ route('notifications.read') }}', {
-                                        method: 'POST',
-                                        headers: {
-                                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                            'Accept': 'application/json',
-                                            'Content-Type': 'application/json',
-                                        }
-                                    })
-                                    .then(response => {
-                                        if (!response.ok) {
-                                            throw new Error('Network response was not ok: ' + response.status);
-                                        }
-                                        return response.json();
-                                    })
-                                    .then(data => {
-                                        if (data.success) {
-                                            this.reloadNotifications().then(() => {
-                                                window.dispatchEvent(new CustomEvent('notifications-marked-read', {
-                                                    detail: { unread_count: data.unread_count || 0 }
-                                                }));
-                                            });
-                                        } else {
-                                            throw new Error(data.message || 'Failed to mark notifications as read');
-                                        }
-                                    })
-                                    .catch(error => {
-                                        console.error('Error marking notifications as read:', error);
-                                        this.notifications = originalNotifications;
-                                        this.groupedNotifications = this.getGroupedNotifications();
-                        
-                                        if (typeof this.showToast === 'function') {
-                                            this.showToast('Failed to mark notifications as read. Please try again.', 'error');
-                                        }
-                                    });
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Accept': 'application/json',
+                                        'Content-Type': 'application/json',
+                                    }                 
+                                })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error('Network response was not ok: ' + response.status);
+                                    }
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    if (data.success) {
+                                        this.reloadNotifications().then(() => {
+                                            window.dispatchEvent(new CustomEvent('notifications-marked-read', {
+                                                detail: { unread_count: data.unread_count || 0 }
+                                            }));
+                                        });
+                                    } else {
+                                        throw new Error(data.message || 'Failed to mark notifications as read');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error marking notifications as read:', error);
+                                    this.notifications = originalNotifications;
+                                    this.groupedNotifications = this.getGroupedNotifications();
+                                    
+                                    if (typeof this.showToast === 'function') {
+                                        this.showToast('Failed to mark notifications as read. Please try again.', 'error');
+                                    }
+                                });
                             },
-                        
+
                             reloadNotifications() {
                                 return fetch('{{ route('notifications.load-more') }}?page=1', {
-                                        method: 'GET',
-                                        headers: {
-                                            'Accept': 'application/json',
-                                            'Content-Type': 'application/json',
-                                        }
-                                    })
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        if (data.notifications) {
-                                            this.notifications = data.notifications;
-                                            this.groupedNotifications = this.getGroupedNotifications();
-                                            // REMOVED: this.hasMore = ...
-                                        }
-                                    })
-                                    .catch(error => {
-                                        console.error('Error reloading notifications:', error);
-                                    });
+                                    method: 'GET',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'Content-Type': 'application/json',
+                                    }
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.notifications) {
+                                        this.notifications = data.notifications;
+                                        this.groupedNotifications = this.getGroupedNotifications();
+                                        // REMOVED: this.hasMore = ...
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error reloading notifications:', error);
+                                });
                             },
-                        
+
                             // REMOVED: loadMoreNotifications() function
-                        
+
                             init() {
                                 // Load initial notifications
                                 @if(Auth::check())
-                                try {
-                                    @php
-                                    // Get initial batch
-                                    $notifications = \App\ Models\ Notification::where('user_id', Auth::id()) -
-                                        > latest() -
-                                        > take(50) -
-                                        > get() -
-                                        > map(function($notification) {
-                                            $data = $notification - > data;
-                                            $data['profile_pic_url'] = $notification - > from_user_profile_pic;
-                                            $isRead = $notification - > is_read;
-                                            if ($notification - > read_at !== null) {
-                                                $isRead = true;
+                                    try {
+                                        @php
+                                            // Get initial batch
+                                            $notifications = \App\Models\Notification::where('user_id', Auth::id())
+                                                ->latest()
+                                                ->take(50) 
+                                                ->get()
+                                                ->map(function($notification) {
+                                                    $data = $notification->data;
+                                                    $data['profile_pic_url'] = $notification->from_user_profile_pic;
+                                                    $isRead = $notification->is_read;
+                                                    if ($notification->read_at !== null) {
+                                                        $isRead = true;
+                                                    }
+                                                    return [
+                                                        'id' => $notification->id,
+                                                        'user_id' => $notification->user_id,
+                                                        'type' => $notification->type,
+                                                        'data' => $data,
+                                                        'is_read' => (bool) $isRead,
+                                                        'read_at' => $notification->read_at ? $notification->read_at->toIso8601String() : null,
+                                                        'created_at' => $notification->created_at->toIso8601String(),
+                                                        'updated_at' => $notification->updated_at->toIso8601String(),
+                                                    ];
+                                                });
+                                        @endphp
+                                        this.notifications = {!! Js::from($notifications) !!};
+                                        this.groupedNotifications = this.getGroupedNotifications();
+                                        // REMOVED: this.hasMore logic
+                                        
+                                        document.addEventListener('visibilitychange', () => {
+                                            if (!document.hidden) {
+                                                setTimeout(() => {
+                                                    this.reloadNotifications();
+                                                }, 500);
                                             }
-                                            return [
-                                                'id' => $notification - > id,
-                                                'user_id' => $notification - > user_id,
-                                                'type' => $notification - > type,
-                                                'data' => $data,
-                                                'is_read' => (bool) $isRead,
-                                                'read_at' => $notification - > read_at ? $notification - > read_at - > toIso8601String() : null,
-                                                'created_at' => $notification - > created_at - > toIso8601String(),
-                                                'updated_at' => $notification - > updated_at - > toIso8601String(),
-                                            ];
                                         });
-                                    @endphp
-                                    this.notifications = {!! Js::from($notifications) !!};
-                                    this.groupedNotifications = this.getGroupedNotifications();
-                                    // REMOVED: this.hasMore logic
-                        
-                                    document.addEventListener('visibilitychange', () => {
-                                        if (!document.hidden) {
-                                            setTimeout(() => {
-                                                this.reloadNotifications();
-                                            }, 500);
-                                        }
-                                    });
-                        
-                                    window.addEventListener('focus', () => {
-                                        this.reloadNotifications();
-                                    });
-                                } catch (e) {
-                                    console.error('Error loading notifications:', e);
+                                        
+                                        window.addEventListener('focus', () => {
+                                            this.reloadNotifications();
+                                        });
+                                    } catch(e) {
+                                        console.error('Error loading notifications:', e);
+                                        this.notifications = [];
+                                        this.groupedNotifications = {};
+                                    }
+                                @else
                                     this.notifications = [];
                                     this.groupedNotifications = {};
-                                }
-                                @else
-                                this.notifications = [];
-                                this.groupedNotifications = {};
                                 @endif
                             }
-                        }"
-                            @new-notification.window="notifications.unshift($event.detail); groupedNotifications = getGroupedNotifications();"
-                            @notifications-marked-read.window="notifications.forEach(n => n.is_read = true);">
+                        }" @new-notification.window="notifications.unshift($event.detail); groupedNotifications = getGroupedNotifications();"
+                        @notifications-marked-read.window="notifications.forEach(n => n.is_read = true);">
                             <button @click="open = !open; if(open) markAsRead()" class="relative focus:outline-none mt-1.5">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor"
@@ -324,78 +320,59 @@
                                     <span x-text="notifications.filter(n => !n.is_read).length"></span>
                                 </span>
                             </button>
-                            <div x-show="open" @click.away="open = false" x-transition
-                                class="absolute right-20 mt-2 w-96 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden z-50 border border-gray-200">
-                                <div
-                                    class="px-4 py-2 bg-gray-50 border-b border-gray-200  dark:bg-gray-800 flex justify-between items-center">
-                                    <span
-                                        class="text-sm font-semibold text-gray-700 dark:text-gray-200">Notifications</span>
-                                    <button @click="markAsRead()" class="text-xs text-[#B59F84] hover:underline">
-                                        Mark all as read
-                                    </button>
-                                </div>
-                                <div class="flex flex-col" style="max-height: 70vh;">
-                                    <div class="flex-1 overflow-y-auto custom-scroll">
-                                        <template
-                                            x-for="[groupName, groupNotifications] in Object.entries(groupedNotifications)"
-                                            :key="groupName">
-                                            <div>
-                                                <div
-                                                    class="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 sticky top-0 z-10">
-                                                    <span class="text-xs font-semibold text-gray-600 dark:text-gray-300"
-                                                        x-text="groupName"></span>
-                                                </div>
-                                                <template x-for="notif in groupNotifications" :key="notif.id">
-                                                    <a :href="notif.data.product_id ?
-                                                        `/products/${notif.data.product_id}` :
-                                                        (notif.data.donation_id ?
-                                                            `/donations/${notif.data.donation_id}` :
-                                                            (notif.data.appointment_id ?
-                                                                `/appointment/show/${notif.data.appointment_id}` :
-                                                                (notif.data.link || '#')))"
-                                                        class="block w-full">
-                                                    </a>
+                           <div x-show="open" @click.away="open = false" x-transition
+                            class="absolute right-20 mt-2 w-96 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden z-50 border border-gray-200">
+                            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200  dark:bg-gray-800 flex justify-between items-center">
+                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">Notifications</span>
+                                <button @click="markAsRead()" class="text-xs text-[#B59F84] hover:underline">
+                                    Mark all as read
+                                </button>
+                            </div>
+                            <div class="flex flex-col" style="max-height: 70vh;">
+                                <div class="flex-1 overflow-y-auto custom-scroll">
+                                    <template x-for="[groupName, groupNotifications] in Object.entries(groupedNotifications)" :key="groupName">
+                                        <div>
+                                            <div class="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 sticky top-0 z-10">
+                                                <span class="text-xs font-semibold text-gray-600 dark:text-gray-300" x-text="groupName"></span>
+                                            </div>
+                                            <template x-for="notif in groupNotifications" :key="notif.id">
+                                                <a :href="notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data.donation_id ? `/donations/${notif.data.donation_id}` : (notif.data.appointment_id ? `/products/${notif.data.product_id}` : (notif.data.link || '${notif.data.donation_id}')))"
                                                     class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 last:border-b-0"
                                                     @click="open = false">
                                                     <div class="flex items-start gap-3">
                                                         <div class="flex-shrink-0">
-                                                            <img :src="notif.data.profile_pic_url ||
-                                                                '{{ asset('images/default-profile.jpg') }}'"
+                                                            <img :src="notif.data.profile_pic_url || '{{ asset('images/default-profile.jpg') }}'"
                                                                 :alt="notif.data.from_user || 'User'"
                                                                 class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600">
                                                         </div>
                                                         <div class="flex-1 min-w-0">
                                                             <p class="text-sm text-gray-700 dark:text-gray-200 mb-1">
-                                                                <strong class="text-[#B59F84]"
-                                                                    x-text="notif.data.from_user || 'System'"></strong>
-                                                                <span
-                                                                    x-text="notif.data.message || (notif.data.content ? 'commented: ' + notif.data.content : '')"></span>
+                                                                <strong class="text-[#B59F84]" x-text="notif.data.from_user || 'System'"></strong>
+                                                                <span x-text="notif.data.message || (notif.data.content ? 'commented: ' + notif.data.content : '')"></span>
                                                             </p>
                                                             <span class="text-xs text-gray-500 dark:text-gray-400"
                                                                 x-text="new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })">
                                                             </span>
                                                         </div>
-                                                        <span x-show="!notif.is_read"
-                                                            class="ml-2 w-2 h-2 bg-[#B59F84] rounded-full mt-1.5 flex-shrink-0"></span>
+                                                        <span x-show="!notif.is_read" class="ml-2 w-2 h-2 bg-[#B59F84] rounded-full mt-1.5 flex-shrink-0"></span>
                                                     </div>
-                                                    </a>
-                                                </template>
-                                            </div>
-                                        </template>
-
-                                        <div x-show="notifications.length === 0" class="px-4 py-8 text-center">
-                                            <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3"
-                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
-                                                </path>
-                                            </svg>
-                                            <p class="text-gray-500 dark:text-gray-400 text-sm">No notifications yet</p>
+                                                </a>
+                                            </template>
                                         </div>
+                                    </template>
+                                    
+                                    <div x-show="notifications.length === 0" class="px-4 py-8 text-center">
+                                        <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+                                            </path>
+                                        </svg>
+                                        <p class="text-gray-500 dark:text-gray-400 text-sm">No notifications yet</p>
                                     </div>
                                 </div>
-                            </div>
+                                </div>
                         </div>
+                    </div>
                     @endif
                 @endauth
                 @auth
@@ -602,14 +579,14 @@
                                                 this.unreadCount = e.detail?.unread_count || 0;
                                             });
                                         } @endif
-                                
+                                    
                                         // Fallback event listeners
                                         window.addEventListener('new-message-received', () => {
                                             if (!window.location.pathname.includes('messages')) {
                                                 this.unreadCount++;
                                             }
                                         });
-                                
+                                    
                                         window.addEventListener('messages-marked-read', (e) => {
                                             this.unreadCount = e.detail?.unread_count || 0;
                                         });
@@ -628,179 +605,178 @@
                             </a>
                         @endif
                     @endauth
-                    <div id="notif-bell-mobile" x-data="{
-                        open: false,
+                    <div id="notif-bell-mobile" x-data="{ 
+                        open: false, 
                         notifications: [],
                         groupedNotifications: {},
                         // REMOVED: loadingMore, hasMore, page, perPage
-                    
+
                         getGroupedNotifications() {
                             const groups = {};
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
                             const todayStr = today.toDateString();
-                    
+                            
                             this.notifications.forEach(notif => {
                                 const notifDate = new Date(notif.created_at);
                                 notifDate.setHours(0, 0, 0, 0);
                                 const notifDateStr = notifDate.toDateString();
-                    
+                                
                                 let groupName;
                                 if (notifDateStr === todayStr) {
                                     groupName = 'Today';
                                 } else {
                                     const yesterday = new Date(today);
                                     yesterday.setDate(yesterday.getDate() - 1);
-                    
+                                    
                                     if (notifDateStr === yesterday.toDateString()) {
                                         groupName = 'Yesterday';
                                     } else {
                                         const weekAgo = new Date(today);
                                         weekAgo.setDate(weekAgo.getDate() - 7);
-                    
+                                        
                                         if (notifDate >= weekAgo) {
                                             groupName = 'This week';
                                         } else {
                                             const currentYear = new Date().getFullYear();
                                             const notifYear = notifDate.getFullYear();
-                                            const dateOptions = {
-                                                month: 'short',
+                                            const dateOptions = { 
+                                                month: 'short', 
                                                 day: 'numeric'
                                             };
-                    
+                                            
                                             if (notifYear !== currentYear) {
                                                 dateOptions.year = 'numeric';
                                             }
-                    
+                                            
                                             groupName = notifDate.toLocaleDateString('en-US', dateOptions);
                                         }
                                     }
                                 }
-                    
+                                
                                 if (!groups[groupName]) {
                                     groups[groupName] = [];
                                 }
                                 groups[groupName].push(notif);
                             });
-                    
+                            
                             return groups;
                         },
-                    
+
                         markAsRead() {
                             const originalNotifications = [...this.notifications];
-                    
+                            
                             fetch('{{ route('notifications.read') }}', {
-                                    method: 'POST',
-                                    headers: {
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'Accept': 'application/json',
-                                        'Content-Type': 'application/json',
-                                    }
-                                })
-                                .then(response => {
-                                    if (!response.ok) {
-                                        throw new Error('Network response was not ok: ' + response.status);
-                                    }
-                                    return response.json();
-                                })
-                                .then(data => {
-                                    console.log('Mark as read response:', data);
-                    
-                                    if (data.success) {
-                                        this.reloadNotifications().then(() => {
-                                            window.dispatchEvent(new CustomEvent('notifications-marked-read', {
-                                                detail: { unread_count: data.unread_count || 0 }
-                                            }));
-                                        });
-                                    } else {
-                                        throw new Error(data.message || 'Failed to mark notifications as read');
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error marking notifications as read:', error);
-                                    this.notifications = originalNotifications;
-                                    this.groupedNotifications = this.getGroupedNotifications();
-                                });
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json',
+                                }
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok: ' + response.status);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                console.log('Mark as read response:', data);
+                                
+                                if (data.success) {
+                                    this.reloadNotifications().then(() => {
+                                        window.dispatchEvent(new CustomEvent('notifications-marked-read', {
+                                            detail: { unread_count: data.unread_count || 0 }
+                                        }));
+                                    });
+                                } else {
+                                    throw new Error(data.message || 'Failed to mark notifications as read');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error marking notifications as read:', error);
+                                this.notifications = originalNotifications;
+                                this.groupedNotifications = this.getGroupedNotifications();
+                            });
                         },
-                    
+
                         reloadNotifications() {
                             return fetch('{{ route('notifications.load-more') }}?page=1', {
-                                    method: 'GET',
-                                    headers: {
-                                        'Accept': 'application/json',
-                                        'Content-Type': 'application/json',
-                                    }
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.notifications) {
-                                        this.notifications = data.notifications;
-                                        this.groupedNotifications = this.getGroupedNotifications();
-                                        // REMOVED: this.hasMore logic
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error reloading notifications:', error);
-                                });
+                                method: 'GET',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json',
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.notifications) {
+                                    this.notifications = data.notifications;
+                                    this.groupedNotifications = this.getGroupedNotifications();
+                                    // REMOVED: this.hasMore logic
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error reloading notifications:', error);
+                            });
                         },
-                    
+
                         // REMOVED: loadMoreNotifications() function
-                    
+
                         init() {
                             @if(Auth::check())
-                            try {
-                                @php
-                                $mobileNotifications = \App\ Models\ Notification::where('user_id', Auth::id()) -
-                                    > latest() -
-                                    > take(30) -
-                                    > get() -
-                                    > map(function($notification) {
-                                        $data = $notification - > data;
-                                        $data['profile_pic_url'] = $notification - > from_user_profile_pic;
-                                        $isRead = $notification - > is_read;
-                                        if ($notification - > read_at !== null) {
-                                            $isRead = true;
+                                try {
+                                    @php
+                                        $mobileNotifications = \App\Models\Notification::where('user_id', Auth::id())
+                                            ->latest()
+                                            ->take(30)
+                                            ->get()
+                                            ->map(function($notification) {
+                                                $data = $notification->data;
+                                                $data['profile_pic_url'] = $notification->from_user_profile_pic;
+                                                $isRead = $notification->is_read;
+                                                if ($notification->read_at !== null) {
+                                                    $isRead = true;
+                                                }
+                                                return [
+                                                    'id' => $notification->id,
+                                                    'user_id' => $notification->user_id,
+                                                    'type' => $notification->type,
+                                                    'data' => $data,
+                                                    'is_read' => (bool) $isRead,
+                                                    'read_at' => $notification->read_at ? $notification->read_at->toIso8601String() : null,
+                                                    'created_at' => $notification->created_at->toIso8601String(),
+                                                    'updated_at' => $notification->updated_at->toIso8601String(),
+                                                ];
+                                            });
+                                    @endphp
+                                    this.notifications = {!! Js::from($mobileNotifications) !!};
+                                    this.groupedNotifications = this.getGroupedNotifications();
+                                    // REMOVED: this.hasMore logic
+                                    
+                                    document.addEventListener('visibilitychange', () => {
+                                        if (!document.hidden) {
+                                            setTimeout(() => {
+                                                this.reloadNotifications();
+                                            }, 500);
                                         }
-                                        return [
-                                            'id' => $notification - > id,
-                                            'user_id' => $notification - > user_id,
-                                            'type' => $notification - > type,
-                                            'data' => $data,
-                                            'is_read' => (bool) $isRead,
-                                            'read_at' => $notification - > read_at ? $notification - > read_at - > toIso8601String() : null,
-                                            'created_at' => $notification - > created_at - > toIso8601String(),
-                                            'updated_at' => $notification - > updated_at - > toIso8601String(),
-                                        ];
                                     });
-                                @endphp
-                                this.notifications = {!! Js::from($mobileNotifications) !!};
-                                this.groupedNotifications = this.getGroupedNotifications();
-                                // REMOVED: this.hasMore logic
-                    
-                                document.addEventListener('visibilitychange', () => {
-                                    if (!document.hidden) {
-                                        setTimeout(() => {
-                                            this.reloadNotifications();
-                                        }, 500);
-                                    }
-                                });
-                    
-                                window.addEventListener('focus', () => {
-                                    this.reloadNotifications();
-                                });
-                            } catch (e) {
-                                console.error('Error loading notifications:', e);
+                                    
+                                    window.addEventListener('focus', () => {
+                                        this.reloadNotifications();
+                                    });
+                                } catch(e) {
+                                    console.error('Error loading notifications:', e);
+                                    this.notifications = [];
+                                    this.groupedNotifications = {};
+                                }
+                            @else
                                 this.notifications = [];
                                 this.groupedNotifications = {};
-                            }
-                            @else
-                            this.notifications = [];
-                            this.groupedNotifications = {};
                             @endif
                         }
-                    }"
-                        @new-notification.window="notifications.unshift($event.detail); groupedNotifications = getGroupedNotifications();"
-                        @notifications-marked-read.window="notifications.forEach(n => n.is_read = true);">
+                    }" @new-notification.window="notifications.unshift($event.detail); groupedNotifications = getGroupedNotifications();"
+                    @notifications-marked-read.window="notifications.forEach(n => n.is_read = true);">
                         <button @click="open = !open" class="relative focus:outline-none mt-1.5">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor"
@@ -816,67 +792,54 @@
 
                         <div x-show="open" @click.away="open = false" x-transition
                             class="absolute right-20 mt-2 w-80 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden z-50 border border-gray-200">
-                            <div
-                                class="px-4 py-2 bg-gray-50 border-b border-gray-200  dark:bg-gray-800 flex justify-between items-center">
-                                <span
-                                    class="text-sm font-semibold text-gray-700 dark:text-gray-200">Notifications</span>
+                            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200  dark:bg-gray-800 flex justify-between items-center">
+                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">Notifications</span>
                                 <button @click="markAsRead()" class="text-xs text-[#B59F84] hover:underline">
                                     Mark all as read
                                 </button>
                             </div>
                             <div class="max-h-64 overflow-y-auto divide-y divide-gray-100 custom-scroll">
-                                <template
-                                    x-for="[groupName, groupNotifications] in Object.entries(groupedNotifications)"
-                                    :key="groupName">
+                                <template x-for="[groupName, groupNotifications] in Object.entries(groupedNotifications)" :key="groupName">
                                     <div>
                                         <div class="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200">
-                                            <span class="text-xs font-semibold text-gray-600 dark:text-gray-300"
-                                                x-text="groupName"></span>
+                                            <span class="text-xs font-semibold text-gray-600 dark:text-gray-300" x-text="groupName"></span>
                                         </div>
                                         <template x-for="notif in groupNotifications" :key="notif.id">
-                                            <a :href="notif.data.link || (notif.data.product_id ?
-                                                `/products/${notif.data.product_id}` : (notif.data.donation_id ?
-                                                    `/donations/${notif.data.donation_id}` : (notif.data
-                                                        .appointment_id ? '{{ route('upcycler') }}' : '#')))"
+                                            <a :href="notif.data.link || (notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data.donation_id ? `/donations/${notif.data.donation_id}` : (notif.data.appointment_id ? '{{ route('upcycler') }}' : '#')))"
                                                 class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
                                                 @click="open = false">
                                                 <div class="flex items-start gap-3">
                                                     <div class="flex-shrink-0">
-                                                        <img :src="notif.data.profile_pic_url ||
-                                                            '{{ asset('images/default-profile.jpg') }}'"
+                                                        <img :src="notif.data.profile_pic_url || '{{ asset('images/default-profile.jpg') }}'"
                                                             :alt="notif.data.from_user || 'User'"
                                                             class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600">
                                                     </div>
                                                     <div class="flex-1 min-w-0">
                                                         <p class="text-sm text-gray-700 dark:text-gray-200 mb-1">
-                                                            <strong class="text-[#B59F84]"
-                                                                x-text="notif.data.from_user || 'System'"></strong>
-                                                            <span
-                                                                x-text="notif.data.message || (notif.data.content ? 'commented: ' + notif.data.content : '')"></span>
+                                                            <strong class="text-[#B59F84]" x-text="notif.data.from_user || 'System'"></strong>
+                                                            <span x-text="notif.data.message || (notif.data.content ? 'commented: ' + notif.data.content : '')"></span>
                                                         </p>
                                                         <span class="text-xs text-gray-500 dark:text-gray-400"
                                                             x-text="new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })">
                                                         </span>
                                                     </div>
-                                                    <span x-show="!notif.is_read"
-                                                        class="ml-2 w-2 h-2 bg-[#B59F84] rounded-full mt-1.5 flex-shrink-0"></span>
+                                                    <span x-show="!notif.is_read" class="ml-2 w-2 h-2 bg-[#B59F84] rounded-full mt-1.5 flex-shrink-0"></span>
                                                 </div>
                                             </a>
                                         </template>
                                     </div>
                                 </template>
-
+                                
                                 <div x-show="notifications.length === 0" class="px-4 py-8 text-center">
-                                    <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3"
-                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
                                         </path>
                                     </svg>
                                     <p class="text-gray-500 dark:text-gray-400 text-sm">No notifications yet</p>
                                 </div>
-
-                            </div>
+                                
+                                </div>
                         </div>
                     </div>
 
@@ -915,14 +878,14 @@
                                                 this.unreadCount = e.detail?.unread_count || 0;
                                             });
                                         } @endif
-                                
+                                    
                                         // Fallback event listeners
                                         window.addEventListener('new-message-received', () => {
                                             if (!window.location.pathname.includes('messages')) {
                                                 this.unreadCount++;
                                             }
                                         });
-                                
+                                    
                                         window.addEventListener('messages-marked-read', (e) => {
                                             this.unreadCount = e.detail?.unread_count || 0;
                                         });
@@ -955,13 +918,11 @@
                             <a href="{{ route('upcycler.index') }}"
                                 class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Manage
                                 Appointments</a>
-                            <a href="{{ route('works.index') }}"
-                                class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Upcycling
-                                Works
-                            </a>
-                            <a href="{{ route('eco-posts.index') }}"
-                                class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Eco
-                                Portal </a>
+                                    <a href="{{ route('works.index') }}"
+                                class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Upcycling Works
+                                </a>
+                                    <a href="{{ route('eco-posts.index') }}"
+                                class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Eco Portal    </a>
                         @endif
 
                         <a href="{{ route('profile.show', ['user' => Auth::id()]) }}"
@@ -1068,42 +1029,42 @@
         scrollbar-width: thin;
         scrollbar-color: #c1c1c1 transparent;
     }
-
+    
     .custom-scroll::-webkit-scrollbar {
         width: 6px;
     }
-
+    
     .custom-scroll::-webkit-scrollbar-track {
         background: transparent;
     }
-
+    
     .custom-scroll::-webkit-scrollbar-thumb {
         background-color: #c1c1c1;
         border-radius: 20px;
     }
-
+    
     .dark .custom-scroll::-webkit-scrollbar-thumb {
         background-color: #4a5568;
     }
 
-    /* Toast animation */
-    #notification-toast {
+      /* Toast animation */
+      #notification-toast {
         transition: all 0.3s ease-in-out;
     }
-
+    
     /* Notification item read state */
     .notification-item-unread {
         background-color: rgba(245, 158, 11, 0.05);
     }
-
+    
     .dark .notification-item-unread {
         background-color: rgba(245, 158, 11, 0.1);
     }
-
+    
     .notification-item-read {
         opacity: 0.7;
     }
-
+    
     /* Mark all as read button hover effect */
     .mark-all-read-btn:hover {
         transform: translateY(-1px);
