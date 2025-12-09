@@ -72,7 +72,7 @@
                                     For Donation
                                 </p>
                             @else
-                                <p class="text-2xl font-bold text-gray-900 dark:text-white">
+                                <p class="text-2xl font-bold text-gray-900 dark:text-white mt-3">
                                     ₱{{ number_format($product->price, 2) }}
                                 </p>
                             @endif
