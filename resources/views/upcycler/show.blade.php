@@ -194,9 +194,9 @@
                             </svg>
                             <div>
                                 <p class="text-sm text-gray-500 dark:text-gray-400">Created At</p>
-                                <p class="font-medium text-gray-900 dark:text-gray-100"
-                                    {{ $appointment->created_at->setTimezone('Asia/Manila')->format('F j, Y g:i A') }}>
-                                    {{-- {{ $appointment->created_at->diffForHumans() }} --}}
+
+                                <p class="font-medium text-gray-900 dark:text-gray-100">
+                                    {{ $appointment->created_at->setTimezone('Asia/Manila')->format('F j, Y g:i A') }}
                                 </p>
                             </div>
                         </div>
@@ -230,13 +230,13 @@
                             <select name="appstatus"
                                 class="border-[#E9DFC7] dark:border-gray-600 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md shadow-sm focus:ring-[#B59F84] focus:border-[#B59F84] flex-1">
                                 <option value="pending" {{ $appointment->appstatus === 'pending' ? 'selected' : '' }}>
-                                    ⏳ Pending</option>
+                                     Pending</option>
                                 <option value="approved"
-                                    {{ $appointment->appstatus === 'approved' ? 'selected' : '' }}>✅ Approved</option>
+                                    {{ $appointment->appstatus === 'approved' ? 'selected' : '' }}>Approved</option>
                                 <option value="declined"
-                                    {{ $appointment->appstatus === 'declined' ? 'selected' : '' }}>❌ Declined</option>
+                                    {{ $appointment->appstatus === 'declined' ? 'selected' : '' }}>Declined</option>
                                 <option value="completed"
-                                    {{ $appointment->appstatus === 'completed' ? 'selected' : '' }}>🎉 Completed
+                                    {{ $appointment->appstatus === 'completed' ? 'selected' : '' }}>Completed
                                 </option>
                             </select>
                             <button type="submit"

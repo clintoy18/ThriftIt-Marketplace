@@ -1,7 +1,11 @@
+<<<<<<< HEAD
 <nav
     class="fixed top-0 left-0 w-full bg-[#F4F2ED]  dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-4 sm:px-6 md:px-6 py-4 z-50 shadow-sm">
     <div class="max-w-7xl mx-auto" x-data="{ mobileMenuOpen: false }">
         <!-- Desktop Navigation -->
+=======
+<nav class="fixed top-0 left-0 w-full bg-[#F4F2ED] dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-4 sm:px-6 md:px-6 py-4 z-[999] shadow-sm">    <div class="max-w-7xl mx-auto" x-data="{ mobileMenuOpen: false }">
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
         <div class="flex justify-between items-center">
             <!-- Logo -->
             <a href="{{ Auth::check() ? (Auth::user()->role === 2 ? route('admin.dashboard') : (Auth::user()->role === 1 ? route('upcycler') : route('dashboard'))) : url('/') }}"
@@ -40,8 +44,7 @@
             <!-- Search Bar (Hide for Admin) -->
             @auth
                 @if ($role !== 2)
-                    <div
-                        class="hidden md:flex items-center bg-[#F4F2ED] dark:bg-gray-800 px-4 rounded-full w-full max-w-md border border-gray-400 dark:text-gray-200  mx-4">
+                    <div class="hidden md:flex items-center bg-[#F4F2ED] dark:bg-gray-800 px-4 rounded-full w-full max-w-md border border-gray-400 dark:text-gray-200  mx-4">
                         <form action="{{ route('search') }}" method="GET" class="flex w-full items-center">
                             <input type="text" name="query" value="{{ request('query') }}"
                                 placeholder="Search for a product... or a person"
@@ -78,6 +81,7 @@
                                             if (!window.location.pathname.includes('messages')) {
                     this.unreadCount++;
                                             }
+<<<<<<< HEAD
                 });
             
             // Listen for when messages are read - update count
@@ -98,6 +102,28 @@
                                     });
                                 }
                             }">
+=======
+                                });
+                            
+                                    // Listen for when messages are read - update count
+                                        window.addEventListener('messages-marked-read', (e) => {
+                                            this.unreadCount = e.detail?.unread_count || 0;
+                                });
+                        } @endif
+                                    
+                                        // Fallback event listeners
+                                        window.addEventListener('new-message-received', () => {
+                                            if (!window.location.pathname.includes('messages')) {
+                                                this.unreadCount++;
+                                            }
+                                        });
+                                    
+                                        window.addEventListener('messages-marked-read', (e) => {
+                                            this.unreadCount = e.detail?.unread_count || 0;
+                                        });
+                                    }
+                                }">
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                             <svg class="w-6 h-6 dark:text-gray-200" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -110,11 +136,16 @@
                                 <span x-text="unreadCount > 9 ? '9+' : unreadCount"></span>
                             </span>
                         </a>
+<<<<<<< HEAD
                         <!-- Notification Bell with ALL notifications in dropdown -->
+=======
+                        
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                         <div id="notif-bell" x-data="{
                             open: false,
                             notifications: [],
                             groupedNotifications: {},
+<<<<<<< HEAD
                             loadingMore: false,
                             hasMore: true,
                             page: 1,
@@ -159,6 +190,44 @@
         }, 3000);
     },
     
+=======
+                            // REMOVED: loadingMore, hasMore, page, perPage
+
+                            showToast(message, type = 'info') {
+                                const toast = document.createElement('div');
+                                toast.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300 transform translate-y-[-20px] opacity-0 ${
+                                    type === 'success' ? 'bg-green-500 text-white' : 
+                                    type === 'error' ? 'bg-red-500 text-white' : 
+                                    type === 'info' ? 'bg-blue-500 text-white' : 
+                                    'bg-gray-500 text-white'
+                                }`;
+                                toast.textContent = message;
+                                toast.id = 'notification-toast';
+                                
+                                const existingToast = document.getElementById('notification-toast');
+                                if (existingToast) {
+                                    existingToast.remove();
+                                }
+                                
+                                document.body.appendChild(toast);
+                                
+                                setTimeout(() => {
+                                    toast.classList.remove('translate-y-[-20px]', 'opacity-0');
+                                    toast.classList.add('translate-y-0', 'opacity-100');
+                                }, 10);
+                                
+                                setTimeout(() => {
+                                    toast.classList.remove('translate-y-0', 'opacity-100');
+                                    toast.classList.add('translate-y-[-20px]', 'opacity-0');
+                                    setTimeout(() => {
+                                        if (toast.parentNode) {
+                                            toast.remove();
+                                        }
+                                    }, 300);
+                                }, 3000);
+                            },
+                            
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                             getGroupedNotifications() {
                                 const groups = {};
                                 const today = new Date();
@@ -210,6 +279,7 @@
                                 
                                 return groups;
                             },
+<<<<<<< HEAD
                             markAsRead() {
     // Show loading state
     const originalNotifications = [...this.notifications];
@@ -304,21 +374,97 @@
                                         this.loadingMore = false;
                                     });
                             },
+=======
+
+                            markAsRead() {
+                                const originalNotifications = [...this.notifications];
+                                
+                                fetch('{{ route('notifications.read') }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Accept': 'application/json',
+                                        'Content-Type': 'application/json',
+                                    }                 
+                                })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error('Network response was not ok: ' + response.status);
+                                    }
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    if (data.success) {
+                                        this.reloadNotifications().then(() => {
+                                            window.dispatchEvent(new CustomEvent('notifications-marked-read', {
+                                                detail: { unread_count: data.unread_count || 0 }
+                                            }));
+                                        });
+                                    } else {
+                                        throw new Error(data.message || 'Failed to mark notifications as read');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error marking notifications as read:', error);
+                                    this.notifications = originalNotifications;
+                                    this.groupedNotifications = this.getGroupedNotifications();
+                                    
+                                    if (typeof this.showToast === 'function') {
+                                        this.showToast('Failed to mark notifications as read. Please try again.', 'error');
+                                    }
+                                });
+                            },
+
+                            reloadNotifications() {
+                                return fetch('{{ route('notifications.load-more') }}?page=1', {
+                                    method: 'GET',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'Content-Type': 'application/json',
+                                    }
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.notifications) {
+                                        this.notifications = data.notifications;
+                                        this.groupedNotifications = this.getGroupedNotifications();
+                                        // REMOVED: this.hasMore = ...
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error reloading notifications:', error);
+                                });
+                            },
+
+                            // REMOVED: loadMoreNotifications() function
+
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                             init() {
                                 // Load initial notifications (more than before)
                                 @if(Auth::check())
                                     try {
                                         @php
+<<<<<<< HEAD
                                             $notifications = \App\Models\Notification::where('user_id', Auth::id())
                                                 ->latest()
                                                 ->take(50)
+=======
+                                            // Get initial batch
+                                            $notifications = \App\Models\Notification::where('user_id', Auth::id())
+                                                ->latest()
+                                                ->take(50) 
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                                 ->get()
                                                 ->map(function($notification) {
                                                     $data = $notification->data;
                                                     $data['profile_pic_url'] = $notification->from_user_profile_pic;
+<<<<<<< HEAD
                                                     // Use the accessor which ensures read_at takes precedence
                                                     $isRead = $notification->is_read;
                                                     // Double-check: if read_at exists, it's definitely read
+=======
+                                                    $isRead = $notification->is_read;
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                                     if ($notification->read_at !== null) {
                                                         $isRead = true;
                                                     }
@@ -336,19 +482,29 @@
                                         @endphp
                                         this.notifications = {!! Js::from($notifications) !!};
                                         this.groupedNotifications = this.getGroupedNotifications();
+<<<<<<< HEAD
                                         this.hasMore = {{ \App\Models\Notification::where('user_id', Auth::id())->count() > 50 ? 'true' : 'false' }};
                                         
                                         // Reload notifications when page becomes visible (after refresh or tab switch)
                                         document.addEventListener('visibilitychange', () => {
                                             if (!document.hidden) {
                                                 // Small delay to ensure page is fully loaded
+=======
+                                        // REMOVED: this.hasMore logic
+                                        
+                                        document.addEventListener('visibilitychange', () => {
+                                            if (!document.hidden) {
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                                 setTimeout(() => {
                                                     this.reloadNotifications();
                                                 }, 500);
                                             }
                                         });
                                         
+<<<<<<< HEAD
                                         // Also reload on focus (when user switches back to tab)
+=======
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                         window.addEventListener('focus', () => {
                                             this.reloadNotifications();
                                         });
@@ -356,17 +512,26 @@
                                         console.error('Error loading notifications:', e);
                                         this.notifications = [];
                                         this.groupedNotifications = {};
+<<<<<<< HEAD
                                         this.hasMore = false;
+=======
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                     }
                                 @else
                                     this.notifications = [];
                                     this.groupedNotifications = {};
+<<<<<<< HEAD
                                     this.hasMore = false;
+=======
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                 @endif
                             }
                         }" @new-notification.window="notifications.unshift($event.detail); groupedNotifications = getGroupedNotifications();"
                         @notifications-marked-read.window="notifications.forEach(n => n.is_read = true);">
+<<<<<<< HEAD
                             <!-- Bell Icon -->
+=======
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                             <button @click="open = !open; if(open) markAsRead()" class="relative focus:outline-none mt-1.5">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor"
@@ -380,6 +545,7 @@
                                     <span x-text="notifications.filter(n => !n.is_read).length"></span>
                                 </span>
                             </button>
+<<<<<<< HEAD
                            <!-- Dropdown - Larger to show more notifications -->
 <div x-show="open" @click.away="open = false" x-transition
     class="absolute right-20 mt-2 w-96 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden z-50 border border-gray-200">
@@ -468,6 +634,61 @@
         </div>
     </div>
 </div>
+=======
+                           <div x-show="open" @click.away="open = false" x-transition
+                            class="absolute right-20 mt-2 w-96 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden z-50 border border-gray-200">
+                            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200  dark:bg-gray-800 flex justify-between items-center">
+                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">Notifications</span>
+                                <button @click="markAsRead()" class="text-xs text-[#B59F84] hover:underline">
+                                    Mark all as read
+                                </button>
+                            </div>
+                            <div class="flex flex-col" style="max-height: 70vh;">
+                                <div class="flex-1 overflow-y-auto custom-scroll">
+                                    <template x-for="[groupName, groupNotifications] in Object.entries(groupedNotifications)" :key="groupName">
+                                        <div>
+                                            <div class="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 sticky top-0 z-10">
+                                                <span class="text-xs font-semibold text-gray-600 dark:text-gray-300" x-text="groupName"></span>
+                                            </div>
+                                            <template x-for="notif in groupNotifications" :key="notif.id">
+                                                <a :href="notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data.donation_id ? `/donations/${notif.data.donation_id}` : (notif.data.appointment_id ? '{{ route('upcycler.index') }}' : (notif.data.link || '')))"
+                                                    class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 last:border-b-0"
+                                                    @click="open = false">
+                                                    <div class="flex items-start gap-3">
+                                                        <div class="flex-shrink-0">
+                                                            <img :src="notif.data.profile_pic_url || '{{ asset('images/default-profile.jpg') }}'"
+                                                                :alt="notif.data.from_user || 'User'"
+                                                                class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600">
+                                                        </div>
+                                                        <div class="flex-1 min-w-0">
+                                                            <p class="text-sm text-gray-700 dark:text-gray-200 mb-1">
+                                                                <strong class="text-[#B59F84]" x-text="notif.data.from_user || 'System'"></strong>
+                                                                <span x-text="notif.data.message || (notif.data.content ? 'commented: ' + notif.data.content : '')"></span>
+                                                            </p>
+                                                            <span class="text-xs text-gray-500 dark:text-gray-400"
+                                                                x-text="new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })">
+                                                            </span>
+                                                        </div>
+                                                        <span x-show="!notif.is_read" class="ml-2 w-2 h-2 bg-[#B59F84] rounded-full mt-1.5 flex-shrink-0"></span>
+                                                    </div>
+                                                </a>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    
+                                    <div x-show="notifications.length === 0" class="px-4 py-8 text-center">
+                                        <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+                                            </path>
+                                        </svg>
+                                        <p class="text-gray-500 dark:text-gray-400 text-sm">No notifications yet</p>
+                                    </div>
+                                </div>
+                                </div>
+                        </div>
+                    </div>
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                     @endif
                 @endauth
                 @auth
@@ -681,6 +902,7 @@
                                                     this.unreadCount++;
                                                 }
                                             });
+<<<<<<< HEAD
                                         
                                         // Listen for when messages are read - update count
                                         window.addEventListener('messages-marked-read', (e) => {
@@ -688,13 +910,17 @@
                                         });
                                     } @endif
                                 
+=======
+                                        } @endif
+                                    
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                         // Fallback event listeners
                                         window.addEventListener('new-message-received', () => {
                                             if (!window.location.pathname.includes('messages')) {
                                                 this.unreadCount++;
                                             }
                                         });
-                                
+                                    
                                         window.addEventListener('messages-marked-read', (e) => {
                                             this.unreadCount = e.detail?.unread_count || 0;
                                         });
@@ -714,15 +940,23 @@
                             </a>
                         @endif
                     @endauth
+<<<<<<< HEAD
                     <!-- Mobile Notification Bell with ALL notifications -->
+=======
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                     <div id="notif-bell-mobile" x-data="{ 
                         open: false, 
                         notifications: [],
                         groupedNotifications: {},
+<<<<<<< HEAD
                         loadingMore: false,
                         hasMore: true,
                         page: 1,
                         perPage: 30,
+=======
+                        // REMOVED: loadingMore, hasMore, page, perPage
+
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                         getGroupedNotifications() {
                             const groups = {};
                             const today = new Date();
@@ -774,6 +1008,10 @@
                             
                             return groups;
                         },
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                         markAsRead() {
                             // Show loading state
                             const originalNotifications = [...this.notifications];
@@ -796,9 +1034,13 @@
                                 console.log('Mark as read response:', data);
                                 
                                 if (data.success) {
+<<<<<<< HEAD
                                     // Reload notifications from server to ensure we have the latest state
                                     this.reloadNotifications().then(() => {
                                         // Update badge globally
+=======
+                                    this.reloadNotifications().then(() => {
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                         window.dispatchEvent(new CustomEvent('notifications-marked-read', {
                                             detail: { unread_count: data.unread_count || 0 }
                                         }));
@@ -809,12 +1051,19 @@
                             })
                             .catch(error => {
                                 console.error('Error marking notifications as read:', error);
+<<<<<<< HEAD
                                 
                                 // Restore original state on error
+=======
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                 this.notifications = originalNotifications;
                                 this.groupedNotifications = this.getGroupedNotifications();
                             });
                         },
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                         reloadNotifications() {
                             return fetch('{{ route('notifications.load-more') }}?page=1', {
                                 method: 'GET',
@@ -826,15 +1075,22 @@
                             .then(response => response.json())
                             .then(data => {
                                 if (data.notifications) {
+<<<<<<< HEAD
                                     // Update notifications with fresh data from server
                                     this.notifications = data.notifications;
                                     this.groupedNotifications = this.getGroupedNotifications();
                                     this.hasMore = data.has_more || false;
+=======
+                                    this.notifications = data.notifications;
+                                    this.groupedNotifications = this.getGroupedNotifications();
+                                    // REMOVED: this.hasMore logic
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                 }
                             })
                             .catch(error => {
                                 console.error('Error reloading notifications:', error);
                             });
+<<<<<<< HEAD
                         },
                         loadMoreNotifications() {
                             if (this.loadingMore || !this.hasMore) return;
@@ -858,6 +1114,12 @@
                                     this.loadingMore = false;
                                 });
                         },
+=======
+                        },
+
+                        // REMOVED: loadMoreNotifications() function
+
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                         init() {
                             @if(Auth::check())
                                 try {
@@ -869,9 +1131,13 @@
                                             ->map(function($notification) {
                                                 $data = $notification->data;
                                                 $data['profile_pic_url'] = $notification->from_user_profile_pic;
+<<<<<<< HEAD
                                                 // Use the accessor which ensures read_at takes precedence
                                                 $isRead = $notification->is_read;
                                                 // Double-check: if read_at exists, it's definitely read
+=======
+                                                $isRead = $notification->is_read;
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                                 if ($notification->read_at !== null) {
                                                     $isRead = true;
                                                 }
@@ -889,19 +1155,29 @@
                                     @endphp
                                     this.notifications = {!! Js::from($mobileNotifications) !!};
                                     this.groupedNotifications = this.getGroupedNotifications();
+<<<<<<< HEAD
                                     this.hasMore = {{ \App\Models\Notification::where('user_id', Auth::id())->count() > 30 ? 'true' : 'false' }};
                                     
                                     // Reload notifications when page becomes visible (after refresh or tab switch)
                                     document.addEventListener('visibilitychange', () => {
                                         if (!document.hidden) {
                                             // Small delay to ensure page is fully loaded
+=======
+                                    // REMOVED: this.hasMore logic
+                                    
+                                    document.addEventListener('visibilitychange', () => {
+                                        if (!document.hidden) {
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                             setTimeout(() => {
                                                 this.reloadNotifications();
                                             }, 500);
                                         }
                                     });
                                     
+<<<<<<< HEAD
                                     // Also reload on focus (when user switches back to tab)
+=======
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                     window.addEventListener('focus', () => {
                                         this.reloadNotifications();
                                     });
@@ -909,12 +1185,18 @@
                                     console.error('Error loading notifications:', e);
                                     this.notifications = [];
                                     this.groupedNotifications = {};
+<<<<<<< HEAD
                                     this.hasMore = false;
+=======
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                 }
                             @else
                                 this.notifications = [];
                                 this.groupedNotifications = {};
+<<<<<<< HEAD
                                 this.hasMore = false;
+=======
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                             @endif
                         },
                         reloadNotifications() {
@@ -940,7 +1222,10 @@
                         }
                     }" @new-notification.window="notifications.unshift($event.detail); groupedNotifications = getGroupedNotifications();"
                     @notifications-marked-read.window="notifications.forEach(n => n.is_read = true);">
+<<<<<<< HEAD
                         <!-- Bell Icon -->
+=======
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                         <button @click="open = !open" class="relative focus:outline-none mt-1.5">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor"
@@ -971,6 +1256,7 @@
                                             <span class="text-xs font-semibold text-gray-600 dark:text-gray-300" x-text="groupName"></span>
                                         </div>
                                         <template x-for="notif in groupNotifications" :key="notif.id">
+<<<<<<< HEAD
                                             <a :href="
                                                     notif.data.link 
                                                         || (notif.data.product_id 
@@ -985,10 +1271,16 @@
                                                         )"
                                             class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
                                             @click="open = false">
+=======
+                                            <a :href="notif.data.link || (notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data.donation_id ? `/donations/${notif.data.donation_id}` : (notif.data.appointment_id ? '{{ route('upcycler') }}' : '#')))"
+                                                class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                                                @click="open = false">
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                                 <div class="flex items-start gap-3">
                                                     <!-- Profile Picture -->
                                                     <div class="flex-shrink-0">
                                                         <img :src="notif.data.profile_pic_url || '{{ asset('images/default-profile.jpg') }}'"
+<<<<<<< HEAD
                                                              :alt="notif.data.from_user || 'User'"
                                                              class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600">
                                                     </div>
@@ -996,6 +1288,14 @@
                                                         <p class="text-sm text-gray-700 dark:text-gray-200 mb-1">
                                                             <strong class="text-[#B59F84]"
                                                                 x-text="notif.data.from_user || 'System'"></strong>
+=======
+                                                            :alt="notif.data.from_user || 'User'"
+                                                            class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600">
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <p class="text-sm text-gray-700 dark:text-gray-200 mb-1">
+                                                            <strong class="text-[#B59F84]" x-text="notif.data.from_user || 'System'"></strong>
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                                             <span x-text="notif.data.message || (notif.data.content ? 'commented: ' + notif.data.content : '')"></span>
                                                         </p>
                                                         <span class="text-xs text-gray-500 dark:text-gray-400"
@@ -1009,7 +1309,10 @@
                                     </div>
                                 </template>
                                 
+<<<<<<< HEAD
                                 <!-- Empty State -->
+=======
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                                 <div x-show="notifications.length === 0" class="px-4 py-8 text-center">
                                     <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -1019,6 +1322,7 @@
                                     <p class="text-gray-500 dark:text-gray-400 text-sm">No notifications yet</p>
                                 </div>
                                 
+<<<<<<< HEAD
                                 <!-- Load More Button -->
                                 <div x-show="hasMore && notifications.length > 0" class="border-t border-gray-200">
                                     <button @click="loadMoreNotifications()" 
@@ -1035,6 +1339,9 @@
                                     </button>
                                 </div>
                             </div>
+=======
+                                </div>
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                         </div>
                     </div>
 
@@ -1081,14 +1388,14 @@
                                                 this.unreadCount = e.detail?.unread_count || 0;
                                             });
                                         } @endif
-                                
+                                    
                                         // Fallback event listeners
                                         window.addEventListener('new-message-received', () => {
                                             if (!window.location.pathname.includes('messages')) {
                                                 this.unreadCount++;
                                             }
                                         });
-                                
+                                    
                                         window.addEventListener('messages-marked-read', (e) => {
                                             this.unreadCount = e.detail?.unread_count || 0;
                                         });
@@ -1126,7 +1433,11 @@
                                 class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Upcycling Works
                                 </a>
                                     <a href="{{ route('eco-posts.index') }}"
+<<<<<<< HEAD
                                 class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Eco Portal   </a>
+=======
+                                class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Eco Portal    </a>
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
                         @endif
 
                         <a href="{{ route('profile.show', ['user' => Auth::id()]) }}"
@@ -1257,8 +1568,13 @@
         background-color: #4a5568;
     }
 
+<<<<<<< HEAD
      /* Toast animation */
      #notification-toast {
+=======
+      /* Toast animation */
+      #notification-toast {
+>>>>>>> 6ef21ffdfe4e494433fbb928088b5011c6d1186a
         transition: all 0.3s ease-in-out;
     }
     
