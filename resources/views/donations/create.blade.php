@@ -32,45 +32,19 @@
                             <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Photos</h3>
                             <div class="w-full">
                                 <!-- Preview Grid -->
-                                <!-- Photo Guidelines -->
-                                <div
-                                    class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-                                    <h4
-                                        class="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24"
-                                            fill="currentColor">
-                                            <path
-                                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-                                        </svg>
-                                        Photo Guidelines
-                                    </h4>
-                                    <ul class="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                                        <li class="flex items-start gap-2">
-                                            <span class="text-blue-500 mt-0.5">•</span>
-                                            <span><strong>Cover Photo:</strong> Main product shot</span>
-                                        </li>
-                                        <li class="flex items-start gap-2">
-                                            <span class="text-blue-500 mt-0.5">•</span>
-                                            <span><strong>Front & Back:</strong> Clear views from both sides</span>
-                                        </li>
-                                        <li class="flex items-start gap-2">
-                                            <span class="text-blue-500 mt-0.5">•</span>
-                                            <span><strong>Side Views:</strong> Left and right side angles</span>
-                                        </li>
-                                        <li class="flex items-start gap-2">
-                                            <span class="text-blue-500 mt-0.5">•</span>
-                                            <span><strong>Labels/Tags:</strong> Brand, size, and care labels</span>
-                                        </li>
-                                        <li class="flex items-start gap-2">
-                                            <span class="text-blue-500 mt-0.5">•</span>
-                                            <span><strong>Details:</strong> Close-ups of special features</span>
-                                        </li>
-                                        <li class="flex items-start gap-2">
-                                            <span class="text-blue-500 mt-0.5">•</span>
-                                            <span><strong>Flaws:</strong> Any imperfections or wear</span>
-                                        </li>
-                                    </ul>
-                                </div>
+                                {{-- Photo Guidelines --}}
+                            <div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                                    </svg>
+                                    Photo Guidelines
+                                </h4>
+                                <ul class="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                                    <li class="flex items-start gap-2"><span class="text-[#B59F84] mt-0.5">•</span><span><strong>Cover Photo:</strong> Main product shot</span></li>
+                                    <li class="flex items-start gap-2"><span class="text-[#B59F84] mt-0.5">•</span><span><strong>Details:</strong> Show any flaws</span></li>
+                                </ul>
+                            </div>
                                 <!-- Add Photos Button (matched to products style) -->
                                 <!-- Preview Grid -->
                                 <div class="mb-4 mt-[30px]">
@@ -238,8 +212,9 @@
                                     <select id="size" name="size"
                                         class="mt-1 block w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#B59F84] focus:border-[#B59F84]"
                                         required>
-                                        <option value="">Select size</option>
+                                        <option value="" disabled {{ old('size') ? '' : 'selected' }}>Select size</option>
                                         <optgroup label="Clothing">
+                                            <option value="XS">XS</option>
                                             <option value="S">S</option>
                                             <option value="M">M</option>
                                             <option value="L">L</option>
@@ -251,6 +226,9 @@
                                             <option value="7">7</option>
                                             <option value="8">8</option>
                                             <option value="9">9</option>
+                                            <option value="10">10</option>
+                                            <option value="11">11</option>
+                                            <option value="12">12</option>
                                         </optgroup>
                                         <optgroup label="Accessories">
                                             <option value="One Size">One Size</option>
