@@ -1,10 +1,18 @@
-<nav class="fixed top-0 left-0 w-full bg-[#F4F2ED] dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-4 sm:px-6 md:px-6 py-4 z-[999] shadow-sm">    <div class="max-w-7xl mx-auto" x-data="{ mobileMenuOpen: false }">
+
+<nav
+    class="fixed top-0 left-0 w-full bg-[#F4F2ED]  dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-4 sm:px-6 md:px-6 py-4 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto" x-data="{ mobileMenuOpen: false }">
+        <!-- Desktop Navigation -->
+
+
         <div class="flex justify-between items-center">
+            <!-- Logo -->
             <a href="{{ Auth::check() ? (Auth::user()->role === 2 ? route('admin.dashboard') : (Auth::user()->role === 1 ? route('upcycler') : route('dashboard'))) : url('/') }}"
                 class="flex-shrink-0">
                 <img src="{{ asset('images/logo.png') }}" alt="THRIFT - IT Logo" class="h-10 sm:h-12">
             </a>
 
+            <!-- Navigation Links for Authenticated User -->
             @auth
                 @php $role = Auth::user()->role; @endphp
                 <div class="hidden md:flex items-center gap-2 lg:gap-4 ml-6 ">
@@ -27,11 +35,12 @@
                             Works</a>
                         <a href="{{ route('eco-posts.index') }}"
                             class="text-gray-700 dark:text-gray-200 hidden font-bold lg:block">Eco Portal
-                        </a>
+                            </a>
                     @endif
                 </div>
             @endauth
 
+            <!-- Search Bar (Hide for Admin) -->
             @auth
                 @if ($role !== 2)
                     <div class="hidden md:flex items-center bg-[#F4F2ED] dark:bg-gray-800 px-4 rounded-full w-full max-w-md border border-gray-400 dark:text-gray-200  mx-4">
@@ -51,9 +60,14 @@
                     </div>
                 @endif
             @endauth
+            <!-- Icons + Dropdown -->
             <div class="hidden md:flex items-center gap-2 lg:gap-4">
                 @auth
                     @if ($role !== 2)
+              
+
+
+                        <!-- Messages with Real-time Badge -->
                         <a href="{{ route('messages.index') }}" class="text-gray-700 dark:text-gray-200 relative"
                             x-data="{
                                 unreadCount: {{ $totalUnreadCount ?? 0 }},
@@ -64,80 +78,95 @@
                                         .listen('.private-message', (e) => {
                                             // Only increment if not on messages page
                                             if (!window.location.pathname.includes('messages')) {
-                                                this.unreadCount++;
+                    this.unreadCount++;
                                             }
-                                });
+
+                });
+            
+            // Listen for when messages are read - update count
+                                    window.addEventListener('messages-marked-read', (e) => {
+                                        this.unreadCount = e.detail?.unread_count || 0;
+                });
+        } @endif
                             
-                                    // Listen for when messages are read - update count
-                                        window.addEventListener('messages-marked-read', (e) => {
-                                            this.unreadCount = e.detail?.unread_count || 0;
-                                });
-                        } @endif
-                                    
-                                        // Fallback event listeners
-                                        window.addEventListener('new-message-received', () => {
-                                            if (!window.location.pathname.includes('messages')) {
-                                                this.unreadCount++;
-                                            }
-                                        });
-                                    
-                                        window.addEventListener('messages-marked-read', (e) => {
-                                            this.unreadCount = e.detail?.unread_count || 0;
-                                        });
-                                    }
-                                }">
+                                    // Fallback event listeners
+                                    window.addEventListener('new-message-received', () => {
+                                        if (!window.location.pathname.includes('messages')) {
+                                            this.unreadCount++;
+                                        }
+                                    });
+                            
+                                    window.addEventListener('messages-marked-read', (e) => {
+                                        this.unreadCount = e.detail?.unread_count || 0;
+                                    });
+                                }
+                            }">
+
                             <svg class="w-6 h-6 dark:text-gray-200" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8-1.325 0-2.58-.26-3.68-.725L3 20l1.32-3.96C3.474 15.003 3 13.55 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
                                 </path>
                             </svg>
+                            <!-- Message Count Badge -->
                             <span x-show="unreadCount > 0"
                                 class="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[1.25rem] flex items-center justify-center transition-all duration-300 z-10">
                                 <span x-text="unreadCount > 9 ? '9+' : unreadCount"></span>
                             </span>
                         </a>
-                        
+
+                        <!-- Notification Bell with ALL notifications in dropdown -->
+
                         <div id="notif-bell" x-data="{
                             open: false,
                             notifications: [],
                             groupedNotifications: {},
-                            // REMOVED: loadingMore, hasMore, page, perPage
 
-                            showToast(message, type = 'info') {
-                                const toast = document.createElement('div');
-                                toast.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300 transform translate-y-[-20px] opacity-0 ${
-                                    type === 'success' ? 'bg-green-500 text-white' : 
-                                    type === 'error' ? 'bg-red-500 text-white' : 
-                                    type === 'info' ? 'bg-blue-500 text-white' : 
-                                    'bg-gray-500 text-white'
-                                }`;
-                                toast.textContent = message;
-                                toast.id = 'notification-toast';
-                                
-                                const existingToast = document.getElementById('notification-toast');
-                                if (existingToast) {
-                                    existingToast.remove();
-                                }
-                                
-                                document.body.appendChild(toast);
-                                
-                                setTimeout(() => {
-                                    toast.classList.remove('translate-y-[-20px]', 'opacity-0');
-                                    toast.classList.add('translate-y-0', 'opacity-100');
-                                }, 10);
-                                
-                                setTimeout(() => {
-                                    toast.classList.remove('translate-y-0', 'opacity-100');
-                                    toast.classList.add('translate-y-[-20px]', 'opacity-0');
-                                    setTimeout(() => {
-                                        if (toast.parentNode) {
-                                            toast.remove();
-                                        }
-                                    }, 300);
-                                }, 3000);
-                            },
-                            
+                            loadingMore: false,
+                            hasMore: true,
+                            page: 1,
+                            perPage: 50, // Show more notifications initially
+
+                            // Add the showToast function here
+    showToast(message, type = 'info') {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300 transform translate-y-[-20px] opacity-0 ${
+            type === 'success' ? 'bg-green-500 text-white' : 
+            type === 'error' ? 'bg-red-500 text-white' : 
+            type === 'info' ? 'bg-blue-500 text-white' : 
+            'bg-gray-500 text-white'
+        }`;
+        toast.textContent = message;
+        toast.id = 'notification-toast';
+        
+        // Remove existing toast if any
+        const existingToast = document.getElementById('notification-toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+        
+        document.body.appendChild(toast);
+        
+        // Animate in
+        setTimeout(() => {
+            toast.classList.remove('translate-y-[-20px]', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+        }, 10);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('translate-y-0', 'opacity-100');
+            toast.classList.add('translate-y-[-20px]', 'opacity-0');
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 300);
+        }, 3000);
+    },
+    
+
                             getGroupedNotifications() {
                                 const groups = {};
                                 const today = new Date();
@@ -191,81 +220,121 @@
                             },
 
                             markAsRead() {
-                                const originalNotifications = [...this.notifications];
-                                
-                                fetch('{{ route('notifications.read') }}', {
-                                    method: 'POST',
-                                    headers: {
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'Accept': 'application/json',
-                                        'Content-Type': 'application/json',
-                                    }                 
-                                })
-                                .then(response => {
-                                    if (!response.ok) {
-                                        throw new Error('Network response was not ok: ' + response.status);
-                                    }
-                                    return response.json();
-                                })
-                                .then(data => {
-                                    if (data.success) {
-                                        this.reloadNotifications().then(() => {
-                                            window.dispatchEvent(new CustomEvent('notifications-marked-read', {
-                                                detail: { unread_count: data.unread_count || 0 }
-                                            }));
-                                        });
-                                    } else {
-                                        throw new Error(data.message || 'Failed to mark notifications as read');
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error marking notifications as read:', error);
-                                    this.notifications = originalNotifications;
-                                    this.groupedNotifications = this.getGroupedNotifications();
-                                    
-                                    if (typeof this.showToast === 'function') {
-                                        this.showToast('Failed to mark notifications as read. Please try again.', 'error');
-                                    }
-                                });
-                            },
-
+    // Show loading state
+    const originalNotifications = [...this.notifications];
+    
+    fetch('{{ route('notifications.read') }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }                
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Mark as read response:', data);
+        
+        if (data.success) {
+            // Reload notifications from server to ensure we have the latest state
+            this.reloadNotifications().then(() => {
+                // Update badge globally
+                window.dispatchEvent(new CustomEvent('notifications-marked-read', {
+                    detail: { unread_count: data.unread_count || 0 }
+                }));
+                
+                // Show success message
+                
+            });
+        } else {
+            throw new Error(data.message || 'Failed to mark notifications as read');
+        }
+    })
+    .catch(error => {
+        console.error('Error marking notifications as read:', error);
+        
+        // Restore original state on error
+        this.notifications = originalNotifications;
+        this.groupedNotifications = this.getGroupedNotifications();
+        
+        // Show error message
+        if (typeof this.showToast === 'function') {
+            this.showToast('Failed to mark notifications as read. Please try again.', 'error');
+        }
+    });
+},
                             reloadNotifications() {
-                                return fetch('{{ route('notifications.load-more') }}?page=1', {
-                                    method: 'GET',
-                                    headers: {
-                                        'Accept': 'application/json',
-                                        'Content-Type': 'application/json',
-                                    }
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.notifications) {
-                                        this.notifications = data.notifications;
-                                        this.groupedNotifications = this.getGroupedNotifications();
-                                        // REMOVED: this.hasMore = ...
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error reloading notifications:', error);
-                                });
+    return fetch('{{ route('notifications.load-more') }}?page=1', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.notifications) {
+            // Update notifications with fresh data from server
+            this.notifications = data.notifications;
+            this.groupedNotifications = this.getGroupedNotifications();
+            this.hasMore = data.has_more || false;
+        }
+    })
+    .catch(error => {
+        console.error('Error reloading notifications:', error);
+        // Fallback: reload page to get fresh data
+        // window.location.reload();
+    });
+},
+                            loadMoreNotifications() {
+                                if (this.loadingMore || !this.hasMore) return;
+                                
+                                this.loadingMore = true;
+                                this.page++;
+                                
+                                fetch(`/notifications/load-more?page=${this.page}`)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.notifications && data.notifications.length > 0) {
+                                            this.notifications = [...this.notifications, ...data.notifications];
+                                            this.groupedNotifications = this.getGroupedNotifications();
+                                            this.hasMore = data.has_more;
+                                        } else {
+                                            this.hasMore = false;
+                                        }
+                                        this.loadingMore = false;
+                                    })
+                                    .catch(() => {
+                                        this.loadingMore = false;
+                                    });
                             },
 
-                            // REMOVED: loadMoreNotifications() function
 
                             init() {
-                                // Load initial notifications
+                                // Load initial notifications (more than before)
                                 @if(Auth::check())
                                     try {
                                         @php
-                                            // Get initial batch
+
                                             $notifications = \App\Models\Notification::where('user_id', Auth::id())
                                                 ->latest()
-                                                ->take(50) 
+                                                ->take(50)
+
                                                 ->get()
                                                 ->map(function($notification) {
                                                     $data = $notification->data;
                                                     $data['profile_pic_url'] = $notification->from_user_profile_pic;
+
+                                                    // Use the accessor which ensures read_at takes precedence
                                                     $isRead = $notification->is_read;
+                                                    // Double-check: if read_at exists, it's definitely read
+
+
                                                     if ($notification->read_at !== null) {
                                                         $isRead = true;
                                                     }
@@ -283,16 +352,23 @@
                                         @endphp
                                         this.notifications = {!! Js::from($notifications) !!};
                                         this.groupedNotifications = this.getGroupedNotifications();
-                                        // REMOVED: this.hasMore logic
+
+                                        this.hasMore = {{ \App\Models\Notification::where('user_id', Auth::id())->count() > 50 ? 'true' : 'false' }};
                                         
+                                        // Reload notifications when page becomes visible (after refresh or tab switch)
                                         document.addEventListener('visibilitychange', () => {
                                             if (!document.hidden) {
+                                                // Small delay to ensure page is fully loaded
+
                                                 setTimeout(() => {
                                                     this.reloadNotifications();
                                                 }, 500);
                                             }
                                         });
                                         
+
+                                        // Also reload on focus (when user switches back to tab)
+
                                         window.addEventListener('focus', () => {
                                             this.reloadNotifications();
                                         });
@@ -300,14 +376,24 @@
                                         console.error('Error loading notifications:', e);
                                         this.notifications = [];
                                         this.groupedNotifications = {};
+
+                                        this.hasMore = false;
+
+
                                     }
                                 @else
                                     this.notifications = [];
                                     this.groupedNotifications = {};
+
+                                    this.hasMore = false;
+
                                 @endif
                             }
                         }" @new-notification.window="notifications.unshift($event.detail); groupedNotifications = getGroupedNotifications();"
                         @notifications-marked-read.window="notifications.forEach(n => n.is_read = true);">
+
+                            <!-- Bell Icon -->
+
                             <button @click="open = !open; if(open) markAsRead()" class="relative focus:outline-none mt-1.5">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor"
@@ -315,68 +401,107 @@
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.971 8.971 0 0118 9.75V9a6 6 0 10-12 0v.75a8.971 8.971 0 01-2.311 6.022c1.742.68 3.55 1.17 5.454 1.31m5.714 0a24.048 24.048 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                                 </svg>
+                                <!-- Notification Count Badge -->
                                 <span x-show="notifications.filter(n => !n.is_read).length > 0"
                                     class="absolute -top-1 -right-1 bg-red-600 text-white  text-xs rounded-full px-1.5 py-0.5">
                                     <span x-text="notifications.filter(n => !n.is_read).length"></span>
                                 </span>
                             </button>
-                           <div x-show="open" @click.away="open = false" x-transition
-                            class="absolute right-20 mt-2 w-96 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden z-50 border border-gray-200">
-                            <div class="px-4 py-2 bg-gray-50 border-b border-gray-200  dark:bg-gray-800 flex justify-between items-center">
-                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">Notifications</span>
-                                <button @click="markAsRead()" class="text-xs text-[#B59F84] hover:underline">
-                                    Mark all as read
-                                </button>
-                            </div>
-                            <div class="flex flex-col" style="max-height: 70vh;">
-                                <div class="flex-1 overflow-y-auto custom-scroll">
-                                    <template x-for="[groupName, groupNotifications] in Object.entries(groupedNotifications)" :key="groupName">
-                                        <div>
-                                            <div class="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 sticky top-0 z-10">
-                                                <span class="text-xs font-semibold text-gray-600 dark:text-gray-300" x-text="groupName"></span>
-                                            </div>
-                                            <template x-for="notif in groupNotifications" :key="notif.id">
-                                                <a :href="notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data.donation_id ? `/donations/${notif.data.donation_id}` : (notif.data.appointment_id ? '{{ route('upcycler.index') }}' : (notif.data.link || '')))"
-                                                    class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 last:border-b-0"
-                                                    @click="open = false">
-                                                    <div class="flex items-start gap-3">
-                                                        <div class="flex-shrink-0">
-                                                            <img :src="notif.data.profile_pic_url || '{{ asset('images/default-profile.jpg') }}'"
-                                                                :alt="notif.data.from_user || 'User'"
-                                                                class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600">
-                                                        </div>
-                                                        <div class="flex-1 min-w-0">
-                                                            <p class="text-sm text-gray-700 dark:text-gray-200 mb-1">
-                                                                <strong class="text-[#B59F84]" x-text="notif.data.from_user || 'System'"></strong>
-                                                                <span x-text="notif.data.message || (notif.data.content ? 'commented: ' + notif.data.content : '')"></span>
-                                                            </p>
-                                                            <span class="text-xs text-gray-500 dark:text-gray-400"
-                                                                x-text="new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })">
-                                                            </span>
-                                                        </div>
-                                                        <span x-show="!notif.is_read" class="ml-2 w-2 h-2 bg-[#B59F84] rounded-full mt-1.5 flex-shrink-0"></span>
-                                                    </div>
-                                                </a>
-                                            </template>
-                                        </div>
-                                    </template>
-                                    
-                                    <div x-show="notifications.length === 0" class="px-4 py-8 text-center">
-                                        <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
-                                            </path>
-                                        </svg>
-                                        <p class="text-gray-500 dark:text-gray-400 text-sm">No notifications yet</p>
-                                    </div>
-                                </div>
-                                </div>
-                        </div>
+
+                           <!-- Dropdown - Larger to show more notifications -->
+<div x-show="open" @click.away="open = false" x-transition
+    class="absolute right-20 mt-2 w-96 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden z-50 border border-gray-200">
+    <div class="px-4 py-2 bg-gray-50 border-b border-gray-200  dark:bg-gray-800 flex justify-between items-center">
+        <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">Notifications</span>
+        <button @click="markAsRead()" class="text-xs text-[#B59F84] hover:underline">
+            Mark all as read
+        </button>
+    </div>
+    <!-- Notification content container with better overflow handling -->
+    <div class="flex flex-col" style="max-height: 70vh;">
+        <div class="flex-1 overflow-y-auto custom-scroll">
+            <template x-for="[groupName, groupNotifications] in Object.entries(groupedNotifications)" :key="groupName">
+                <div>
+                    <div class="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 sticky top-0 z-10">
+                        <span class="text-xs font-semibold text-gray-600 dark:text-gray-300" x-text="groupName"></span>
                     </div>
+                    <template x-for="notif in groupNotifications" :key="notif.id">
+                        <a :href="
+                                notif.data.product_id 
+                                    ? `/products/${notif.data.product_id}` 
+                                    : (notif.data.donation_id 
+                                        ? `/donations/${notif.data.donation_id}` 
+                                        : (notif.data.appointment_id 
+                                            ? '{{ route('upcycler.index') }}' 
+                                            : (notif.data.link || '')
+                                        )
+                                    )"
+                            class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 last:border-b-0"
+                            @click="open = false">
+                            <div class="flex items-start gap-3">
+                                <!-- Profile Picture -->
+                                <div class="flex-shrink-0">
+                                    <img :src="notif.data.profile_pic_url || '{{ asset('images/default-profile.jpg') }}'"
+                                         :alt="notif.data.from_user || 'User'"
+                                         class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600">
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-gray-700 dark:text-gray-200 mb-1">
+                                        <strong class="text-[#B59F84]"
+                                            x-text="notif.data.from_user || 'System'"></strong>
+                                        <span
+                                            x-text="notif.data.message || (notif.data.content ? 'commented: ' + notif.data.content : '')"></span>
+                                    </p>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400"
+                                        x-text="new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })">
+                                    </span>
+                                </div>
+                                <span x-show="!notif.is_read" class="ml-2 w-2 h-2 bg-[#B59F84] rounded-full mt-1.5 flex-shrink-0"></span>
+                            </div>
+                        </a>
+                    </template>
+                </div>
+            </template>
+            
+            <!-- Empty State -->
+            <div x-show="notifications.length === 0" class="px-4 py-8 text-center">
+                <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+                    </path>
+                </svg>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">No notifications yet</p>
+            </div>
+        </div>
+        
+        <!-- Footer with load more button - stays at bottom -->
+        <div class="border-t border-gray-200 bg-white dark:bg-gray-800">
+            <!-- Load More Button -->
+            <div x-show="hasMore && notifications.length > 0" class="border-b border-gray-200">
+                <button @click="loadMoreNotifications()" 
+                        :disabled="loadingMore"
+                        class="w-full px-4 py-3 text-sm text-center text-[#B59F84] font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span x-show="!loadingMore">Show more notifications</span>
+                    <span x-show="loadingMore" class="flex items-center justify-center">
+                        <svg class="animate-spin h-4 w-4 mr-2 text-[#B59F84]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Loading...
+                    </span>
+                </button>
+            </div>
+        </div>
+            
+        </div>
+    </div>
+</div>
+
                     @endif
                 @endauth
                 @auth
 
+                    <!-- Profile Dropdown -->
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = ! open" class="text-gray-700 flex items-center dark:text-gray-200">
                             <span>{{ Auth::user()->fname }}</span>
@@ -394,8 +519,10 @@
                             @if (Auth::user()->role != 2)
                                 <a href="{{ route('profile.show', ['user' => Auth::id()]) }}"
                                     class="block px-4 py-2 text-gray-700 dark:text-gray-200  hover:bg-gray-200 dark:hover:bg-gray-700">Profile</a>
+                                <!-- Settings Dropdown -->
                                 <div x-data="{ settingsOpen: false }" class="relative">
 
+                                    <!-- Toggle Button -->
                                     <button @click="settingsOpen = !settingsOpen"
                                         class="w-full text-left flex items-center justify-between px-4 py-2 text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors duration-200">
                                         <span class="flex items-center gap-2">
@@ -417,6 +544,7 @@
                                         </svg>
                                     </button>
 
+                                    <!-- Settings Submenu -->
                                     <div x-show="settingsOpen" @click.away="settingsOpen = false"
                                         x-transition:enter="transition ease-out duration-200"
                                         x-transition:enter-start="opacity-0 transform scale-95"
@@ -426,6 +554,8 @@
                                         x-transition:leave-end="opacity-0 transform scale-95"
                                         class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 shadow-lg rounded-md border border-gray-200 dark:border-gray-700 z-50">
 
+                                        <!-- Menu Sections -->
+                                        <!-- Personal Information -->
                                         <div
                                             class="px-4 py-2 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                                             <span
@@ -448,6 +578,7 @@
                                             Update Profile Information
                                         </a>
 
+                                        <!-- Security & Sign-in -->
                                         <div
                                             class="px-4 py-2 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                                             <span
@@ -470,6 +601,7 @@
                                             Update Password
                                         </a>
 
+                                        <!-- Data & Privacy -->
                                         <div
                                             class="px-4 py-2 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                                             <span
@@ -492,6 +624,7 @@
                                             Data & Privacy
                                         </a>
 
+                                        <!-- Payment & Subscription -->
                                         <div
                                             class="px-4 py-2 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                                             <span
@@ -538,8 +671,10 @@
         hover:bg-[#a08e77] hover:scale-105 transition-all duration-200 w-[100px]">Login</a>
                 @endauth
             </div>
+            <!-- Mobile Navbar -->
             <div
                 class="flex items-center justify-between md:hidden w-full px-4 py-1 bg-[#F4F2ED]  dark:bg-gray-800 dark:text-gray-200">
+                <!-- Search Bar -->
                 <div class="flex-1 mx-2">
                     <form action="{{ route('search') }}" method="GET"
                         class="flex items-center bg-white  dark:bg-gray-800 dark:text-gray-200 px-3 py-2 rounded-full shadow-sm border">
@@ -557,29 +692,33 @@
                     </form>
                 </div>
 
+                <!-- Icons: Messages + Notifications + Menu -->
                 <div class="flex items-center space-x-3">
                     @auth
                         @if ($role !== 2)
+                            <!-- Messages with Real-time Badge -->
                             <a href="{{ route('messages.index') }}" class="text-gray-700 relative"
                                 x-data="{
                                     unreadCount: {{ $totalUnreadCount ?? 0 }},
                                     init() {
                                         @if (Auth::check()) if (typeof Echo !== 'undefined') {
-                                            // Listen for new private messages - increment count
-                                            Echo.private('chat.user.{{ Auth::id() }}')
-                                                .listen('.private-message', (e) => {
-                                                    // Only increment if not on messages page
-                                                    if (!window.location.pathname.includes('messages')) {
-                                                        this.unreadCount++;
-                                                    }
-                                                });
-                                            
-                                            // Listen for when messages are read - update count
-                                            window.addEventListener('messages-marked-read', (e) => {
-                                                this.unreadCount = e.detail?.unread_count || 0;
+                                        // Listen for new private messages - increment count
+                                        Echo.private('chat.user.{{ Auth::id() }}')
+                                            .listen('.private-message', (e) => {
+                                                // Only increment if not on messages page
+                                                if (!window.location.pathname.includes('messages')) {
+                                                    this.unreadCount++;
+                                                }
                                             });
-                                        } @endif
-                                    
+
+                                        
+                                        // Listen for when messages are read - update count
+                                        window.addEventListener('messages-marked-read', (e) => {
+                                            this.unreadCount = e.detail?.unread_count || 0;
+                                        });
+                                    } @endif
+                                
+
                                         // Fallback event listeners
                                         window.addEventListener('new-message-received', () => {
                                             if (!window.location.pathname.includes('messages')) {
@@ -598,6 +737,7 @@
                                         d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8-1.325 0-2.58-.26-3.68-.725L3 20l1.32-3.96C3.474 15.003 3 13.55 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
                                     </path>
                                 </svg>
+                                <!-- Message Count Badge -->
                                 <span x-show="unreadCount > 0"
                                     class="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[1.25rem] flex items-center justify-center transition-all duration-300">
                                     <span x-text="unreadCount > 9 ? '9+' : unreadCount"></span>
@@ -605,11 +745,18 @@
                             </a>
                         @endif
                     @endauth
+
+                    <!-- Mobile Notification Bell with ALL notifications -->
+
                     <div id="notif-bell-mobile" x-data="{ 
                         open: false, 
                         notifications: [],
                         groupedNotifications: {},
-                        // REMOVED: loadingMore, hasMore, page, perPage
+
+                        loadingMore: false,
+                        hasMore: true,
+                        page: 1,
+                        perPage: 30,
 
                         getGroupedNotifications() {
                             const groups = {};
@@ -663,7 +810,10 @@
                             return groups;
                         },
 
+
+
                         markAsRead() {
+                            // Show loading state
                             const originalNotifications = [...this.notifications];
                             
                             fetch('{{ route('notifications.read') }}', {
@@ -684,7 +834,12 @@
                                 console.log('Mark as read response:', data);
                                 
                                 if (data.success) {
+
+                                    // Reload notifications from server to ensure we have the latest state
                                     this.reloadNotifications().then(() => {
+                                        // Update badge globally
+
+
                                         window.dispatchEvent(new CustomEvent('notifications-marked-read', {
                                             detail: { unread_count: data.unread_count || 0 }
                                         }));
@@ -695,10 +850,16 @@
                             })
                             .catch(error => {
                                 console.error('Error marking notifications as read:', error);
+
+                                
+                                // Restore original state on error
+
                                 this.notifications = originalNotifications;
                                 this.groupedNotifications = this.getGroupedNotifications();
                             });
                         },
+
+
 
                         reloadNotifications() {
                             return fetch('{{ route('notifications.load-more') }}?page=1', {
@@ -711,18 +872,43 @@
                             .then(response => response.json())
                             .then(data => {
                                 if (data.notifications) {
+
+                                    // Update notifications with fresh data from server
                                     this.notifications = data.notifications;
                                     this.groupedNotifications = this.getGroupedNotifications();
-                                    // REMOVED: this.hasMore logic
+                                    this.hasMore = data.has_more || false;
+
                                 }
                             })
                             .catch(error => {
                                 console.error('Error reloading notifications:', error);
                             });
+
+                        },
+                        loadMoreNotifications() {
+                            if (this.loadingMore || !this.hasMore) return;
+                            
+                            this.loadingMore = true;
+                            this.page++;
+                            
+                            fetch(`/notifications/load-more?page=${this.page}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.notifications && data.notifications.length > 0) {
+                                        this.notifications = [...this.notifications, ...data.notifications];
+                                        this.groupedNotifications = this.getGroupedNotifications();
+                                        this.hasMore = data.has_more;
+                                    } else {
+                                        this.hasMore = false;
+                                    }
+                                    this.loadingMore = false;
+                                })
+                                .catch(() => {
+                                    this.loadingMore = false;
+                                });
                         },
 
-                        // REMOVED: loadMoreNotifications() function
-
+                    
                         init() {
                             @if(Auth::check())
                                 try {
@@ -734,7 +920,11 @@
                                             ->map(function($notification) {
                                                 $data = $notification->data;
                                                 $data['profile_pic_url'] = $notification->from_user_profile_pic;
+
+                                                // Use the accessor which ensures read_at takes precedence
                                                 $isRead = $notification->is_read;
+                                                // Double-check: if read_at exists, it's definitely read
+
                                                 if ($notification->read_at !== null) {
                                                     $isRead = true;
                                                 }
@@ -752,16 +942,23 @@
                                     @endphp
                                     this.notifications = {!! Js::from($mobileNotifications) !!};
                                     this.groupedNotifications = this.getGroupedNotifications();
-                                    // REMOVED: this.hasMore logic
+
+                                    this.hasMore = {{ \App\Models\Notification::where('user_id', Auth::id())->count() > 30 ? 'true' : 'false' }};
                                     
+                                    // Reload notifications when page becomes visible (after refresh or tab switch)
                                     document.addEventListener('visibilitychange', () => {
                                         if (!document.hidden) {
+                                            // Small delay to ensure page is fully loaded
+
                                             setTimeout(() => {
                                                 this.reloadNotifications();
                                             }, 500);
                                         }
                                     });
                                     
+
+                                    // Also reload on focus (when user switches back to tab)
+
                                     window.addEventListener('focus', () => {
                                         this.reloadNotifications();
                                     });
@@ -769,14 +966,43 @@
                                     console.error('Error loading notifications:', e);
                                     this.notifications = [];
                                     this.groupedNotifications = {};
+
+                                    this.hasMore = false;
+ 
                                 }
                             @else
                                 this.notifications = [];
                                 this.groupedNotifications = {};
+
+                                this.hasMore = false;
+
                             @endif
+                        },
+                        reloadNotifications() {
+                            return fetch('{{ route('notifications.load-more') }}?page=1', {
+                                method: 'GET',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json',
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.notifications) {
+                                    // Update notifications with fresh data from server
+                                    this.notifications = data.notifications;
+                                    this.groupedNotifications = this.getGroupedNotifications();
+                                    this.hasMore = data.has_more || false;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error reloading notifications:', error);
+                            });
                         }
                     }" @new-notification.window="notifications.unshift($event.detail); groupedNotifications = getGroupedNotifications();"
                     @notifications-marked-read.window="notifications.forEach(n => n.is_read = true);">
+       <!-- Bell Icon -->
+
                         <button @click="open = !open" class="relative focus:outline-none mt-1.5">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor"
@@ -784,12 +1010,14 @@
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.971 8.971 0 0118 9.75V9a6 6 0 10-12 0v.75a8.971 8.971 0 01-2.311 6.022c1.742.68 3.55 1.17 5.454 1.31m5.714 0a24.048 24.048 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                             </svg>
+                            <!-- Notification Count Badge -->
                             <span x-show="notifications.filter(n => !n.is_read).length > 0"
                                 class="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5">
                                 <span x-text="notifications.filter(n => !n.is_read).length"></span>
                             </span>
                         </button>
 
+                        <!-- Dropdown -->
                         <div x-show="open" @click.away="open = false" x-transition
                             class="absolute right-20 mt-2 w-80 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden z-50 border border-gray-200">
                             <div class="px-4 py-2 bg-gray-50 border-b border-gray-200  dark:bg-gray-800 flex justify-between items-center">
@@ -805,18 +1033,35 @@
                                             <span class="text-xs font-semibold text-gray-600 dark:text-gray-300" x-text="groupName"></span>
                                         </div>
                                         <template x-for="notif in groupNotifications" :key="notif.id">
-                                            <a :href="notif.data.link || (notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data.donation_id ? `/donations/${notif.data.donation_id}` : (notif.data.appointment_id ? '{{ route('upcycler') }}' : '#')))"
-                                                class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                                                @click="open = false">
+
+                                            <a :href="
+                                                    notif.data.link 
+                                                        || (notif.data.product_id 
+                                                            ? `/products/${notif.data.product_id}` 
+                                                            : (notif.data.donation_id 
+                                                                ? `/donations/${notif.data.donation_id}` 
+                                                                : (notif.data.appointment_id 
+                                                                    ? '{{ route('upcycler') }}' 
+                                                                    : '#'
+                                                                )
+                                                            )
+                                                        )"
+                                            class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                                            @click="open = false">
+
                                                 <div class="flex items-start gap-3">
+                                                    <!-- Profile Picture -->
                                                     <div class="flex-shrink-0">
                                                         <img :src="notif.data.profile_pic_url || '{{ asset('images/default-profile.jpg') }}'"
-                                                            :alt="notif.data.from_user || 'User'"
-                                                            class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600">
+
+                                                             :alt="notif.data.from_user || 'User'"
+                                                             class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600">
                                                     </div>
                                                     <div class="flex-1 min-w-0">
                                                         <p class="text-sm text-gray-700 dark:text-gray-200 mb-1">
-                                                            <strong class="text-[#B59F84]" x-text="notif.data.from_user || 'System'"></strong>
+                                                            <strong class="text-[#B59F84]"
+                                                                x-text="notif.data.from_user || 'System'"></strong>
+
                                                             <span x-text="notif.data.message || (notif.data.content ? 'commented: ' + notif.data.content : '')"></span>
                                                         </p>
                                                         <span class="text-xs text-gray-500 dark:text-gray-400"
@@ -830,6 +1075,9 @@
                                     </div>
                                 </template>
                                 
+
+                                <!-- Empty State -->
+
                                 <div x-show="notifications.length === 0" class="px-4 py-8 text-center">
                                     <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -839,10 +1087,28 @@
                                     <p class="text-gray-500 dark:text-gray-400 text-sm">No notifications yet</p>
                                 </div>
                                 
+
+                                <!-- Load More Button -->
+                                <div x-show="hasMore && notifications.length > 0" class="border-t border-gray-200">
+                                    <button @click="loadMoreNotifications()" 
+                                            :disabled="loadingMore"
+                                            class="w-full px-4 py-3 text-sm text-center text-[#B59F84] font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <span x-show="!loadingMore">Show more notifications</span>
+                                        <span x-show="loadingMore" class="flex items-center justify-center">
+                                            <svg class="animate-spin h-4 w-4 mr-2 text-[#B59F84]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Loading...
+                                        </span>
+                                    </button>
                                 </div>
+                            </div>
+
                         </div>
                     </div>
 
+                    <!-- Hamburger Menu -->
                     <button @click="mobileMenuOpen = !mobileMenuOpen"
                         class="p-2 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-200  dark:hover:bg-gray-800 focus:outline-none">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
@@ -853,11 +1119,18 @@
                     </button>
                 </div>
             </div>
+            <!-- Mobile Menu -->
             <div x-show="mobileMenuOpen" x-transition
                 class="mobile-menu-dropdown fixed top-[90px] inset-x-0 bg-white dark:bg-gray-800 dark:text-gray-200 shadow-lg border-t border-gray-200 md:hidden z-50 max-h-[70vh] overflow-y-auto">
                 <div class="flex flex-col space-y-0 px-4 py-4">
                     @auth
                         @if ($role !== 2)
+                            {{-- <a href="#"
+                                class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100">
+                                <span class="mr-3 text-lg">🤍</span>
+                                <span class="font-medium">Wishlist</span>
+                            </a> --}}
+
                             <a href="{{ route('messages.index') }}"
                                 class="flex items-center text-gray-700 dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 relative"
                                 x-data="{
@@ -897,6 +1170,7 @@
                                     </path>
                                 </svg>
                                 <span class="font-medium">Messages</span>
+                                <!-- Message Count Badge -->
                                 <span x-show="unreadCount > 0"
                                     class="ml-2 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[1.25rem] flex items-center justify-center transition-all duration-300">
                                     <span x-text="unreadCount > 9 ? '9+' : unreadCount"></span>
@@ -922,12 +1196,15 @@
                                 class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Upcycling Works
                                 </a>
                                     <a href="{{ route('eco-posts.index') }}"
-                                class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Eco Portal    </a>
+
+                                class="flex items-center text-gray-700  dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Eco Portal   </a>
+
                         @endif
 
                         <a href="{{ route('profile.show', ['user' => Auth::id()]) }}"
                             class="flex items-center text-gray-700 dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Profile</a>
 
+                        <!-- Mobile Settings Dropdown -->
                         <div x-data="{ mobileSettingsOpen: false }" class="relative border-b border-gray-100 dark:text-gray-200">
                             <button @click="mobileSettingsOpen = !mobileSettingsOpen"
                                 class="w-full text-left flex items-center justify-between text-gray-700 dark:text-gray-200 py-3 hover:text-[#B59F84] font-medium">
@@ -940,8 +1217,10 @@
                                 </svg>
                             </button>
 
+                            <!-- Mobile Settings Submenu -->
                             <div x-show="mobileSettingsOpen" x-transition
                                 class="ml-4 mt-2 space-y-0 pb-2  dark:bg-gray-800">
+                                <!-- Personal Information -->
                                 <div class="px-2 py-1  dark:bg-gray-800">
                                     <span
                                         class="text-xs font-semibold text-gray-500 dark:text-gray-200  dark:bg-gray-800 uppercase tracking-wide">Personal
@@ -952,6 +1231,7 @@
                                     Update Profile Information
                                 </a>
 
+                                <!-- Security & Sign-in -->
                                 <div class="px-2 py-1 mt-2 dark:bg-gray-800">
                                     <span
                                         class="text-xs font-semibold text-gray-500 dark:text-gray-200  uppercase tracking-wide">Security
@@ -963,6 +1243,7 @@
                                     Update Password
                                 </a>
 
+                                <!-- Data & Privacy -->
                                 <div class="px-2 py-1 mt-2">
                                     <span
                                         class="text-xs font-semibold text-gray-500 dark:text-gray-200 uppercase tracking-wide">Data
@@ -974,6 +1255,7 @@
                                     Data & Privacy
                                 </a>
 
+                                <!-- Payment & Subscription -->
                                 <div class="px-2 py-1 mt-2">
                                     <span
                                         class="text-xs font-semibold text-gray-500 dark:text-gray-200 uppercase tracking-wide">Payment
@@ -1047,8 +1329,10 @@
         background-color: #4a5568;
     }
 
-      /* Toast animation */
-      #notification-toast {
+
+     /* Toast animation */
+     #notification-toast {
+
         transition: all 0.3s ease-in-out;
     }
     
