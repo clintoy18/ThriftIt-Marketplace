@@ -1119,7 +1119,7 @@
     // Auto-mark as read when messages page is opened
     document.addEventListener('DOMContentLoaded', function() {
         // Refresh unread count on page load to ensure accuracy
-        refreshUnreadCount();
+        // refreshUnreadCount();
 
         if (window.location.pathname.includes('messages')) {
             markMessagesAsRead();
