@@ -276,8 +276,8 @@
                             Upcycling: Discover Sustainable
                             <span class="block h-[20px] dark:text-[#f5d68b]" aria-hidden="true"></span>
                             Style
-                            <img src="{{ Storage::disk('s3')->url('images/image 157.png') }}" alt="emoji"
-                                class="inline-block h-6 w-6 align-middle animate-spin-slow">
+<img src="{{ asset('images/image 157 (1).png') }}" alt="emoji"
+                               class="inline-block h-6 w-6 align-middle animate-spin-slow">
                             <span class="block h-[20px]" aria-hidden="true"></span>
                         </h2>
                         <p
@@ -314,7 +314,7 @@
                             Pre-Loved Clothes and Create a
                             <span class="block h-[20px]" aria-hidden="true"></span>
                             Sustainable Future
-                            <img src="{{ Storage::disk('s3')->url('images/Rectangle 142.png') }}" alt="emoji"
+                            <img src="{{ asset('images/Rectangle 142 (2).png') }}" alt="emoji"
                                 class="inline-block h-6 w-6 align-middle animate-bounce-gentle">
                             <span class="block h-[20px]" aria-hidden="true"></span>
                         </h2>
@@ -368,7 +368,7 @@
                             class="w-full h-64 object-cover relative z-10">
                     </div>
                     <div class="absolute -bottom-3 -right-3 bg-white rounded-full p-2 shadow-md animate-bounce-gentle">
-                        <img src="{{ Storage::disk('s3')->url('images/image 157.png') }}" alt="Recycle emoji"
+                        <img src="{{ asset('images/image 157 (1).png') }}" alt="Recycle emoji"
                             class="h-8 w-8">
                     </div>
                 </div>
@@ -415,7 +415,7 @@
                     </div>
                     <div
                         class="absolute -bottom-3 -right-3 bg-white rounded-full p-2 shadow-md animate-bounce-gentle animation-delay-200">
-                        <img src="{{ Storage::disk('s3')->url('images/Rectangle 142.png') }}" alt="Donation emoji"
+                        <img src="{{ asset('images/Rectangle 142 (2).png') }}" alt="Donation emoji"
                             class="h-8 w-8">
                     </div>
                 </div>

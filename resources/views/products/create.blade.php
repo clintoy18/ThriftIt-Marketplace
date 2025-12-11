@@ -179,13 +179,34 @@
                                         <div>
                                             <label for="size" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Size</label>
                                             <select id="size" name="size" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500" required>
-                                                <option value="" disabled selected>Select size</option>
+                                                <option value="" disabled {{ old('size', session('product_step1.size')) ? '' : 'selected' }}>Select size</option>
                                                 <optgroup label="Shirts, Dresses, Outerwear, Pants">
                                                     <option value="XS">XS</option>
                                                     <option value="S">S</option>
                                                     <option value="M">M</option>
                                                     <option value="L">L</option>
                                                     <option value="XL">XL</option>
+                                                    <option value="XXL">XXL</option>
+                                                </optgroup>
+                                                <optgroup label="Shoes">
+                                                    <option value="EU 36">EU 36</option>
+                                                    <option value="EU 37">EU 37</option>
+                                                    <option value="EU 38">EU 38</option>
+                                                    <option value="EU 39">EU 39</option>
+                                                    <option value="EU 40">EU 40</option>
+                                                    <option value="EU 41">EU 41</option>
+                                                    <option value="EU 42">EU 42</option>
+                                                    <option value="EU 43">EU 43</option>
+                                                    <option value="EU 44">EU 44</option>
+                                                    <option value="EU 45">EU 45</option>
+                                                </optgroup>
+                                                <optgroup label="Accessories">
+                                                    <option value="One Size">One Size</option>
+                                                </optgroup>
+                                                <optgroup label="Socks / Hosiery">
+                                                    <option value="S">S</option>
+                                                    <option value="M">M</option>
+                                                    <option value="L">L</option>
                                                 </optgroup>
                                             </select>
                                         </div>

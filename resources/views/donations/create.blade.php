@@ -238,8 +238,9 @@
                                     <select id="size" name="size"
                                         class="mt-1 block w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#B59F84] focus:border-[#B59F84]"
                                         required>
-                                        <option value="">Select size</option>
+                                        <option value="" disabled {{ old('size') ? '' : 'selected' }}>Select size</option>
                                         <optgroup label="Clothing">
+                                            <option value="XS">XS</option>
                                             <option value="S">S</option>
                                             <option value="M">M</option>
                                             <option value="L">L</option>
@@ -251,6 +252,9 @@
                                             <option value="7">7</option>
                                             <option value="8">8</option>
                                             <option value="9">9</option>
+                                            <option value="10">10</option>
+                                            <option value="11">11</option>
+                                            <option value="12">12</option>
                                         </optgroup>
                                         <optgroup label="Accessories">
                                             <option value="One Size">One Size</option>
