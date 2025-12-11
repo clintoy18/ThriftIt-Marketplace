@@ -31,49 +31,61 @@ class AppointmentService
 
     public function createAppointment(array $data, ?array $apptImages = null)
     {
-        // 1️⃣ Create the appointment first (without images)
+        // Prevent double booking
+        if ($this->appointmentRepository->isSlotTaken(
+            $data['upcycler_id'],
+            $data['appdate'],
+            $data['app_time']
+        )) {
+            return [
+                'success' => false,
+                'message' => 'This time is already booked. Please choose another.'
+            ];
+        }
+
+        // Create appointment
         $appointment = $this->appointmentRepository->create($data);
 
-        // 2️⃣ Handle uploaded images (store in S3)
+        // Handle images
         if ($apptImages && count($apptImages) > 0) {
             foreach ($apptImages as $image) {
                 if ($image instanceof \Illuminate\Http\UploadedFile) {
-
-                    // Store image in S3 under 'appointment_images' folder
                     $path = $image->store('appointment_images', [
                         'disk' => 's3',
                         'visibility' => 'public',
                     ]);
 
-                    // Save record in appointment_images table
                     $appointment->apptImages()->create([
-                        'image_path' => $path, // store the S3 key/path
+                        'image_path' => $path,
                     ]);
                 }
             }
         }
 
-        // 3️⃣ Notify the upcycler that a new appointment was booked
+        // Notify upcycler
         if (!empty($appointment->upcycler_id)) {
-            // Save notification in DB
             Notification::create([
                 'user_id' => $appointment->upcycler_id,
                 'type'    => 'appointment_booked',
                 'data'    => [
                     'appointment_id' => $appointment->appointmentid,
-                    'from_user'      => Auth::user() ? Auth::user()->fname . ' ' . Auth::user()->lname : 'A user',
+                    'from_user'      => Auth::user()->fname . ' ' . Auth::user()->lname,
                     'apptype'        => $appointment->apptype,
                     'appdate'        => $appointment->appdate,
+                    'app_time'       => $appointment->app_time,
                     'link'           => route('upcycler'),
-                    'message'        =>' booked a new appointment with you.',
+                    'message'        => ' booked a new appointment with you.',
                 ],
             ]);
 
-            // Broadcast real-time notification to upcycler
             event(new AppointmentBookedNotification($appointment, $appointment->upcycler_id));
         }
 
-        return $appointment;
+        return [
+            'success' => true,
+            'message' => 'Appointment created successfully!',
+            'appointment' => $appointment
+        ];
     }
 
 
@@ -114,10 +126,8 @@ class AppointmentService
             return ['error' => 'You can only cancel appointments more than 24 hours in advance.'];
         }
 
-        if($appointment->appstatus == 'approved')
-        {
+        if ($appointment->appstatus == 'approved') {
             return ['error' => 'You cannot cancel approved appointment.'];
-
         }
 
         $this->appointmentRepository->update($appointment, ['appstatus' => 'cancelled']);

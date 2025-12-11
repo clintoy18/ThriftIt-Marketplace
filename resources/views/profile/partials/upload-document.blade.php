@@ -1,4 +1,4 @@
-<section x-data="{ showUpload: false }" class="space-y-4">
+<section x-data="{ showUpload: false, frontPreview: null, backPreview: null }" class="space-y-4">
 
     <!-- Compact Verification Status Badge/Button -->
     <div
@@ -38,6 +38,9 @@
 
             <!-- Text -->
             <div>
+                <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                    {{ $user->fname }} {{ $user->lname }}
+                </p>
                 <h4 class="text-sm font-semibold text-gray-900 dark:text-white">
                     @if ($user->verification_status === 'pending')
                         Verification Pending
@@ -81,28 +84,100 @@
 
             <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Upload Valid ID</h3>
 
-            <p class="text-xs text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">
-                Accepted government-issued IDs:
-                <span class="font-medium">PhilSys National ID</span>, Passport, Driver’s License,
-                SSS/GSIS UMID, PRC License, Voter’s ID, Postal ID, PhilHealth ID, TIN ID,
-                Senior Citizen ID, PWD ID, Student ID (School-issued), Company ID (Valid),
-                Barangay ID (recent), Firearm License ID, OFW/OWWA ID, Seaman’s Book,
-                <span class="font-medium">or any other valid government-issued identification card.</span>
-                <br>
-                <span class="font-semibold">Max file size: 2MB</span>
-            </p>
+            <!-- Show First/Last Name in form-style inputs -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 dark:text-white mb-1">First Name</label>
+                    <input type="text" readonly value="{{ $user->fname }}"
+                        class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200 px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 dark:text-white mb-1">Last Name</label>
+                    <input type="text" readonly value="{{ $user->lname }}"
+                        class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200 px-3 py-2">
+                </div>
+            </div>
+         <!-- Additional details -->
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+         <div class="mb-6">
+    <label for="date_of_birth" class="block text-sm font-semibold text-gray-900 dark:text-white mb-1">
+        Date of Birth
+    </label>
+    <input type="date" name="date_of_birth" id="date_of_birth"
+        value="{{ old('date_of_birth', $user->date_of_birth ?? '') }}"
+        class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+        required>
+    @error('date_of_birth')
+        <p class="mt-1 text-sm text-red-600 dark:text-red-500">{{ $message }}</p>
+    @enderror
+</div>
+
+<div>
+    <label for="student_id" class="block text-sm font-semibold text-gray-900 dark:text-white mb-1">
+        Student ID (optional)
+    </label>
+    <input type="text" name="student_id" id="student_id"
+        value="{{ old('student_id', $user->student_id ?? '') }}"
+        class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+        placeholder="e.g., 2023-12345">
+    @error('student_id')
+        <p class="mt-1 text-sm text-red-600 dark:text-red-500">{{ $message }}</p>
+    @enderror
+</div>
+</div>
+<p class="text-xs text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">
+    Accepted government-issued IDs:
+    <span class="font-medium">PhilSys National ID</span>, Passport, Driver's License,
+    SSS/GSIS UMID, PRC License, Voter's ID, Postal ID, PhilHealth ID, TIN ID,
+    Senior Citizen ID, PWD ID, Student ID (School-issued), Company ID (Valid),
+    Barangay ID (recent), Firearm License ID, OFW/OWWA ID, Seaman's Book,
+    <span class="font-medium">or any other valid government-issued identification card.</span>
+    <br>
+    <span class="font-semibold">Max file size: 2MB</span>
+</p>
 
             <form action="{{ route('profile.verification.upload') }}" method="POST" enctype="multipart/form-data"
                 class="space-y-4">
                 @csrf
-                <div>
-                    <input type="file" name="verification_document" id="verification_document" accept="image/*,.pdf"
-                        class="block w-full text-sm text-gray-900 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 dark:file:bg-green-900/30 dark:file:text-green-400">
 
-                    @error('verification_document')
-                        <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p>
-                    @enderror
+                <!-- Front/Back images (for ID cards) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="verification_document_front" class="block text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                            Front Image (ID)
+                        </label>
+                        <input type="file" name="verification_document_front" id="verification_document_front" accept="image/*"
+                            @change="frontPreview = $event.target.files[0] ? URL.createObjectURL($event.target.files[0]) : null"
+                            class="block w-full text-sm text-gray-900 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 dark:file:bg-green-900/30 dark:file:text-green-400">
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Upload front image if your ID has two sides.</p>
+                        <template x-if="frontPreview">
+                            <img :src="frontPreview" alt="Front preview"
+                                class="mt-2 h-32 w-auto rounded border border-gray-200 dark:border-gray-700 object-contain">
+                        </template>
+                        @error('verification_document_front')
+                            <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label for="verification_document_back" class="block text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                            Back Image (ID)
+                        </label>
+                        <input type="file" name="verification_document_back" id="verification_document_back" accept="image/*"
+                            @change="backPreview = $event.target.files[0] ? URL.createObjectURL($event.target.files[0]) : null"
+                            class="block w-full text-sm text-gray-900 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 dark:file:bg-green-900/30 dark:file:text-green-400">
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Optional if the back contains details.</p>
+                        <template x-if="backPreview">
+                            <img :src="backPreview" alt="Back preview"
+                                class="mt-2 h-32 w-auto rounded border border-gray-200 dark:border-gray-700 object-contain">
+                        </template>
+                        @error('verification_document_back')
+                            <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
+
+                
+                
 
                 <!-- Terms and Conditions -->
                 <div class="flex items-start space-x-2">

@@ -62,7 +62,7 @@
                                             <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{ $appointment->upcycler->fname ?? 'N/A' }} {{ $appointment->upcycler->lname ?? '' }}</td>
                                             <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{ $appointment->appdetails }}</td>
                                             <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ \Carbon\Carbon::parse($appointment->appdate)->format('M d, Y') }}</td>
-                                            <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ \Carbon\Carbon::parse($appointment->appdate)->format('h:i A') }}</td>
+                                            <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400"> {{ \Carbon\Carbon::parse($appointment->app_time)->format('h:i A') }}</td>
                                             <td class="px-6 py-4 text-sm">
                                                 @php
                                                     $badgeClasses = [
