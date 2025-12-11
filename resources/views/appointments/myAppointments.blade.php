@@ -1,8 +1,18 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
-            {{ __('My Appointments') }}
-        </h2>
+        <div class="flex items-center justify-between">
+            <h2 class="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
+                {{ __('My Appointments') }}
+            </h2>
+
+            {{-- BACK BUTTON --}}
+            <a href="{{ route('appointments.index') }}" class="inline-flex items-center px-4 py-2 bg-[#B59F84] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#6B5B48] active:bg-[#6B5B48] focus:outline-none focus:border-[#6B5B48] focus:ring ring-[#B59F84] disabled:opacity-25 transition ease-in-out duration-150">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Request New Appointment
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-12" x-data="{ tab: 'pending' }">
