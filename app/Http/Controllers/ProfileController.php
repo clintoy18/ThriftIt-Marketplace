@@ -27,8 +27,8 @@ class ProfileController extends Controller
 
         $user = $request->user(); // logged-in user only
         $barangays = Barangay::all();
-        
-        $totalListings = $user->products()->where('approval_status','approved')->count();
+
+        $totalListings = $user->products()->where('approval_status', 'approved')->count();
         $itemsSold = $user->products()->where('status', 'sold')->count();
         $revenue = $user->products()->where('status', 'sold')->sum('price');
         $itemsDonated = $user->donations()->where('status', 'donated')->count();
@@ -183,24 +183,34 @@ class ProfileController extends Controller
     public function uploadVerificationDocument(Request $request)
     {
         $request->validate([
-            'verification_document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'verification_document'      => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'verification_document_back' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
+        $user = $request->user();
+        $dataToUpdate = [
+            'verification_status' => 'pending',
+        ];
+
+        // 1. Handle Front Image
         if ($request->hasFile('verification_document')) {
-            // Store the file on S3
-            $path = $request->file('verification_document')->store('verification-documents', 's3');
+            $pathFront = $request->file('verification_document')->store('verification-documents', 's3');
+            Storage::disk('s3')->setVisibility($pathFront, 'public');
 
-            // Make the file publicly accessible (optional, depends on your S3 policy)
-            Storage::disk('s3')->setVisibility($path, 'public');
-
-            // Update the user's document path and status
-            $request->user()->update([
-                'verification_document' => $path,
-                'verification_status' => 'pending',
-            ]);
+            $dataToUpdate['verification_document'] = $pathFront;
         }
 
-        return back()->with('status', 'Verification document uploaded successfully and sent for review.');
-    }
+        // 2. Handle Back Image
+        if ($request->hasFile('verification_document_back')) {
+            $pathBack = $request->file('verification_document_back')->store('verification-documents', 's3');
+            Storage::disk('s3')->setVisibility($pathBack, 'public');
 
+            $dataToUpdate['verification_document_back'] = $pathBack;
+        }
+
+        // 3. Save changes
+        $user->update($dataToUpdate);
+
+        return back()->with('status', 'Verification documents uploaded successfully and sent for review.');
+    }
 }
