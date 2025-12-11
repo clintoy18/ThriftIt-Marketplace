@@ -10,6 +10,7 @@ use App\Mail\UpcycleBookingCompleted;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Notification;
 use App\Events\AppointmentStatusUpdated;
+use App\Mail\UpcycleBookingDeclined;
 
 class UpcyclerService
 {
@@ -58,7 +59,15 @@ class UpcyclerService
 
         // Ensure 'pending' comes first
         $ordered = collect();
-        foreach (['pending', 'approved', 'completed', 'cancelled'] as $status) {
+        foreach (
+            [
+                'pending',
+                'approved',
+                'completed',
+                'cancelled',
+                'declined'
+            ] as $status
+        ) {
             if ($grouped->has($status)) {
                 $ordered[$status] = $grouped[$status];
             }
@@ -81,21 +90,50 @@ class UpcyclerService
         }
 
         $previousStatus = $appointment->getOriginal('appstatus');
+        $newStatus = $data['appstatus'];
+
+        /**
+         * 🔒 STATUS TRANSITION RULES
+         * Prevent downgrading or invalid transitions.
+         */
+        $allowedTransitions = [
+            'pending' => ['approved', 'declined'],
+            'approved' => ['completed'],       // cannot go back to declined/pending
+            'completed' => [],                 // final state, no more changes allowed
+            'declined' => [],                  // cannot be changed anymore
+        ];
+
+        if (!in_array($newStatus, $allowedTransitions[$previousStatus])) {
+            return [
+                'success' => false,
+                'message' => "Invalid status change from '$previousStatus' to '$newStatus'."
+            ];
+        }
+
+        // Update
         $updatedAppointment = $this->appointmentRepository->update($appointment, $data);
 
-        // Determine notification message
         $message = '';
-        if ($previousStatus !== 'approved' && $updatedAppointment->appstatus === 'approved') {
-            $message = 'Your upcycling appointment has been approved.';
-            Mail::to($updatedAppointment->user->email)->send(new UpcycleBookingApproved($updatedAppointment));
+
+        // Only proceed if changed
+        if ($previousStatus !== $updatedAppointment->appstatus) {
+
+            if ($newStatus === 'approved') {
+                $message = 'Your upcycling appointment has been approved.';
+                Mail::to($updatedAppointment->user->email)
+                    ->send(new UpcycleBookingApproved($updatedAppointment));
+            } elseif ($newStatus === 'completed') {
+                $message = 'Your upcycling appointment has been marked as completed.';
+                Mail::to($updatedAppointment->user->email)
+                    ->send(new UpcycleBookingCompleted($updatedAppointment));
+            } elseif ($newStatus === 'declined') {
+                $message = 'Your upcycling appointment has been declined.';
+                Mail::to($updatedAppointment->user->email)
+                    ->send(new UpcycleBookingDeclined($updatedAppointment));
+            }
         }
 
-        if ($previousStatus !== 'completed' && $updatedAppointment->appstatus === 'completed') {
-            $message = 'Your upcycling appointment has been marked as completed.';
-            Mail::to($updatedAppointment->user->email)->send(new UpcycleBookingCompleted($updatedAppointment));
-        }
-
-        // Save notification in DB
+        // Store notification
         if ($message) {
             Notification::create([
                 'user_id' => $updatedAppointment->user_id,
@@ -106,14 +144,16 @@ class UpcyclerService
                 ],
             ]);
 
-            // Broadcast notification in real-time
-            event(new AppointmentStatusUpdated($updatedAppointment, $updatedAppointment->user_id, $message));
+            // Broadcast real-time event
+            event(new AppointmentStatusUpdated(
+                $updatedAppointment,
+                $updatedAppointment->user_id,
+                $message
+            ));
         }
 
         return $updatedAppointment;
     }
-
-
 
     public function deleteAppointment($appointmentId, $currentUpcyclerId)
     {
