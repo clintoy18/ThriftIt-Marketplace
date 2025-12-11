@@ -20,6 +20,7 @@ class Appointment extends Model
         'contactnumber',
         'apptype',
         'appstatus',
+        'app_time',
         'appdate',
     ];
 

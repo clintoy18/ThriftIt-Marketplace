@@ -12,7 +12,7 @@ class StoreAppointmentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::check(); 
+        return Auth::check();
     }
 
     /**
@@ -23,17 +23,14 @@ class StoreAppointmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            
-            'upcycler_id' => 'required|exists:users,id',
-            'appdetails' => 'required|string|min:15|max:255',
-            'contactnumber' => 'required|numeric|digits_between:10,15',
-            'apptype' => ['required', 'in:Resize,Customize,Patchwork,Fabric Dyeing'],
-            'appstatus' => ['nullable', 'in:pending,approved,declined,completed,cancelled'],
-            'appdate' => 'required|date|after:now',
-
-            // Multi-image input from the form: images[]
-            'images'   => 'required|array|min:2|max:8',
-            'images.*' => 'image|mimes:jpg,jpeg,png,webp,gif|max:5120',
+            'upcycler_id'   => 'required|exists:users,id',
+            'appdetails'    => 'required|string|min:10|max:255',
+            'contactnumber' => ['required', 'string', 'regex:/^[0-9]+$/', 'digits_between:10,15'],
+            'apptype'       => ['required', 'string', 'in:Resize,Customize,Patchwork,Fabric Dyeing'],
+            'app_time'      => 'required|date_format:H:i',
+            'appdate'       => 'required|date|after_or_equal:today',
+            'images'        => 'required|array|min:1|max:8',
+            'images.*'      => 'image|mimes:jpg,jpeg,png,webp,gif|max:5120',
         ];
     }
 }

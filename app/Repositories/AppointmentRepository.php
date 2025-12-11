@@ -60,4 +60,12 @@ class AppointmentRepository
         $appointment->update($data);
         return $appointment;
     }
+
+    public function IsSlotTaken($upcyclerId, $appdate, $apptime)
+    {
+        return Appointment::where('upcycler_id', $upcyclerId)
+            ->where('appdate', $appdate)
+            ->where('app_time', $apptime)
+            ->exists();
+    }
 }

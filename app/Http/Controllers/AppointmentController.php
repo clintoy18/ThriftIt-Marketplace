@@ -64,10 +64,20 @@ class AppointmentController extends Controller
         $validated = $request->validated();
         $validated['user_id'] = Auth::id();
 
-        $this->appointmentService->createAppointment($validated, $request->file('images'));
+        $result = $this->appointmentService->createAppointment($validated, $request->file('images'));
 
-        return redirect()->route('appointments.index')->with('success', 'Appointment created successfully!');
+        // Flash success or error message to session
+        if ($result['success']) {
+            return redirect()->route('appointments.create')
+                ->with('success', $result['message']); // triggers green banner
+        } else {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', $result['message']);   // triggers red banner
+        }
     }
+
+
 
     /**
      * Display the specified resource.
