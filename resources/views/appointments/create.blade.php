@@ -64,44 +64,56 @@
                                 @error('appdate') <p class="text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
                             </div>
 
-                            <div class="space-y-2">
-                                <label for="app_time" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Preferred Time</label>
+                            <div class="space-y-2 md:col-span-2">
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Select Time Slot</label>
                                 @php
                                     $start = strtotime('08:00');
-                                    $end   = strtotime('16:30'); // Stops at 4:30 PM
+                                    $end   = strtotime('16:30'); // Stops at 4:30 PM (End 5:00 PM)
                                     $interval = 30 * 60; 
                                     $slots = [];
                                     for ($time = $start; $time <= $end; $time += $interval) {
                                         $slots[] = date('H:i', $time);
                                     }
-                                    // Check booked slots logic (ensure variable is available)
-                                    $bookedSlots = isset($appointmentDate) 
-                                        ? \App\Models\Appointment::where('appdate', $appointmentDate)->pluck('app_time')->toArray() 
+                                    
+                                    // Logic to check booked slots
+                                    // Note: $appointmentDate must be passed from Controller or set via old input
+                                    $checkDate = old('appdate') ?? ($appointmentDate ?? null);
+                                    
+                                    $bookedSlots = $checkDate
+                                        ? \App\Models\Appointment::where('appdate', $checkDate)->pluck('app_time')->toArray() 
                                         : [];
                                 @endphp
 
-                                <select name="app_time" id="app_time" required
-                                    class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-[#B59F84] focus:border-[#B59F84] transition shadow-sm">
-                                    <option value="">-- Select Time Slot --</option>
+                                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                                     @foreach ($slots as $slot)
-                                        <option value="{{ $slot }}" 
-                                            {{ old('app_time') == $slot ? 'selected' : '' }}
-                                            @if (in_array($slot, $bookedSlots)) disabled class="text-gray-400 bg-gray-100" @endif>
-                                            {{ date('h:i A', strtotime($slot)) }} 
-                                            @if (in_array($slot, $bookedSlots)) (Booked) @endif
-                                        </option>
+                                        @php 
+                                            $isBooked = in_array($slot, $bookedSlots);
+                                            $isSelected = old('app_time') == $slot;
+                                        @endphp
+                                        <label class="relative cursor-pointer group">
+                                            <input type="radio" name="app_time" value="{{ $slot }}" class="peer sr-only" {{ $isBooked ? 'disabled' : '' }} {{ $isSelected ? 'checked' : '' }}>
+                                            
+                                            <div class="px-2 py-3 text-center text-sm font-medium rounded-xl border transition-all duration-200
+                                                {{ $isBooked 
+                                                    ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-600 line-through' 
+                                                    : 'bg-white text-gray-700 border-gray-300 hover:border-[#B59F84] peer-checked:bg-[#B59F84] peer-checked:text-white peer-checked:border-[#B59F84] peer-checked:shadow-md dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600' 
+                                                }}">
+                                                {{ date('h:i A', strtotime($slot)) }}
+                                            </div>
+                                        </label>
                                     @endforeach
-                                </select>
+                                </div>
                                 
                                 @error('app_time') 
-                                    <p class="text-sm text-red-600 font-bold flex items-center gap-1">
+                                    <p class="text-sm text-red-600 font-bold flex items-center gap-1 mt-2">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
                                         {{ $message }}
                                     </p> 
                                 @enderror
                             </div>
 
-                            <div class="space-y-2 md:col-span-2"> <label for="contactnumber" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Contact Number</label>
+                            <div class="space-y-2 md:col-span-2"> 
+                                <label for="contactnumber" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Contact Number</label>
                                 <input type="tel" name="contactnumber" pattern="[0-9]{10,11}" placeholder="09123456789" value="{{ old('contactnumber') }}"
                                     class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-[#B59F84] focus:border-[#B59F84] transition shadow-sm">
                                 @error('contactnumber') <p class="text-sm text-red-600 font-medium">{{ $message }}</p> @enderror
@@ -197,27 +209,14 @@
 </x-app-layout>
 
 <script>
-    // 1. DATE & TIME RESTRICTIONS
+    // 1. DATE RESTRICTIONS
     window.addEventListener('DOMContentLoaded', () => {
         const input = document.getElementById('appdate');
         
         // Set Min Date to "Now"
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        input.min = now.toISOString().slice(0, 16).split('T')[0]; // Ensure it matches date input format YYYY-MM-DD
-
-        // Business Hour Validation (Client Side)
-        input.addEventListener('change', () => {
-            if(!input.value) return;
-            const selected = new Date(input.value);
-            // This validation is a bit tricky for just a Date input, 
-            // usually you validate the Time select separately (which we did in PHP),
-            // but this helps if you change input type to datetime-local.
-            // For standard Date input, we rely on the PHP loop for time.
-        });
-
-        const timeSelect = document.getElementById('app_time');
-        // Optional: Extra visual validation for time select
+        input.min = now.toISOString().slice(0, 16).split('T')[0];
     });
 
     // 2. IMAGE UPLOAD LOGIC
@@ -253,7 +252,6 @@
                 removeBtn.type = 'button'; // Prevent form submit
                 removeBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); removeAt(index); };
 
-                // Read file
                 const r = new FileReader();
                 r.onload = (ev) => { img.src = ev.target.result; };
                 r.readAsDataURL(file);
@@ -268,8 +266,6 @@
 
         function updateUI() {
             const count = selectedFiles.length;
-            
-            // Toggle dropzone content
             if (count > 0) {
                 dropZoneContent.classList.add('hidden');
                 addMoreText.classList.remove('hidden');
@@ -282,10 +278,9 @@
                 dropZone.classList.remove('p-4');
             }
 
-            // Toggle Limit Error
             if (count >= 8) {
                 if(reachLimitEl) reachLimitEl.classList.remove('hidden');
-                addMoreText.classList.add('hidden'); // Hide "Add more"
+                addMoreText.classList.add('hidden');
             } else {
                 if(reachLimitEl) reachLimitEl.classList.add('hidden');
             }
@@ -303,10 +298,8 @@
             input.files = dt.files;
         }
 
-        // Handle File Selection
         input.addEventListener('change', () => {
             const newFiles = Array.from(input.files || []);
-            // Simple duplicate check & Limit check
             newFiles.forEach(f => {
                 if (selectedFiles.length < 8) selectedFiles.push(f);
             });
@@ -314,7 +307,6 @@
             renderPreviews(selectedFiles);
         });
 
-        // Drag & Drop
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropZone.addEventListener(eventName, preventDefaults, false);
         });

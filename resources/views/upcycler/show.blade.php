@@ -1,7 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center space-x-3">
-            <!-- Calendar Icon -->
             <div class="flex-shrink-0">
                 <svg class="w-6 h-6 text-[#B59F84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -23,18 +22,7 @@
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6">
-                @if (session('status'))
-                    <div
-                        class="mb-6 p-4 bg-[#F8F4EC] dark:bg-[#8A7560] border border-[#E9DFC7] dark:border-[#9C8770] text-gray-700 dark:text-gray-300 rounded-lg flex items-center space-x-3">
-                        <svg class="w-5 h-5 text-[#B59F84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span>{{ session('status') }}</span>
-                    </div>
-                @endif
 
-                <!-- Appointment Information Card -->
                 <div class="bg-[#F8F4EC] dark:bg-gray-700 rounded-lg p-6 mb-6">
                     <div class="flex items-center space-x-3 mb-4">
                         <div class="p-2 bg-[#F1E9D2] dark:bg-[#9C8770] rounded-lg">
@@ -47,8 +35,7 @@
                         </div>
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Appointment Information</h3>
                     </div>
-                    <!-- Appointment Images -->
-                    <!-- Appointment Images -->
+
                     @if ($appointment->apptImages->count() > 0)
                         <div class="bg-[#F8F4EC] dark:bg-gray-700 rounded-lg p-6 mb-6">
                             <div class="flex items-center space-x-3 mb-4">
@@ -82,7 +69,6 @@
                     @endif
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- User Information -->
                         <div class="space-y-4">
                             <div class="flex items-center space-x-3">
                                 <div
@@ -116,9 +102,7 @@
                             </div>
                         </div>
 
-                        <!-- Appointment Details -->
                         <div class="space-y-4">
-                            <!-- Important Section: Appointment Details -->
                             <div class="flex items-center space-x-3 border-l-4 border-[#B59F84] pl-4 bg-yellow-50">
                                 <svg class="w-5 h-5 text-[#B59F84]" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -155,8 +139,9 @@
                                 <div>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Scheduled Date & Time</p>
                                     <p class="font-medium text-gray-900 dark:text-gray-100">
-                                        {{ \Carbon\Carbon::parse($appointment->appdate)->setTimezone('Asia/Manila')->format('F j, Y g:i A') }}
+                                        {{ \Carbon\Carbon::parse($appointment->appdate)->setTimezone('Asia/Manila')->format('F j, Y') }} {{ \Carbon\Carbon::parse($appointment->app_time)->format('h:i A') }}
                                     </p>
+                                   
                                 </div>
                             </div>
 
@@ -164,7 +149,6 @@
 
                     </div>
 
-                    <!-- Status and Created At -->
                     <div
                         class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-[#E9DFC7] dark:border-gray-600">
                         <div class="flex items-center space-x-3">
@@ -180,6 +164,7 @@
                                     @if ($appointment->appstatus === 'pending') bg-[#F1E9D2] text-[#8A7560] dark:bg-[#8A7560] dark:text-[#F1E9D2]
                                     @elseif($appointment->appstatus === 'approved') bg-[#F8F4EC] text-[#B59F84] dark:bg-[#9C8770] dark:text-[#F1E9D2]
                                     @elseif($appointment->appstatus === 'completed') bg-[#E1D5B6] text-[#6B5B48] dark:bg-[#6B5B48] dark:text-[#E1D5B6]
+                                    @elseif($appointment->appstatus === 'declined') bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100
                                     @else bg-[#F4F2ED] text-[#8A7560] dark:bg-[#8A7560] dark:text-[#F4F2ED] @endif">
                                     {{ $appointment->appstatus }}
                                 </span>
@@ -203,7 +188,15 @@
                     </div>
                 </div>
 
-                <!-- Status Update Form -->
+                @php
+                    // Logic: 
+                    // 1. Status Update is locked if status is completed, declined, or cancelled (terminal states).
+                    // 2. Delete is locked unless status is strictly 'pending'.
+                    $currentStatus = strtolower($appointment->appstatus);
+                    $isTerminal = in_array($currentStatus, ['completed', 'declined', 'cancelled']);
+                    $canDelete = $currentStatus === 'pending';
+                @endphp
+
                 <div class="bg-[#F8F4EC] dark:bg-gray-700 rounded-lg p-6 mb-6">
                     <div class="flex items-center space-x-3 mb-4">
                         <div class="p-2 bg-[#F1E9D2] dark:bg-[#9C8770] rounded-lg">
@@ -217,30 +210,53 @@
                         <div>
                             <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100">Update Appointment
                                 Status</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Change the current status of this
-                                appointment</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                @if($isTerminal)
+                                    Status cannot be changed because it is {{ $appointment->appstatus }}.
+                                @else
+                                    Change the current status of this appointment.
+                                @endif
+                            </p>
                         </div>
                     </div>
 
                     <form method="POST" action="{{ route('upcycler.update', $appointment) }}">
                         @csrf
                         @method('PATCH')
-                        <div
-                            class="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                            <select name="appstatus"
-                                class="border-[#E9DFC7] dark:border-gray-600 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md shadow-sm focus:ring-[#B59F84] focus:border-[#B59F84] flex-1">
-                                <option value="pending" {{ $appointment->appstatus === 'pending' ? 'selected' : '' }}>
-                                     Pending</option>
-                                <option value="approved"
-                                    {{ $appointment->appstatus === 'approved' ? 'selected' : '' }}>Approved</option>
-                                <option value="declined"
-                                    {{ $appointment->appstatus === 'declined' ? 'selected' : '' }}>Declined</option>
-                                <option value="completed"
-                                    {{ $appointment->appstatus === 'completed' ? 'selected' : '' }}>Completed
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                            
+                            <select name="appstatus" @if($isTerminal) disabled @endif
+                                class="border-[#E9DFC7] dark:border-gray-600 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md shadow-sm focus:ring-[#B59F84] focus:border-[#B59F84] flex-1
+                                {{ $isTerminal ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : '' }}">
+                                
+                                <option value="pending" 
+                                    {{ old('appstatus', $appointment->appstatus) == 'pending' ? 'selected' : '' }}>
+                                    Pending
                                 </option>
+                                
+                                <option value="approved" 
+                                    {{ old('appstatus', $appointment->appstatus) == 'approved' ? 'selected' : '' }}>
+                                    Approved
+                                </option>
+                                
+                                <option value="declined" 
+                                    {{ old('appstatus', $appointment->appstatus) == 'declined' ? 'selected' : '' }}>
+                                    Declined
+                                </option>
+                                
+                                <option value="completed" 
+                                    {{ old('appstatus', $appointment->appstatus) == 'completed' ? 'selected' : '' }}>
+                                    Completed
+                                </option>
+                                
                             </select>
-                            <button type="submit"
-                                class="inline-flex items-center bg-[#B59F84] hover:bg-[#9C8770] text-white px-4 py-2 rounded-md transition-colors duration-200">
+
+                            <button type="submit" @if($isTerminal) disabled @endif
+                                class="inline-flex items-center px-4 py-2 rounded-md transition-colors duration-200
+                                {{ $isTerminal 
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                                    : 'bg-[#B59F84] hover:bg-[#9C8770] text-white' 
+                                }}">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M5 13l4 4L19 7"></path>
@@ -251,7 +267,6 @@
                     </form>
                 </div>
 
-                <!-- Navigation and Actions -->
                 <div
                     class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
                     <div class="flex space-x-3">
@@ -270,8 +285,12 @@
                         class="flex">
                         @csrf
                         @method('DELETE')
-                        <button type="submit"
-                            class="inline-flex items-center bg-[#8A7560] hover:bg-[#6B5B48] text-white px-4 py-2 rounded-md transition-colors duration-200">
+                        <button type="submit" @if(!$canDelete) disabled @endif
+                            class="inline-flex items-center px-4 py-2 rounded-md transition-colors duration-200
+                            {{ !$canDelete
+                                ? 'bg-gray-300 text-gray-400 cursor-not-allowed border border-gray-300'
+                                : 'bg-[#8A7560] hover:bg-[#6B5B48] text-white' 
+                            }}">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
