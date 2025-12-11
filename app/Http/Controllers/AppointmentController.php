@@ -68,7 +68,7 @@ class AppointmentController extends Controller
 
         // Flash success or error message to session
         if ($result['success']) {
-            return redirect()->route('appointments.create')
+            return redirect()->route('appointments.myAppointments')
                 ->with('success', $result['message']); // triggers green banner
         } else {
             return redirect()->back()
