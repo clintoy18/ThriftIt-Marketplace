@@ -106,7 +106,7 @@ class ProductController extends Controller
     public function storeQr(Request $request)
     {
         if ($request->hasFile('qr_code')) {
-            // FIX: Upload directly to 'qr_codes' with public visibility (Same as Update)
+            // UPLOAD DIRECTLY TO FINAL FOLDER (Public)
             $qrPath = $request->file('qr_code')->store('qr_codes', [
                 'disk' => 's3',
                 'visibility' => 'public',
@@ -160,36 +160,25 @@ class ProductController extends Controller
         DB::beginTransaction();
 
         try {
-            // 1. Create Product
+            // 1. Assign QR path to product data BEFORE creating
+            if ($qr) {
+                $step1['qr_code'] = $qr;
+            }
+
+            // 2. Create Product
             $product = Product::create($step1);
 
-            // 2. Move Images within S3 (temp_products -> products)
+            // 3. Move IMAGES (Keep this! Images are still in temp)
             foreach ($images as $tempPath) {
-                // Check if file still exists in S3 temp
                 if (Storage::disk('s3')->exists($tempPath)) {
-
                     $fileName = basename($tempPath);
                     $finalPath = 'products/' . $fileName;
 
-                    // Move = Copy + Delete (Atomic in Laravel S3 driver)
                     Storage::disk('s3')->move($tempPath, $finalPath);
-
-                    // Ensure visibility is public after move
                     Storage::disk('s3')->setVisibility($finalPath, 'public');
 
-                    // Save to DB
                     $product->images()->create(['image' => $finalPath]);
                 }
-            }
-
-            // 3. Handle QR Code (if exists)
-            if ($qr && Storage::disk('public')->exists($qr)) {
-                // ... (Your existing QR logic is fine, usually QR is small enough to keep local or move similarly)
-                // If you want QR on S3 too, follow the same logic as above.
-                $qrName = basename($qr);
-                $s3QrPath = 'qr_codes/' . $qrName;
-                Storage::disk('s3')->put($s3QrPath, Storage::disk('s3')->get($qr), 'p');
-                $product->update(['qr_code' => $s3QrPath]);
             }
 
             DB::commit();
