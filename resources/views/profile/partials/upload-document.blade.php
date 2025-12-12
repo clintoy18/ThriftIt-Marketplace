@@ -1,3 +1,12 @@
+@php
+    $missingFields = [];
+    if (empty($user->fname)) $missingFields[] = 'First Name';
+    if (empty($user->lname)) $missingFields[] = 'Last Name';
+    if (empty($user->email)) $missingFields[] = 'Email';
+    if (empty($user->barangay_id)) $missingFields[] = 'Barangay';
+    $isProfileComplete = empty($missingFields);
+@endphp
+
 <section x-data="{ 
     showUpload: {{ $errors->any() ? 'true' : 'false' }}, 
     showTerms: false,
@@ -37,13 +46,46 @@
             </div>
         </div>
         @if ($user->verification_status !== 'pending' && $user->verification_status !== 'approved')
-            <button type="button" @click="showUpload = !showUpload" class="px-4 py-2 text-sm font-medium text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors">Get Verified</button>
+            <button type="button" 
+                @click="showUpload = !showUpload" 
+                @if(!$isProfileComplete) disabled @endif
+                class="px-4 py-2 text-sm font-medium {{ $isProfileComplete ? 'text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20' : 'text-gray-400 dark:text-gray-500 cursor-not-allowed bg-gray-100 dark:bg-gray-700' }} rounded-lg transition-colors">
+                Get Verified
+            </button>
         @endif
     </div>
 
     @if ($user->verification_status !== 'pending' && $user->verification_status !== 'approved')
+        @if (!$isProfileComplete)
+            <div class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <div class="flex items-start gap-3">
+                    <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-1">Complete Your Profile First</h4>
+                        <p class="text-sm text-amber-800 dark:text-amber-300 mb-2">
+                            Please complete the following required fields in your profile information before submitting verification documents:
+                        </p>
+                        <ul class="list-disc list-inside text-sm text-amber-800 dark:text-amber-300 space-y-1">
+                            @foreach($missingFields as $field)
+                                <li>{{ $field }}</li>
+                            @endforeach
+                        </ul>
+                        
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <div x-show="showUpload" x-cloak class="p-5 border border-green-200 dark:border-green-800 rounded-lg bg-white dark:bg-gray-800">
             <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Upload Identification</h3>
+
+            @error('profile_incomplete')
+                <div class="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p class="text-sm text-red-800 dark:text-red-300">{{ $message }}</p>
+                </div>
+            @enderror
 
             <div class="text-xs text-gray-600 dark:text-gray-400 mb-4 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
                 <span class="font-semibold block mb-2 text-gray-800 dark:text-gray-200">Accepted government-issued IDs:</span>
@@ -110,15 +152,23 @@
                 </div>
 
                 <div class="flex items-start space-x-2 pt-2">
-                    <input type="checkbox" name="terms" id="terms" class="mt-1 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 dark:bg-gray-700">
+                    <input type="checkbox" name="terms" id="terms" value="1" required
+                        class="mt-1 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 dark:bg-gray-700">
                     <label for="terms" class="text-sm text-gray-700 dark:text-gray-300">
                         I agree to the <button type="button" @click="showTerms = true" class="text-green-600 hover:underline">Terms and Conditions</button>.
                     </label>
                 </div>
+                @error('terms')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
 
                 <div class="flex justify-end gap-2">
                     <button type="button" @click="showUpload = false" class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">Cancel</button>
-                    <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg">Submit</button>
+                    <button type="submit" 
+                        @if(!$isProfileComplete) disabled @endif
+                        class="px-4 py-2 text-sm font-semibold text-white {{ $isProfileComplete ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed' }} rounded-lg transition-colors">
+                        Submit
+                    </button>
                 </div>
             </form>
         </div>

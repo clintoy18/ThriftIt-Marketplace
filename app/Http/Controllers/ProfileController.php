@@ -182,12 +182,38 @@ class ProfileController extends Controller
 
     public function uploadVerificationDocument(Request $request)
     {
+        $user = $request->user();
+
+        // Check if profile information is complete
+        $missingFields = [];
+        if (empty($user->fname)) {
+            $missingFields[] = 'First Name';
+        }
+        if (empty($user->lname)) {
+            $missingFields[] = 'Last Name';
+        }
+        if (empty($user->email)) {
+            $missingFields[] = 'Email';
+        }
+        if (empty($user->barangay_id)) {
+            $missingFields[] = 'Barangay';
+        }
+
+        if (!empty($missingFields)) {
+            return back()->withErrors([
+                'profile_incomplete' => 'Please complete your profile information before submitting verification documents. Missing: ' . implode(', ', $missingFields)
+            ])->withInput();
+        }
+
         $request->validate([
             'verification_document'      => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'verification_document_back' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'terms' => 'required|accepted',
+        ], [
+            'terms.required' => 'You must agree to the Terms and Conditions to proceed.',
+            'terms.accepted' => 'You must agree to the Terms and Conditions to proceed.',
         ]);
 
-        $user = $request->user();
         $dataToUpdate = [
             'verification_status' => 'pending',
         ];
