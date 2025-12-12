@@ -1,8 +1,9 @@
 @php
     // Helper to fetch names from IDs stored in session
-    $category = \App\Models\Categories::find($step1['category_id']);
-    $segment  = \App\Models\Segment::find($step1['segment_id']);
-    $barangay = \App\Models\Barangay::find($step1['barangay_id']);
+    // We use optional() or null coalescing to prevent crashes if session data is missing
+    $category = isset($step1['category_id']) ? \App\Models\Categories::find($step1['category_id']) : null;
+    $segment  = isset($step1['segment_id'])  ? \App\Models\Segment::find($step1['segment_id']) : null;
+    $barangay = isset($step1['barangay_id']) ? \App\Models\Barangay::find($step1['barangay_id']) : null;
 @endphp
 
 <x-app-layout>
@@ -53,6 +54,7 @@
 
                 <div class="p-8">
                     
+                    {{-- PRODUCT PHOTOS SECTION --}}
                     <div class="bg-white/60 dark:bg-gray-800/60 rounded-2xl p-6 shadow-sm border border-[#E9DFC7] dark:border-gray-600 mb-8">
                         <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5 text-[#B59F84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,7 +67,7 @@
                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                 @foreach($images as $image)
                                     <div class="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm group">
-                                        {{-- Using S3 Temporary URL for Product Images --}}
+                                        {{-- Using S3 temporaryUrl ensures visibility even if bucket policies are strict --}}
                                         <img src="{{ Storage::disk('s3')->temporaryUrl($image, now()->addMinutes(60)) }}" 
                                              alt="Product preview" 
                                              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
@@ -77,6 +79,7 @@
                         @endif
                     </div>
 
+                    {{-- PRODUCT INFO SECTION --}}
                     <div class="bg-white/60 dark:bg-gray-800/60 rounded-2xl p-6 shadow-sm border border-[#E9DFC7] dark:border-gray-600 mb-8">
                         <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5 text-[#B59F84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,6 +116,7 @@
                         </div>
                     </div>
 
+                    {{-- QR CODE SECTION --}}
                     <div class="bg-white/60 dark:bg-gray-800/60 rounded-2xl p-6 shadow-sm border border-[#E9DFC7] dark:border-gray-600 mb-8">
                         <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5 text-[#B59F84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,27 +127,11 @@
 
                         @if ($qr && !empty(trim($qr)))
                             <div class="flex flex-col items-center text-center">
-                                <div class="w-40 h-40 bg-white dark:bg-gray-700 rounded-2xl shadow-lg p-4 border-2 border-[#E1D5B6] dark:border-gray-600 mb-4">
-                                    {{-- FIX: Use S3 disk and temporaryUrl with validation --}}
-                                    @php
-                                        $qrUrl = null;
-                                        try {
-                                            if (!empty(trim($qr))) {
-                                                $qrUrl = Storage::disk('s3')->temporaryUrl(trim($qr), now()->addMinutes(60));
-                                            }
-                                        } catch (\Exception $e) {
-                                            $qrUrl = null;
-                                        }
-                                    @endphp
-                                    @if($qrUrl)
-                                        <img src="{{ $qrUrl }}" 
-                                             alt="QR Code" 
-                                             class="max-w-full h-auto rounded-lg shadow-sm">
-                                    @else
-                                        <div class="w-full h-full flex items-center justify-center text-gray-400">
-                                            <p class="text-xs">QR Code unavailable</p>
-                                        </div>
-                                    @endif
+                                <div class="w-40 h-40 bg-white dark:bg-gray-700 rounded-2xl shadow-lg p-2 border-2 border-[#E1D5B6] dark:border-gray-600 mb-4 flex items-center justify-center overflow-hidden">
+                                    {{-- FIX: Using temporaryUrl to handle S3 preview --}}
+                                    <img src="{{ Storage::disk('s3')->temporaryUrl($qr, now()->addMinutes(60)) }}" 
+                                         alt="QR Code" 
+                                         class="w-full h-full object-contain rounded-lg">
                                 </div>
                                 <p class="text-green-600 dark:text-green-400 font-medium flex items-center gap-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,7 +164,7 @@
                             {{-- BACK BUTTON LOGIC --}}
                             @if (auth()->user()->is_verified)
                                 <a href="{{ route('sell-item.qr-step') }}"
-                                    class="group flex-1 px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 dark:from-gray-700 dark:to-gray-600 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-200 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:scale-[1.02]">
+                                   class="group flex-1 px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 dark:from-gray-700 dark:to-gray-600 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-200 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:scale-[1.02]">
                                     <div class="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center group-hover:bg-gray-300 dark:group-hover:bg-gray-500 transition-colors duration-300">
                                         <svg class="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -189,7 +177,7 @@
                                 </a>
                             @else
                                 <a href="{{ route('products.create') }}"
-                                    class="group flex-1 px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 dark:from-gray-700 dark:to-gray-600 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-200 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:scale-[1.02]">
+                                   class="group flex-1 px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 dark:from-gray-700 dark:to-gray-600 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-200 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:scale-[1.02]">
                                     <div class="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center group-hover:bg-gray-300 dark:group-hover:bg-gray-500 transition-colors duration-300">
                                         <svg class="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
