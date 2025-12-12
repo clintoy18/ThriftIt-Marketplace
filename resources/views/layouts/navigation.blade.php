@@ -495,7 +495,18 @@
             
         </div>
     </div>
-</div>
+                        </div>
+
+                        
+                        <!-- Help Icon - Information -->
+            <a href="{{ route('help') }}" 
+                class="text-gray-700 dark:text-gray-200 hover:text-[#B59F84] transition-colors duration-200"
+                title="Help & Support">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </a>
 
                     @endif
                 @endauth
@@ -1108,6 +1119,19 @@
                         </div>
                     </div>
 
+                    <!-- Mobile Help Icon -->
+                    <a href="{{ route('help') }}" 
+    class="flex items-center space-x-2 text-gray-700 dark:text-gray-200 hover:text-[#B59F84] transition-colors duration-200 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+    title="Help & Support">
+    <!-- Icon -->
+    <svg class="w-7 h-7 sm:w-6 sm:h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <!-- Text label - visible on mobile, hidden on larger screens -->
+    <span class="sm:hidden text-sm font-medium">Help</span>
+</a>
+
                     <!-- Hamburger Menu -->
                     <button @click="mobileMenuOpen = !mobileMenuOpen"
                         class="p-2 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-200  dark:hover:bg-gray-800 focus:outline-none">
@@ -1203,6 +1227,17 @@
 
                         <a href="{{ route('profile.show', ['user' => Auth::id()]) }}"
                             class="flex items-center text-gray-700 dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">Profile</a>
+
+                        <!-- Help Link in Mobile Menu -->
+                        <a href="{{ route('help') }}"
+                            class="flex items-center text-gray-700 dark:text-gray-200 py-3 hover:text-[#B59F84] border-b border-gray-100 font-medium">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172-1.025 3.07-1.025 4.242 0 1.171 1.025 1.171 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z">
+                                </path>
+                            </svg>
+                            Help & Support
+                        </a>
 
                         <!-- Mobile Settings Dropdown -->
                         <div x-data="{ mobileSettingsOpen: false }" class="relative border-b border-gray-100 dark:text-gray-200">
