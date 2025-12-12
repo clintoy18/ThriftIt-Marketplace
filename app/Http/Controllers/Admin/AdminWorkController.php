@@ -71,6 +71,11 @@ class AdminWorkController extends Controller
         //email user once work is approved
         // Mail::to($work->user->email)->send(new WorkApprovedMail($work));
 
+
+        if ($work->user) {
+            $work->user->increment('points', 20); 
+        }
+
         // Save notification in DB
         Notification::create([
             'user_id' => $work->user_id,
