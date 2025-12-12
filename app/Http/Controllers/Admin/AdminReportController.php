@@ -27,7 +27,6 @@ class AdminReportController extends Controller
         $report->load(['reporter', 'reportedUser']);
         return view('admin.reports.show', compact('report'));
     }
-
     public function update(Request $request, Report $report): RedirectResponse
     {
         $validated = $request->validate([
@@ -35,12 +34,32 @@ class AdminReportController extends Controller
             'admin_notes' => 'nullable|string|max:1000'
         ]);
 
+        // 1. Update the report status FIRST
         $report->update($validated);
 
-        return redirect()->route('admin.reports.index', $report)
-            ->with('success', 'Report status updated successfully.');
-    }
+        // 2. ONLY run logic if status is resolved
+        if ($validated['status'] === 'resolved') {
 
+            // Refresh the user relation to ensure we have the latest data
+            $user = $report->reportedUser()->first();
+
+            // Manually count strictly from the database to be 100% sure
+            // (This ignores any cached accessor values)
+            $totalStrikes = Report::where('reported_user_id', $user->id)
+                ->where('status', 'resolved')
+                ->count();
+
+            // 3. Check Threshold
+            if ($totalStrikes >= 3) {
+                $user->update([
+                    'is_active' => 0,
+                    'suspended_until' => now()->addDays(3)
+                ]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Report updated.');
+    }
     public function destroy(Report $report): RedirectResponse
     {
         $report->delete();
@@ -52,11 +71,11 @@ class AdminReportController extends Controller
     public function exportAllPdf()
     {
         // Gather key dashboard data
-        $users = User::select('id','fname','lname','email','created_at')->latest()->get();
-        $products = Product::with(['user','category'])
-            ->select('id','user_id','name','price','status','created_at','category_id')
+        $users = User::select('id', 'fname', 'lname', 'email', 'created_at')->latest()->get();
+        $products = Product::with(['user', 'category'])
+            ->select('id', 'user_id', 'name', 'price', 'status', 'created_at', 'category_id')
             ->latest()->get();
-        $reports = Report::with(['reporter','reportedUser'])
+        $reports = Report::with(['reporter', 'reportedUser'])
             ->latest()->get();
 
         // Monthly sales (current year)
@@ -69,9 +88,9 @@ class AdminReportController extends Controller
             ->get()
             ->keyBy('month');
 
-        $data = compact('users','products','reports','monthlySales','year');
+        $data = compact('users', 'products', 'reports', 'monthlySales', 'year');
 
         $pdf = Pdf::loadView('admin.reports.all-export', $data)->setPaper('a4', 'portrait');
         return $pdf->download('admin-export.pdf');
     }
-} 
+}

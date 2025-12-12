@@ -38,6 +38,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'verification_document_back',
         'profile_pic',
         'barangay_id',
+        'suspended_until',
     ];
 
     /**
@@ -62,6 +63,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'role' => 'integer',
             'is_active' => 'boolean',
+            'suspended_until' => 'datetime', // 
         ];
     }
 
@@ -115,6 +117,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function reportsReceived()
     {
         return $this->hasMany(Report::class, 'reported_user_id');
+    }
+
+    // 2. Accessor: Calculate "Strikes" live
+    // Usage: $user->strikes
+    public function getStrikesAttribute()
+    {
+        return $this->reportsReceived()
+            ->where('status', 'resolved')
+            ->count();
     }
 
     public function reviewsWritten()

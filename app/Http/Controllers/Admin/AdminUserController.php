@@ -57,10 +57,10 @@ class AdminUserController extends Controller
 
     public function destroy(User $user): RedirectResponse
     {
-        // Check if the user has products
-        if ($user->products()->exists()) {
+        // Check if the user has ANY existing records (products, works, or donations)
+        if ($user->products()->exists() || $user->works()->exists() || $user->donations()->exists()) {
             return redirect()->route('admin.users.index')
-                ->with('error', 'Cannot delete user. This user has listed products.');
+                ->with('error', 'Cannot delete user. This user has active products, works, or donations linked to their account.');
         }
 
         $user->delete();
