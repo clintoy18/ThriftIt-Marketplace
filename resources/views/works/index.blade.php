@@ -87,10 +87,10 @@
                                                 {{ $work->title }}
                                             </h3>
                                             <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 truncate">
-                                                Type: {{ ucfirst($work->type) }}
+                                               {{ ucfirst($work->upcycle_type) }}
                                             </p>
                                             <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 truncate">
-                                                {{ Str::limit($work->description, 50) }}
+                                                {{ Str::limit($work->description, 60) }}
                                             </p>
                                         </div>
                                     </a>

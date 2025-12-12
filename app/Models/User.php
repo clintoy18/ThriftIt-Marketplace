@@ -35,6 +35,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_verified',
         'verification_status',
         'verification_document',
+        'verification_document_back',
         'profile_pic',
         'barangay_id',
     ];

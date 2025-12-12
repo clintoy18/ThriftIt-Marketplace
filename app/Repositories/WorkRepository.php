@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Work;
+use Illuminate\Support\Facades\Auth;
 
 class WorkRepository
 {
@@ -62,12 +63,19 @@ class WorkRepository
     // Get approved works optionally filtered by type or other criteria
     public function getApprovedWorks(?string $type = null)
     {
-        $query = $this->model->where('approval_status', 'approved')->with('images', 'user')->latest();
+        // Start query: approved works of the authenticated user
+        $query = $this->model
+            ->where('approval_status', 'approved')
+            ->where('user_id', Auth::id())
+            ->with(['images', 'user'])
+            ->latest();
 
+        // Filter by type if provided
         if ($type) {
             $query->where('type', $type);
         }
 
+        // Get results
         return $query->get();
     }
 

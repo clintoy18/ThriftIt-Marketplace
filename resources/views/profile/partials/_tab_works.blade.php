@@ -45,10 +45,10 @@
                             {{ $work->title ?? 'Untitled' }}
                         </h4>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            {{ $moreWork->upcycle_type ?? 'No upcycling type' }}
+                            {{ ucfirst($work->upcycle_type) ?? 'No upcycling type' }}
                         </p>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            {{ $moreWork->description ?? 'No Description' }}
+                            {{ Str::limit($work->description, 80, '...') ?? 'No Description' }}
                         </p>
                     </div>
                 </a>
