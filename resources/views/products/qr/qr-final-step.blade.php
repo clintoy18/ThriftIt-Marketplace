@@ -121,13 +121,29 @@
                             QR Code
                         </h4>
 
-                        @if ($qr)
+                        @if ($qr && !empty(trim($qr)))
                             <div class="flex flex-col items-center text-center">
                                 <div class="w-40 h-40 bg-white dark:bg-gray-700 rounded-2xl shadow-lg p-4 border-2 border-[#E1D5B6] dark:border-gray-600 mb-4">
-                                    {{-- FIX: Use S3 disk and temporaryUrl --}}
-                                    <img src="{{ Storage::disk('s3')->temporaryUrl($qr, now()->addMinutes(60)) }}" 
-                                         alt="QR Code" 
-                                         class="max-w-full h-auto rounded-lg shadow-sm">
+                                    {{-- FIX: Use S3 disk and temporaryUrl with validation --}}
+                                    @php
+                                        $qrUrl = null;
+                                        try {
+                                            if (!empty(trim($qr))) {
+                                                $qrUrl = Storage::disk('s3')->temporaryUrl(trim($qr), now()->addMinutes(60));
+                                            }
+                                        } catch (\Exception $e) {
+                                            $qrUrl = null;
+                                        }
+                                    @endphp
+                                    @if($qrUrl)
+                                        <img src="{{ $qrUrl }}" 
+                                             alt="QR Code" 
+                                             class="max-w-full h-auto rounded-lg shadow-sm">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                            <p class="text-xs">QR Code unavailable</p>
+                                        </div>
+                                    @endif
                                 </div>
                                 <p class="text-green-600 dark:text-green-400 font-medium flex items-center gap-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
