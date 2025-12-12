@@ -66,28 +66,43 @@
         <!-- Name Fields -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="group">
-                <x-input-label for="fname" :value="__('First Name')" class="text-sm font-semibold mb-2" />
+                <label for="fname" class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                    First Name <span class="text-red-500">*</span>
+                </label>
                 <x-text-input id="fname" name="fname" type="text"
-                    class="block w-full border-gray-300 dark:border-gray-700 rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500"
+                    class="block w-full {{ empty($user->fname) ? 'border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20' : 'border-gray-300 dark:border-gray-700' }} rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500"
                     :value="old('fname', $user->fname)" required autocomplete="fname" placeholder="Enter your first name" />
+                @if(empty($user->fname))
+                    <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">Required for verification</p>
+                @endif
                 <x-input-error class="mt-2" :messages="$errors->get('fname')" />
             </div>
 
             <div class="group">
-                <x-input-label for="lname" :value="__('Last Name')" class="text-sm font-semibold mb-2" />
+                <label for="lname" class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                    Last Name <span class="text-red-500">*</span>
+                </label>
                 <x-text-input id="lname" name="lname" type="text"
-                    class="block w-full border-gray-300 dark:border-gray-700 rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500"
+                    class="block w-full {{ empty($user->lname) ? 'border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20' : 'border-gray-300 dark:border-gray-700' }} rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500"
                     :value="old('lname', $user->lname)" required autocomplete="lname" placeholder="Enter your last name" />
+                @if(empty($user->lname))
+                    <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">Required for verification</p>
+                @endif
                 <x-input-error class="mt-2" :messages="$errors->get('lname')" />
             </div>
         </div>
 
         <!-- Email -->
         <div>
-            <x-input-label for="email" :value="__('Email Address')" class="text-sm font-semibold mb-2" />
+            <label for="email" class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                Email Address <span class="text-red-500">*</span>
+            </label>
             <x-text-input id="email" name="email" type="email"
-                class="block w-full border-gray-300 dark:border-gray-700 rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500"
+                class="block w-full {{ empty($user->email) ? 'border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20' : 'border-gray-300 dark:border-gray-700' }} rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500"
                 :value="old('email', $user->email)" required autocomplete="email" placeholder="Enter your email" />
+            @if(empty($user->email))
+                <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">Required for verification</p>
+            @endif
             <x-input-error class="mt-2" :messages="$errors->get('email')" />
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !$user->hasVerifiedEmail())
@@ -105,12 +120,14 @@
             <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Location</h3>
             <div class="mb-8">
                 <label for="barangay_id"
-                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Barangay</label>
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Barangay <span class="text-red-500">*</span>
+                </label>
 
                 <select id="barangay_id" name="barangay_id"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
+                    class="mt-1 block w-full rounded-md {{ empty($user->barangay_id) ? 'border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20' : 'border-gray-300' }} shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     required>
-                    <option value="" disabled>Select a barangay</option>
+                    <option value="" disabled {{ empty($user->barangay_id) ? 'selected' : '' }}>Select a barangay</option>
                     @foreach ($barangays as $barangay)
                         <option value="{{ $barangay->id }}"
                             {{ old('barangay_id', $user->barangay_id ?? '') == $barangay->id ? 'selected' : '' }}>
@@ -118,7 +135,9 @@
                         </option>
                     @endforeach
                 </select>
-
+                @if(empty($user->barangay_id))
+                    <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">Required for verification</p>
+                @endif
                 @error('barangay_id')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror

@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\Work;
+use App\Models\Report;
+use App\Models\Donation;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\View;
@@ -79,7 +82,7 @@ class SalesReportController extends Controller
     }
 
     /**
-     * Export combined monthly data (users, upcyclers, sold products) as PDF
+     * Export combined monthly data (users, upcyclers, sold products, works, reports, donations, listed items) as PDF
      */
     public function exportMonthlyDataPdf(int $month)
     {
@@ -93,6 +96,22 @@ class SalesReportController extends Controller
             ->whereMonth('created_at', $month)
             ->orderBy('created_at','desc')
             ->get();
+
+        // Users by role breakdown
+        $usersByRole = [
+            'admin' => User::where('role', 2)
+                ->whereYear('created_at', $year)
+                ->whereMonth('created_at', $month)
+                ->count(),
+            'upcycler' => User::where('role', 1)
+                ->whereYear('created_at', $year)
+                ->whereMonth('created_at', $month)
+                ->count(),
+            'user' => User::where('role', 0)
+                ->whereYear('created_at', $year)
+                ->whereMonth('created_at', $month)
+                ->count(),
+        ];
 
         // Upcyclers are users with role = 1
         $upcyclers = User::select('id','fname','lname','email','created_at')
@@ -111,7 +130,48 @@ class SalesReportController extends Controller
             ->orderBy('created_at','desc')
             ->get();
 
-        $data = compact('users','upcyclers','products','monthName','year');
+        // Listed items (active and pending products)
+        $listedItems = Product::with(['user','category'])
+            ->select('id','user_id','name','price','status','created_at','category_id')
+            ->whereIn('status', ['active', 'pending'])
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->orderBy('created_at','desc')
+            ->get();
+
+        // Works (upcycled works) created in the month
+        $works = Work::with(['user'])
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->orderBy('created_at','desc')
+            ->get();
+
+        // Reported users (reports) created in the month
+        $reportedUsers = Report::with(['reporter', 'reportedUser'])
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->orderBy('created_at','desc')
+            ->get();
+
+        // Donations created in the month
+        $donations = Donation::with(['user', 'category'])
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->orderBy('created_at','desc')
+            ->get();
+
+        $data = compact(
+            'users',
+            'usersByRole',
+            'upcyclers',
+            'products',
+            'listedItems',
+            'works',
+            'reportedUsers',
+            'donations',
+            'monthName',
+            'year'
+        );
 
         $pdf = Pdf::loadView('admin.reports.monthly-export', $data)->setPaper('a4','portrait');
         return $pdf->download("monthly-export-{$monthName}-{$year}.pdf");
