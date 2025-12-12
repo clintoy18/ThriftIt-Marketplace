@@ -125,7 +125,7 @@
                             QR Code
                         </h4>
 
-                        @if ($qr)
+                        @if ($qr && !empty(trim($qr)))
                             <div class="flex flex-col items-center text-center">
                                 <div class="w-40 h-40 bg-white dark:bg-gray-700 rounded-2xl shadow-lg p-2 border-2 border-[#E1D5B6] dark:border-gray-600 mb-4 flex items-center justify-center overflow-hidden">
                                     {{-- FIX: Using temporaryUrl to handle S3 preview --}}

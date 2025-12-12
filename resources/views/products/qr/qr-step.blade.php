@@ -1,7 +1,17 @@
 @php
     // Generate S3 URL if a QR code is already in the session
     $existingQr = session('product_qr');
-    $existingQrUrl = $existingQr ? Storage::disk('s3')->url($existingQr) : null;
+    $existingQrUrl = null;
+    
+    // Only generate URL if we have a valid, non-empty key
+    if (!empty($existingQr) && is_string($existingQr) && trim($existingQr) !== '') {
+        try {
+            $existingQrUrl = Storage::disk('s3')->url(trim($existingQr));
+        } catch (\Exception $e) {
+            // If there's an error generating the URL, set to null
+            $existingQrUrl = null;
+        }
+    }
 @endphp
 
 <x-app-layout>

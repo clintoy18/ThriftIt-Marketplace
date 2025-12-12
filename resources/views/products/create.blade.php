@@ -3,12 +3,20 @@
     $existingImages = [];
     if (session()->has('product_images')) {
         foreach (session('product_images') as $path) {
-            $existingImages[] = [
-                'path' => $path,
-                // Use S3 URL
-                'url' => Storage::disk('s3')->url($path),
-                'name' => basename($path),
-            ];
+            // Only add if path is valid and non-empty
+            if (!empty($path) && is_string($path) && trim($path) !== '') {
+                try {
+                    $url = Storage::disk('s3')->url(trim($path));
+                    $existingImages[] = [
+                        'path' => $path,
+                        'url' => $url,
+                        'name' => basename($path),
+                    ];
+                } catch (\Exception $e) {
+                    // Skip invalid paths
+                    continue;
+                }
+            }
         }
     }
 @endphp
@@ -27,7 +35,27 @@
                 <hr class="w-full mt-4 h-px bg-gray-800 border-0 dark:bg-gray-700">
             </div>
 
-            <x-step-progress :currentStep="$currentStep" />
+            @if(auth()->user()->is_verified)
+                <x-step-progress :currentStep="$currentStep" />
+            @else
+            <div class="mb-8 rounded-2xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20 px-4 py-3 flex items-center gap-3">
+    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-800/60 flex items-center justify-center">
+        <svg class="w-5 h-5 text-amber-700 dark:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.1 19h13.8A2.1 2.1 0 0021 16.9V7.1A2.1 2.1 0 0018.9 5H5.1A2.1 2.1 0 003 7.1v9.8A2.1 2.1 0 005.1 19z"/>
+        </svg>
+    </div>
+    <div class="flex-1">
+        <p class="text-sm font-semibold text-amber-800 dark:text-amber-200">Not verified</p>
+        <div class="flex items-center gap-2 mt-1">
+            <p class="text-sm text-amber-700 dark:text-amber-300">Please verify your account to enable the selling steps.</p>
+            <a href="{{ route('profile.edit') ?? url('/email/verify') }}"
+               class="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold hover:underline hover:text-blue-700 dark:hover:text-blue-300 transition whitespace-nowrap">
+                Click here to verify
+            </a>
+        </div>
+    </div>
+</div>
+            @endif
 
             <form id="productForm" action="{{ route('sell-item.store-step1') }}" method="POST"
                 enctype="multipart/form-data" class="space-y-8">
