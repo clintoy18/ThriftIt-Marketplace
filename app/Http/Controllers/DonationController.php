@@ -27,10 +27,21 @@ class DonationController extends Controller
     }
     public function index(): View
     {
-        $donations = $this->donationService->getDonationsByUser(Auth::id());
-        return view('donations.index', compact('donations'));
-    }
+        // 1. Get ALL donations for this user (ensure your service returns a Collection, not Paginator)
+        $allDonations = $this->donationService->getDonationsByUser(Auth::id());
 
+        // 2. Filter the collection into groups
+        $approved = $allDonations->where('approval_status', 'approved');
+        $pending  = $allDonations->where('approval_status', 'pending');
+        $rejected = $allDonations->where('approval_status', 'rejected');
+
+        // 3. Pass separated lists to the view
+        return view('donations.index', [
+            'approved' => $approved,
+            'pending'  => $pending,
+            'rejected' => $rejected
+        ]);
+    }
     public function create()
     {
         $categories = Categories::all();
