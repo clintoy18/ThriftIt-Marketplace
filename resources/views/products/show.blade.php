@@ -106,13 +106,10 @@
                             @else
                                 <span
                                     class="inline-flex items-center rounded-md bg-green-50 dark:bg-green-900/30 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-300 ring-1 ring-inset ring-green-600/20">
-                                    Active
+                                    Available
                                 </span>
                             @endif
                         </div>
-                        <p class="text-gray-600 dark:text-gray-400">
-                            <span class="font-medium">Status:</span> {{ ucfirst($product->status) }}
-                        </p>
 
                         <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-sm">
                             <p class="text-gray-800 dark:text-gray-200 break-words overflow-hidden">
