@@ -1,6 +1,39 @@
 <x-app-layout>
     <div class="py-12 bg-white dark:bg-gray-700 dark:text-gray-200">
         <div class="max-w-7xl mx-auto p-6">
+
+            @if ($product->approval_status === 'rejected')
+                <div class="rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 mb-8">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+                                This product has been rejected
+                            </h3>
+                            <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+                                <p>
+                                    This listing does not meet our community guidelines.
+                                    @if (!empty($product->rejection_reason))
+                                        <br><span class="font-bold mt-1 block">Reason: {{ $product->rejection_reason }}</span>
+                                    @endif
+                                </p>
+                                @if (Auth::id() === $product->user_id)
+                                    <p class="mt-2 font-medium">
+                                        Action Required: Please update the product details to resolve the issue and
+                                        resubmit for approval.
+                                    </p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
             <!-- Two-Column Layout -->
             <div class="flex flex-col lg:flex-row gap-8 items-stretch">
                 <!-- Left Column: Image Slider & Product Info -->
@@ -11,9 +44,8 @@
                             @if ($product->images && $product->images->count() > 0)
                                 @foreach ($product->images as $image)
                                     <div class="swiper-slide flex items-center justify-center bg-white h-full">
-                                        <img src="{{ Storage::disk('s3')->temporaryUrl($image->image, now()->addMinutes(60)) }}" 
-                                            alt="{{ $product->name }}" 
-                                            class="w-full h-full object-cover rounded-lg">
+                                        <img src="{{ Storage::disk('s3')->temporaryUrl($image->image, now()->addMinutes(60)) }}"
+                                            alt="{{ $product->name }}" class="w-full h-full object-cover rounded-lg">
                                     </div>
                                 @endforeach
                             @else
@@ -53,12 +85,37 @@
                             <span class="font-medium">Category:</span> {{ $product->category->name ?? 'No Category' }}
                         </p>
 
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="text-gray-600 dark:text-gray-400 font-medium">Status:</span>
+
+                            @if ($product->approval_status === 'rejected')
+                                <span
+                                    class="inline-flex items-center rounded-md bg-red-50 dark:bg-red-900/30 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-300 ring-1 ring-inset ring-red-600/10">
+                                    Rejected
+                                </span>
+                            @elseif($product->approval_status === 'pending')
+                                <span
+                                    class="inline-flex items-center rounded-md bg-yellow-50 dark:bg-yellow-900/30 px-2 py-1 text-xs font-medium text-yellow-800 dark:text-yellow-300 ring-1 ring-inset ring-yellow-600/20">
+                                    Pending Approval
+                                </span>
+                            @elseif($product->status === 'sold')
+                                <span
+                                    class="inline-flex items-center rounded-md bg-gray-100 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 ring-1 ring-inset ring-gray-500/10">
+                                    Sold
+                                </span>
+                            @else
+                                <span
+                                    class="inline-flex items-center rounded-md bg-green-50 dark:bg-green-900/30 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-300 ring-1 ring-inset ring-green-600/20">
+                                    Active
+                                </span>
+                            @endif
+                        </div>
                         <p class="text-gray-600 dark:text-gray-400">
                             <span class="font-medium">Status:</span> {{ ucfirst($product->status) }}
                         </p>
 
                         <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-sm">
-                        <p class="text-gray-800 dark:text-gray-200 break-words overflow-hidden">
+                            <p class="text-gray-800 dark:text-gray-200 break-words overflow-hidden">
                                 {{ $product->description ?? 'No description available' }}
                             </p>
                         </div>
@@ -145,9 +202,11 @@
                             <!-- Buy Now Button -->
                             @if (Auth::id() === $product->user_id)
                                 @if ($product->qr_code)
-                                    <div class="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800">
+                                    <div
+                                        class="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800">
                                         <div class="flex items-center justify-between mb-3">
-                                            <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Your Payment QR Code</h4>
+                                            <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Your
+                                                Payment QR Code</h4>
                                             <span class="text-xs text-gray-500">Visible only to you</span>
                                         </div>
                                         <div class="flex justify-center">

@@ -194,7 +194,18 @@ class ProductController extends Controller
 
     public function index(): View
     {
-        $products = $this->productService->getProductsByUser(Auth::id());
+        $allProducts = $this->productService->getProductsByUser(Auth::id());
+        // 2. Filter the collection into groups
+        $approved = $allProducts->where('approval_status', 'approved');
+        $pending  = $allProducts->where('approval_status', 'pending');
+        $rejected = $allProducts->where('approval_status', 'rejected');
+
+        // 3. Pass the separated lists to the view
+        return view('products.index', [
+            'approved' => $approved,
+            'pending'  => $pending,
+            'rejected' => $rejected
+        ]);
         return view('products.index', compact('products'));
     }
 
