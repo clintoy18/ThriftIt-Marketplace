@@ -106,9 +106,13 @@ class ProductController extends Controller
     public function storeQr(Request $request)
     {
         if ($request->hasFile('qr_code')) {
-            // FIX: Use 's3' disk with public visibility so the preview works
-            $tempQr = $request->file('qr_code')->storePublicly('temp_qr', 's3');
-            session(['product_qr' => $tempQr]);
+            // FIX: Upload directly to 'qr_codes' with public visibility (Same as Update)
+            $qrPath = $request->file('qr_code')->store('qr_codes', [
+                'disk' => 's3',
+                'visibility' => 'public',
+            ]);
+
+            session(['product_qr' => $qrPath]);
         }
 
         return redirect()->route('sell-item.final-step')
@@ -184,7 +188,7 @@ class ProductController extends Controller
                 // If you want QR on S3 too, follow the same logic as above.
                 $qrName = basename($qr);
                 $s3QrPath = 'qr_codes/' . $qrName;
-                Storage::disk('s3')->put($s3QrPath, Storage::disk('public')->get($qr), 'public');
+                Storage::disk('s3')->put($s3QrPath, Storage::disk('s3')->get($qr), 'p');
                 $product->update(['qr_code' => $s3QrPath]);
             }
 
