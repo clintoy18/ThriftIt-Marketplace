@@ -156,7 +156,7 @@
                         </a>
 
                         {{-- CANCEL BUTTON --}}
-                        <form method="POST" action="{{ route('appointments.cancel', $appointment->appointmentid) }}" onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
+                        <form method="PAT" action="{{ route('appointments.cancel', $appointment->appointmentid) }}" onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
                             @csrf
                             @method('PATCH')
                             <button type="submit" 

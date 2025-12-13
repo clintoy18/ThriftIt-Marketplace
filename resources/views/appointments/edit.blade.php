@@ -1,13 +1,26 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Edit Appointment') }}
-        </h2>
+        <div class="flex items-center justify-between">
+            <h2 class="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
+                {{ __('Edit Appointment') }}
+            </h2>
+
+            {{-- BACK BUTTON --}}
+            <a href="{{ route('appointments.index') }}"
+                class="inline-flex items-center px-4 py-2 bg-[#B59F84] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#6B5B48] active:bg-[#6B5B48] focus:outline-none focus:border-[#6B5B48] focus:ring ring-[#B59F84] disabled:opacity-25 transition ease-in-out duration-150">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-[#F4F2ED] dark:bg-gray-900 shadow-lg rounded-2xl border border-gray-200 dark:border-gray-700 p-8">
+            <div
+                class="bg-[#F4F2ED] dark:bg-gray-900 shadow-lg rounded-2xl border border-gray-200 dark:border-gray-700 p-8">
                 <form method="POST" action="{{ route('appointments.update', $appointment->appointmentid) }}"
                     enctype="multipart/form-data">
                     @csrf
@@ -15,14 +28,16 @@
 
                     {{-- Read-only fields (Upcycler & Time) --}}
                     <div class="mb-4">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Scheduled with Upcycler</label>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Scheduled with
+                            Upcycler</label>
                         <x-text-input type="text"
                             class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 cursor-not-allowed"
                             :value="$appointment->upcycler->fname . ' ' . $appointment->upcycler->lname" disabled />
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Appointment Time</label>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Appointment
+                            Time</label>
                         <x-text-input type="text"
                             class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 cursor-not-allowed"
                             :value="\Carbon\Carbon::parse($appointment->appdate)
@@ -66,12 +81,14 @@
 
                     {{-- ================= IMAGE MANAGEMENT SECTION ================= --}}
                     <div class="mb-6 border-t border-gray-200 dark:border-gray-700 pt-6">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Manage Reference Photos</h3>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Manage Reference Photos
+                        </h3>
 
                         {{-- 1. Existing Images (with Delete option) --}}
                         @if ($appointment->apptImages && $appointment->apptImages->count() > 0)
                             <div class="mb-4">
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Current Photos (Select checkboxes to delete on save):</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Current Photos
+                                    (Select checkboxes to delete on save):</p>
                                 <div class="flex gap-3 overflow-x-auto pb-2">
                                     @foreach ($appointment->apptImages as $img)
                                         <div class="relative flex-shrink-0">
@@ -80,8 +97,11 @@
                                                 class="h-28 w-28 object-cover rounded-lg border border-gray-300 dark:border-gray-600">
 
                                             {{-- Delete Checkbox Overlay --}}
-                                            <label class="absolute top-0 right-0 bg-white/80 dark:bg-gray-800/80 rounded-bl-lg rounded-tr-lg p-1.5 cursor-pointer shadow-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition" title="Select to delete this image">
-                                                <input type="checkbox" name="delete_images[]" value="{{ $img->id }}"
+                                            <label
+                                                class="absolute top-0 right-0 bg-white/80 dark:bg-gray-800/80 rounded-bl-lg rounded-tr-lg p-1.5 cursor-pointer shadow-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition"
+                                                title="Select to delete this image">
+                                                <input type="checkbox" name="delete_images[]"
+                                                    value="{{ $img->id }}"
                                                     class="rounded border-gray-400 text-red-600 shadow-sm focus:ring-red-500 h-5 w-5">
                                             </label>
                                         </div>
@@ -108,7 +128,7 @@
                             <x-input-error :messages="$errors->get('images.*')" class="mt-2" />
                         </div>
                     </div>
-                     {{-- ================= END IMAGE SECTION ================= --}}
+                    {{-- ================= END IMAGE SECTION ================= --}}
 
                     <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
                         <div class="flex items-center justify-end gap-3">
