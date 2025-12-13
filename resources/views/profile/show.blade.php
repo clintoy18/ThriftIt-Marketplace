@@ -73,7 +73,7 @@
     {{-- ===== SCRIPTS (Handles all tabs dynamically) ===== --}}
     @push('scripts')
         <script>
-            (function() {
+            document.addEventListener('DOMContentLoaded', function() {
                 const tabs = {
                     products: document.getElementById('tab-products'),
                     reviews: document.getElementById('tab-reviews'),
@@ -88,40 +88,65 @@
                     orders: document.getElementById('orders')
                 };
 
-                function activate(tabKey) {
-                    // Hide all sections
-                    Object.values(sections).forEach(sec => sec?.classList.add('hidden'));
+                function activate(tabKey, shouldScroll = true) {
+                    // 1. Hide all sections
+                    Object.values(sections).forEach(sec => {
+                        if (sec) sec.classList.add('hidden');
+                    });
 
-                    // Reset all buttons
+                    // 2. Reset all button styles
                     Object.values(tabs).forEach(btn => {
-                        btn?.classList.remove('bg-[#E1D5B6]', 'font-semibold', 'shadow-md');
+                        if (btn) btn.classList.remove('bg-[#E1D5B6]', 'font-semibold', 'shadow-md');
                     });
 
                     const btn = tabs[tabKey];
                     const sec = sections[tabKey];
+
+                    // Guard clause if tab/section doesn't exist
                     if (!btn || !sec) return;
 
+                    // 3. Show active section & style button
                     sec.classList.remove('hidden');
                     btn.classList.add('bg-[#E1D5B6]', 'font-semibold', 'shadow-md');
 
-                    sec.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+                    // 4. Scroll ONLY if requested
+                    if (shouldScroll) {
+                        // Scroll to the tabs container instead of the section content
+                        // This ensures the tab buttons remain visible at the top
+                        document.getElementById('profile-tabs-container')?.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
                 }
 
-                // Click handlers
-                tabs.products?.addEventListener('click', () => activate('products'));
-                tabs.reviews?.addEventListener('click', () => activate('reviews'));
-                tabs.works?.addEventListener('click', () => activate('works'));
-                tabs.orders?.addEventListener('click', () => activate('orders'));
+                // Click handlers (Always scroll when user clicks manually)
+                tabs.products?.addEventListener('click', () => activate('products', true));
+                tabs.reviews?.addEventListener('click', () => activate('reviews', true));
+                tabs.works?.addEventListener('click', () => activate('works', true));
+                tabs.orders?.addEventListener('click', () => activate('orders', true));
 
-                // Default active tab based on user role
+                // --- INITIALIZATION LOGIC ---
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const requestedTab = urlParams.get('tab');
                 const isUpcycler = @json($user->isUpcycler());
-                const defaultTab = isUpcycler ? 'works' : 'products';
-                activate(defaultTab);
-            })();
+
+                let activeTab = 'products'; // Default fallback
+                let shouldScrollOnLoad = false; // Default: Don't scroll on normal load
+
+                if (requestedTab && sections[requestedTab]) {
+                    // If coming from Notification (?tab=orders), use that tab AND scroll
+                    activeTab = requestedTab;
+                    shouldScrollOnLoad = true;
+                } else {
+                    // Normal profile visit: use default role tab AND do NOT scroll
+                    activeTab = isUpcycler ? 'works' : 'products';
+                    shouldScrollOnLoad = false;
+                }
+
+                activate(activeTab, shouldScrollOnLoad);
+            });
         </script>
     @endpush
-
 </x-app-layout>

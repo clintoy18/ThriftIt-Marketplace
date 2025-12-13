@@ -166,7 +166,7 @@
                             <div class="p-4 sm:p-6">
                                 <div class="space-y-4">
                                     <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">Step
-                                        1: Product Details</h3>
+                                        1: Item Details</h3>
                                     <p class="text-sm text-gray-600 dark:text-gray-400">Essential information about your
                                         item.</p>
                                     <div class="h-px w-full bg-gray-200 dark:bg-gray-700"></div>

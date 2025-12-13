@@ -38,7 +38,7 @@ class OrderPlacedNotification implements ShouldBroadcast
             'id' => $this->order->id,
             'buyer_name' => $this->order->buyer->fname . ' ' . $this->order->buyer->lname,
             'product_name' => $this->order->product->name,
-            'message' => "You have received a new order from {$this->order->buyer->fname} {$this->order->buyer->lname}.",
+            'message' => 'You have received a new order from ' . $this->order->buyer->fname . ' ' . $this->order->buyer->lname . '.',
             'created_at' => $this->order->created_at->diffForHumans(),
         ];
     }
