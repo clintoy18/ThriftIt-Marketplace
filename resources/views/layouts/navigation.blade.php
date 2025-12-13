@@ -195,7 +195,8 @@
                                             <div>
                                                 <div class="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 sticky top-0 z-10"><span class="text-xs font-semibold text-gray-600 dark:text-gray-300" x-text="groupName"></span></div>
                                                 <template x-for="notif in groupNotifications" :key="notif.id">
-                                                    <a :href="notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data.link || '#')" class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 last:border-b-0" @click="open = false">
+                                                   <a :href="notif.data.order_id ? `/profile/${notif.user_id}?tab=orders`: notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data.appointment_id ? `/upcycler/${notif.data.appointment_id}`  : (notif.data.donation_id  ? `/donations/${notif.data.donation_id}`  : (notif.data.link || '#')) )
+                                                        " class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 last:border-b-0" @click="open = false">
                                                         <div class="flex items-start gap-3">
                                                             <div class="flex-shrink-0"><img :src="notif.data.profile_pic_url || '{{ asset('images/default-profile.jpg') }}'" class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"></div>
                                                             <div class="flex-1 min-w-0">
@@ -409,7 +410,8 @@
                         <div>
                             <div class="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200"><span class="text-xs font-semibold text-gray-600 dark:text-gray-300" x-text="groupName"></span></div>
                             <template x-for="notif in groupNotifications" :key="notif.id">
-                                <a :href="notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data.link || '#')" class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition" @click="open = false">
+                              <a :href="notif.data.order_id ? `/orders/${notif.data.order_id}` : notif.data.product_id ? `/products/${notif.data.product_id}` : (notif.data.appointment_id ? `/upcycler/${notif.data.appointment_id}`  : (notif.data.donation_id ? `/donations/${notif.data.donation_id}` : (notif.data.link || '#')))
+                        " class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition" @click="open = false">
                                     <div class="flex items-start gap-3">
                                         <div class="flex-shrink-0"><img :src="notif.data.profile_pic_url || '{{ asset('images/default-profile.jpg') }}'" class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"></div>
                                         <div class="flex-1 min-w-0">

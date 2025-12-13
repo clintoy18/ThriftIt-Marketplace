@@ -53,15 +53,8 @@
             }
 
             @keyframes pulse {
-
-                0%,
-                100% {
-                    transform: scale(1)
-                }
-
-                50% {
-                    transform: scale(0.95)
-                }
+                0%, 100% { transform: scale(1) }
+                50% { transform: scale(0.95) }
             }
 
             .button-click {
@@ -73,7 +66,7 @@
     {{-- ===== SCRIPTS (Handles all tabs dynamically) ===== --}}
     @push('scripts')
         <script>
-            (function() {
+            document.addEventListener('DOMContentLoaded', function() {
                 const tabs = {
                     products: document.getElementById('tab-products'),
                     reviews: document.getElementById('tab-reviews'),
@@ -88,39 +81,66 @@
                     orders: document.getElementById('orders')
                 };
 
-                function activate(tabKey) {
-                    // Hide all sections
-                    Object.values(sections).forEach(sec => sec?.classList.add('hidden'));
+                // Added 'shouldScroll' parameter (default true)
+                function activate(tabKey, shouldScroll = true) {
+                    // 1. Hide all sections
+                    Object.values(sections).forEach(sec => {
+                        if(sec) sec.classList.add('hidden');
+                    });
 
-                    // Reset all buttons
+                    // 2. Reset all button styles
                     Object.values(tabs).forEach(btn => {
-                        btn?.classList.remove('bg-[#E1D5B6]', 'font-semibold', 'shadow-md');
+                        if(btn) btn.classList.remove('bg-[#E1D5B6]', 'font-semibold', 'shadow-md');
                     });
 
                     const btn = tabs[tabKey];
                     const sec = sections[tabKey];
+
+                    // Guard clause: if tab/section doesn't exist (e.g. orders on another user's profile), stop.
                     if (!btn || !sec) return;
 
+                    // 3. Show active section & style button
                     sec.classList.remove('hidden');
                     btn.classList.add('bg-[#E1D5B6]', 'font-semibold', 'shadow-md');
 
-                    sec.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+                    // 4. Scroll ONLY if requested (disabled on initial load)
+                    if (shouldScroll) {
+                        sec.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
                 }
 
-                // Click handlers
+                // Click handlers (Keep scrolling enabled for manual clicks)
                 tabs.products?.addEventListener('click', () => activate('products'));
                 tabs.reviews?.addEventListener('click', () => activate('reviews'));
                 tabs.works?.addEventListener('click', () => activate('works'));
                 tabs.orders?.addEventListener('click', () => activate('orders'));
 
-                // Default active tab based on user role
+                // --- LOGIC: Handle URL Params & Default State ---
+                
+                // 1. Check for ?tab=xyz in the URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const requestedTab = urlParams.get('tab');
+
+                // 2. Determine User Role
                 const isUpcycler = @json($user->isUpcycler());
-                const defaultTab = isUpcycler ? 'works' : 'products';
-                activate(defaultTab);
-            })();
+                
+                // 3. Decide which tab to open
+                let activeTab = 'products'; // Default fallback
+
+                if (requestedTab && sections[requestedTab]) {
+                    // If URL has a valid tab (e.g. ?tab=orders), use it
+                    activeTab = requestedTab;
+                } else {
+                    // Otherwise use role defaults
+                    activeTab = isUpcycler ? 'works' : 'products';
+                }
+
+                // 4. Activate without scrolling
+                activate(activeTab, false); 
+            });
         </script>
     @endpush
 
