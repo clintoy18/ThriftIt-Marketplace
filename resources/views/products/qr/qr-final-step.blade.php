@@ -9,7 +9,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Finalize Product') }}
+            {{ __('Finalize Item') }}
         </h2>
     </x-slot>
 
@@ -47,7 +47,7 @@
                         </div>
                         <div class="flex-1">
                             <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Final Review</h3>
-                            <p class="text-gray-700 dark:text-gray-300 text-lg">Review your product details before publishing</p>
+                            <p class="text-gray-700 dark:text-gray-300 text-lg">Review your item details before publishing</p>
                         </div>
                     </div>
                 </div>
@@ -60,7 +60,7 @@
                             <svg class="w-5 h-5 text-[#B59F84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            Product Photos
+                            Item Photos
                         </h4>
                         
                         @if(!empty($images))
@@ -69,7 +69,7 @@
                                     <div class="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm group">
                                         {{-- Using S3 temporaryUrl ensures visibility even if bucket policies are strict --}}
                                         <img src="{{ Storage::disk('s3')->temporaryUrl($image, now()->addMinutes(60)) }}" 
-                                             alt="Product preview" 
+                                             alt="Item preview" 
                                              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                                     </div>
                                 @endforeach
@@ -85,7 +85,7 @@
                             <svg class="w-5 h-5 text-[#B59F84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
-                            Product Information
+                            Item Information
                         </h4>
 
                         <div class="grid md:grid-cols-2 gap-4">
@@ -199,7 +199,7 @@
                                     </svg>
                                 </div>
                                 <div class="text-left flex-1 z-10">
-                                    <div class="text-sm font-semibold text-gray-700">Publish Product</div>
+                                    <div class="text-sm font-semibold text-gray-700">Publish Item</div>
                                     <div class="text-xs text-gray-700/80">Go live now</div>
                                 </div>
                             </button>

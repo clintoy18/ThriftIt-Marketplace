@@ -133,11 +133,11 @@
                         </div>
 
                         <!-- Additional Info -->
-                        <div class="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
-                            <p><span class="font-medium">Quantity:</span> {{ $product->qty }}</p>
-                            <p><span class="font-medium">Location:</span> {{ $product->barangay->name ?? 'N/A' }}, Cebu
-                                City, Cebu 6000</p>
-                        </div>
+                        {{-- <div class="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            {{-- <p><span class="font-medium">Quantity:</span> {{ $product->qty }}</p> --}}
+                            {{-- <p><span class="font-medium">Location:</span> {{ $product->barangay->name ?? 'N/A' }}, Cebu
+                                City, Cebu 6000</p> --}}
+                        {{-- </div> --}}
 
                         <!-- Owner Actions -->
                         @if (Auth::id() === $product->user_id)
@@ -237,11 +237,11 @@
                                         Payment Proof Submitted
                                     </button>
                                 @elseif ($hasActiveOrder)
-                                    <button type="button" disabled
+                                    {{-- <button type="button" disabled
                                         class="w-full mt-4 px-6 py-3 bg-[#B59F84] text-white rounded-lg 
                                     opacity-50 cursor-not-allowed font-medium">
                                         Payment Pending
-                                    </button>
+                                    </button> --}}
                                 @endif
                             @endif
 
