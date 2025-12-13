@@ -22,7 +22,7 @@
             </div>
 
             <!-- Back Button -->
-            <a href="{{ url()->previous() }}"
+            <a href="{{ route('dashboard') }}"
                 class="inline-flex items-center px-4 py-2 bg-[#B59F84] border border-transparent rounded-md 
     font-semibold text-xs text-white uppercase tracking-widest 
     hover:bg-[#6B5B48] active:bg-[#6B5B48] 
