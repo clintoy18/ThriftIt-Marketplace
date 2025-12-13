@@ -19,6 +19,13 @@ class OrderController extends Controller
             'proof' => 'required|image|mimes:jpeg,png,jpg|max:5120',
         ]);
 
+        // 1. PREVENT SELF-PURCHASE
+        if ($product->user_id === Auth::id()) {
+            return redirect()
+                ->route('products.show', $product->id)
+                ->with('error', 'You cannot buy your own product.');
+        }
+
         // Check if this user already placed an order for this product
         $existingOrder = Order::where('product_id', $product->id)
             ->where('buyer_id', Auth::id())
@@ -50,7 +57,8 @@ class OrderController extends Controller
             'data'    => [
                 'order_id'   => $order->id,
                 'buyer_name' => Auth::user()->fname . ' ' . Auth::user()->lname,
-                'message'    => "You received a new order from" . Auth::user()->fname . ' ' . Auth::user()->lname,
+                // FIXED: Added space after "from"
+                'message'    => "You received a new order from " . Auth::user()->fname . ' ' . Auth::user()->lname,
             ],
         ]);
 
@@ -61,7 +69,7 @@ class OrderController extends Controller
             ->route('products.show', $product->id)
             ->with('success', 'Proof of payment uploaded successfully. Please wait for seller confirmation.');
     }
-
+    
     public function updateStatus(Order $order, string $status)
     {
         $allowedStatuses = ['pending', 'approved', 'delivering', 'completed', 'cancelled'];

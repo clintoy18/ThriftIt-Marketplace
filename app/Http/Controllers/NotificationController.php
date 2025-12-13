@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class NotificationController extends Controller
 {
@@ -24,13 +25,13 @@ class NotificationController extends Controller
             }
             
             // Use DB transaction to ensure data consistency
-            \DB::beginTransaction();
+            DB::beginTransaction();
             
             try {
                 // Mark all unread notifications as read with timestamp
                 // Use raw update to ensure boolean is stored correctly (1 for true)
                 // Update notifications that are either unread OR have null read_at (for consistency)
-                $updatedCount = \DB::table('notifications')
+                $updatedCount = DB::table('notifications')
                     ->where('user_id', $user->id)
                     ->where(function($query) {
                         $query->where('is_read', 0) // Use 0 instead of false for raw query
@@ -42,22 +43,18 @@ class NotificationController extends Controller
                         'updated_at' => now()
                     ]);
                 
-                \DB::commit();
-                
-                // Log for debugging
-                \Log::info("Marked {$updatedCount} notifications as read for user {$user->id}");
+                DB::commit();
                 
                 // Refresh cache if using any
-                \Cache::forget("notifications_unread_count_{$user->id}");
+                Cache::forget("notifications_unread_count_{$user->id}");
                 
-                // Get updated unread count
+                // Get updated unread count (should be 0)
                 $unreadCount = Notification::where('user_id', $user->id)
                     ->where('is_read', false)
                     ->count();
                 
                 return response()->json([
                     'success' => true,
-                   
                     'unread_count' => $unreadCount,
                     'marked_count' => $updatedCount
                 ]);
@@ -68,8 +65,6 @@ class NotificationController extends Controller
             }
             
         } catch (\Exception $e) {
-            \Log::error('Error marking notifications as read: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to mark notifications as read. Please try again.'
@@ -82,10 +77,10 @@ class NotificationController extends Controller
      */
     public function loadMore(Request $request)
     {
-        $page = (int) $request->get('page', 1); // Page 1 = first 50 items, page 2 = items 51-100, etc.
+        $page = (int) $request->get('page', 1); // Page 1 = first 50 items
         $perPage = 50;
         
-        // Calculate offset: page 1 = skip 0, page 2 = skip 50, page 3 = skip 100, etc.
+        // Calculate offset: page 1 = skip 0, page 2 = skip 50, etc.
         $offset = ($page - 1) * $perPage;
         
         $notifications = Notification::where('user_id', Auth::id())
@@ -96,12 +91,15 @@ class NotificationController extends Controller
             ->map(function($notification) {
                 $data = $notification->data;
                 $data['profile_pic_url'] = $notification->from_user_profile_pic;
+                
                 // Use the accessor which ensures read_at takes precedence
                 $isRead = $notification->is_read;
+                
                 // Double-check: if read_at exists, it's definitely read
                 if ($notification->read_at !== null) {
                     $isRead = true;
                 }
+                
                 return [
                     'id' => $notification->id,
                     'user_id' => $notification->user_id,
