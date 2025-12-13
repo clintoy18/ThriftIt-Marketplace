@@ -84,11 +84,11 @@ class OrderController extends Controller
 
         // Prepare notification message based on status
         $message = match ($status) {
-            'approved'   => "Your order for <b>{$order->product->name}</b> has been approved by the seller.",
-            'delivering' => "Your order for <b>{$order->product->name}</b> is now out for delivery.",
+            'approved'   => "Your order for {$order->product->name} has been approved by the seller.",
+            'delivering' => "Your order for {$order->product->name} is now out for delivery.",
             'completed'  => "Your order for {$order->product->name} has been completed. Enjoy your item!",
             'cancelled'  => "Your order for {$order->product->name} has been cancelled.",
-            default      => "The status of your order for {$order->product->name} has been updated to <b>" . ucfirst($status) . "</b>.",
+            default      => "The status of your order for {$order->product->name} has been updated to " . ucfirst($status) . ".",
         };
 
         // Create notification for buyer
