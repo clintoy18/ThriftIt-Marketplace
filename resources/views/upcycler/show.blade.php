@@ -16,6 +16,22 @@
                     View and manage appointment information
                 </p>
             </div>
+
+                        <!-- Back Button -->
+            <a href="{{ route('u    ') }}"
+                class="inline-flex items-center px-4 py-2 bg-[#B59F84] border border-transparent rounded-md 
+                   font-semibold text-xs text-white uppercase tracking-widest 
+                   hover:bg-[#6B5B48] active:bg-[#6B5B48] 
+                   focus:outline-none focus:border-[#6B5B48] focus:ring ring-[#B59F84] 
+                   transition ease-in-out duration-150">
+
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+
+                Back 
+            </a>
         </div>
     </x-slot>
 
