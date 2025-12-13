@@ -6,6 +6,7 @@ use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
 use App\Models\Categories;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -331,7 +332,13 @@ class ProductController extends Controller
         $product->setRelation('comments', $topLevel);
         $moreProducts = $this->productService->getMoreProductsByUser($product->user_id, $product->id);
 
-        return response()->view('products.show', compact('product', 'moreProducts'))
+        // Check if there's any active order with payment proof (not cancelled)
+        $hasActiveOrder = Order::where('product_id', $product->id)
+            ->whereNotNull('proof')
+            ->where('status', '!=', 'cancelled')
+            ->exists();
+
+        return response()->view('products.show', compact('product', 'moreProducts', 'hasActiveOrder'))
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache')
             ->header('Expires', '0')

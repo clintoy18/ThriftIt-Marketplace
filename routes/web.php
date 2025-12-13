@@ -29,6 +29,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\WorkController;
 use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\HelpController;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -38,6 +39,7 @@ use Illuminate\Http\Request;
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/', [LandingPageController::class, 'index'])->name('landing.index');
 Route::get('/products', [LandingPageController::class, 'products'])->name('landing.products');
+Route::get('/help', [HelpController::class, 'index'])->name('help');
 
 Route::get('/dashboard', [UserDashboardController::class, 'index'])
     ->middleware(['auth', 'verified', 'rolemiddleware:user'])

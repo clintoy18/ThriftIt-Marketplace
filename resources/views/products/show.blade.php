@@ -214,8 +214,9 @@
                                 @endif
                             @elseif (
                                 $product->listingtype !== 'for donation' &&
-                                    (!$existingOrder || $existingOrder->status === 'cancelled') &&
-                                    $product->status !== 'sold')
+                                    (!$existingOrder || $existingOrder->status === 'cancelled' || !$existingOrder->proof) &&
+                                    $product->status !== 'sold' &&
+                                    !$hasActiveOrder)
                                 @if ($product->qr_code)
                                     <button type="button" @click="open = true"
                                         class="w-full mt-4 px-6 py-3 bg-[#B59F84] text-white rounded-lg hover:bg-[#a08e77] transition-all duration-300 font-medium">
@@ -228,6 +229,18 @@
                                         class="w-full mt-4 px-6 py-3 bg-[#B59F84] text-white rounded-lg 
                                     opacity-50 cursor-not-allowed font-medium">
                                         Sold
+                                    </button>
+                                @elseif ($existingOrder && $existingOrder->proof && $existingOrder->status !== 'cancelled')
+                                    <button type="button" disabled
+                                        class="w-full mt-4 px-6 py-3 bg-[#B59F84] text-white rounded-lg 
+                                    opacity-50 cursor-not-allowed font-medium">
+                                        Payment Proof Submitted
+                                    </button>
+                                @elseif ($hasActiveOrder)
+                                    <button type="button" disabled
+                                        class="w-full mt-4 px-6 py-3 bg-[#B59F84] text-white rounded-lg 
+                                    opacity-50 cursor-not-allowed font-medium">
+                                        Payment Pending
                                     </button>
                                 @endif
                             @endif
