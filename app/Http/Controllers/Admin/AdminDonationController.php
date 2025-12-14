@@ -140,9 +140,11 @@ class AdminDonationController extends Controller
         return redirect()->route('admin.donations.index')
             ->with('success', 'Donation verified successfully. Points added.');
     }
-    public function rejectDonationProof(Donation $donation): RedirectResponse
+    public function rejectDonationProof(Request $request,Donation $donation): RedirectResponse
     {
-        $this->donationService->updateDonation($donation, ['verification_status' => 'rejected']);
+         $admin_notes = $request->input('admin_notes');
+
+        $this->donationService->updateDonation($donation, ['verification_status' => 'rejected', 'admin_notes'  => $admin_notes]);
 
         return redirect()->route('admin.donations.index')
             ->with('success', 'Donation rejected successfully.');

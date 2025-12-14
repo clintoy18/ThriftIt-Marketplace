@@ -7,6 +7,38 @@
 
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+
+            {{-- 1. REJECTION NOTICE BANNER (Kept this for visibility) --}}
+            @if ($donation->approval_status === 'rejected' || $donation->approval_status === 'changes_requested')
+                <div class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 mb-6 rounded-r-xl shadow-sm">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-bold text-red-800 dark:text-red-200">Action Required: Donation
+                                Rejected/Changes Needed</h3>
+
+                            @if ($donation->admin_notes)
+                                <div class="mt-1 text-sm text-red-700 dark:text-red-300">
+                                    <strong>Admin Notes:</strong> {{ $donation->admin_notes }}
+                                </div>
+                            @endif
+
+                            <p class="mt-2 text-xs text-red-600 dark:text-red-400">
+                                Please correct the details below based on the notes. Clicking "Update & Resubmit" will
+                                automatically
+                                <strong>send this item back to Pending</strong> for admin review.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <div
                 class="bg-[#F4F2ED] dark:bg-gray-800/90 backdrop-blur overflow-hidden shadow-xl sm:rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
                 <form id="donationEditForm" method="POST" action="{{ route('donations.update', $donation) }}"
@@ -15,17 +47,17 @@
                     @method('PATCH')
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Donation Name -->
+                        {{-- Name --}}
                         <div class="col-span-1 md:col-span-2">
                             <x-input-label for="name" :value="__('Donation Name')" />
                             <x-text-input id="name" name="name" type="text"
                                 class="mt-2 block w-full rounded-xl" :value="old('name', $donation->name)" required autofocus />
                             @error('name')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <!-- Category -->
+                        {{-- Category --}}
                         <div>
                             <x-input-label for="category_id" :value="__('Category')" />
                             <select name="category_id" id="category_id"
@@ -38,101 +70,144 @@
                                 @endforeach
                             </select>
                             @error('category_id')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <!-- Status -->
+                        {{-- Status --}}
                         <div>
                             <x-input-label for="status" :value="__('Status')" />
-                            <select id="status" name="status"
-                                class="w-full mt-2 px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#E1D5B6] focus:outline-none"
-                                required>
-                                <option value="available" @if ($donation->status === 'donated') disabled @endif
-                                    {{ old('status', $donation->status) === 'available' ? 'selected' : '' }}>
-                                    Available
-                                </option>
-                                <option value="donated"
-                                    {{ old('status', $donation->status) === 'donated' ? 'selected' : '' }}>
-                                    Donated
-                                </option>
-                            </select>
+
+                            {{-- CASE 1: IF REJECTED - LOCK STATUS --}}
+                            @if ($donation->approval_status === 'rejected' || $donation->approval_status === 'pending')
+                                <div
+                                    class="mt-2 px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed flex items-center justify-between">
+                                    <span>Pending Approval (Resubmission)</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                </div>
+                                {{-- Force value to pending so backend knows --}}
+                                <input type="hidden" name="status" value="pending">
+
+                                {{-- CASE 2: NORMAL - ALLOW EDIT --}}
+                            @else
+                                <select id="status" name="status"
+                                    class="w-full mt-2 px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#E1D5B6] focus:outline-none"
+                                    required>
+                                    <option value="available" @if ($donation->status === 'donated') disabled @endif
+                                        {{ old('status', $donation->status) === 'available' ? 'selected' : '' }}>
+                                        Available
+                                    </option>
+                                    <option value="donated"
+                                        {{ old('status', $donation->status) === 'donated' ? 'selected' : '' }}>
+                                        Donated
+                                    </option>
+                                    {{-- Preserve pending if it's currently pending but NOT rejected (e.g. first time upload) --}}
+                                    @if ($donation->status === 'pending')
+                                        <option value="pending" selected>Pending Approval</option>
+                                    @endif
+                                </select>
+                            @endif
+
                             @if ($donation->status === 'donated')
-                                <p class="text-sm text-red-600 mt-1">This donation has already been marked as donated
-                                    and cannot be marked as available again.</p>
+                                <p class="text-sm text-red-600 mt-1">This donation is marked as donated.</p>
                             @endif
                             @error('status')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Description --}}
+                        <div class="col-span-1 md:col-span-2">
+                            <x-input-label for="description" :value="__('Description')" />
+                            <textarea id="description" name="description" rows="5"
+                                class="mt-2 block w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#E1D5B6] focus:outline-none resize-none"
+                                required>{{ old('description', $donation->description) }}</textarea>
+                            @error('description')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
-                    <!-- Image Upload (MULTIPLE) -->
-                    <div>
-                        <x-input-label for="images" :value="__('Donation Images (up to 5)')" />
 
-                        <!-- Photo Guidelines (unchanged) -->
+                    {{-- Image Upload Section (Advanced S3 Logic) --}}
+                    <div>
+                        <x-input-label for="images" :value="__('Donation Images')" />
+
                         <div
                             class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-4">
-                            {{-- … your guidelines … --}}
+                            <h4
+                                class="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24"
+                                    fill="currentColor">
+                                    <path
+                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                                </svg>
+                                Photo Guidelines
+                            </h4>
+                            <ul class="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                                <li class="flex items-start gap-2"><span
+                                        class="text-blue-500 mt-0.5">•</span><span><strong>Lighting:</strong> Ensure
+                                        item is well-lit.</span></li>
+                                <li class="flex items-start gap-2"><span
+                                        class="text-blue-500 mt-0.5">•</span><span><strong>Angles:</strong> Show front,
+                                        back, and defects.</span></li>
+                            </ul>
                         </div>
 
-                        <!-- Drop zone -->
                         <div class="mb-4">
                             <label for="donationImages" id="donationDropZone"
                                 class="upload-tile group cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-gray-300/80 rounded-3xl transition-all duration-500 hover:border-primary-400 hover:shadow-xl bg-white/80 hover:bg-white backdrop-blur-sm p-8 min-h-[192px] sm:min-h-[208px]">
 
-                                <!-- Preview Grid -->
-                                <div id="donationPreview"
-                                    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4 w-full"></div>
+                                {{-- New Previews --}}
+                                <div id="donationPreviews" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 w-full">
+                                </div>
 
-                                <!-- Existing images (from DB) -->
-                                <div id="existingImageContainer"
-                                    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4 w-full">
+                                {{-- Existing Images --}}
+                                <div id="existingImagesContainer" class="flex flex-wrap gap-3 mb-4 w-full">
                                     @foreach ($donation->donationImages as $img)
                                         <div class="relative group existing-img-item" data-id="{{ $img->id }}">
-                                            <img src="{{ Storage::disk('s3')->url($img->image) }}"
-                                                alt="{{ $donation->name }}"
-                                                class="w-full aspect-square object-cover rounded-xl border shadow-sm">
-                                            <button type="button"
-                                                class="delete-existing absolute top-0 right-0 -translate-x-1/4 -translate-y-1/4 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center opacity-80 hover:opacity-100 text-xs">
-                                                ×
+                                            {{-- Using temporaryUrl for S3 security/compatibility --}}
+                                            <img src="{{ Storage::disk('s3')->temporaryUrl($img->image, now()->addMinutes(60)) }}"
+                                                alt="Donation Image" class="w-24 h-24 object-cover rounded-xl border">
+
+                                            <button type="button" data-id="{{ $img->id }}"
+                                                class="absolute top-0 right-0 -translate-x-1/4 -translate-y-1/4 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-70 hover:opacity-100 delete-image-btn">
+                                                &times;
                                             </button>
                                         </div>
                                     @endforeach
                                 </div>
 
-                                <div id="donationAddMoreText"
-                                    class="text-center mb-4 {{ $donation->donationImages->count() + 0 >= 8 ? 'hidden' : '' }}">
-                                    <p class="text-sm text-[#B59F84] font-medium">Tap to add up to
-                                        {{ 8 - $donation->donationImages->count() }} more photos</p>
+                                {{-- "Add More" Text --}}
+                                <div id="donationAddMoreText" class="text-center mb-4 hidden">
+                                    <p class="text-sm text-[#B59F84] font-medium">Tap to add more photos</p>
                                 </div>
 
-                                <!-- Drop-zone content (shown when < 5 images) -->
+                                {{-- Drop Zone Content --}}
                                 <div id="dropZoneContent"
-                                    class="flex flex-col items-center justify-center gap-5 w-full {{ $donation->donationImages->count() >= 5 ? 'hidden' : '' }}">
-                                    {{-- … same icon / browse button you already have … --}}
+                                    class="flex flex-col items-center justify-center gap-5 w-full">
                                     <div class="flex justify-center w-full">
                                         <div
-                                            class="shrink-0 w-18 h-18 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center text-gray-600 transition-all duration-500 group-hover:scale-110 group-hover:from-primary-50 group-hover:to-primary-100 group-hover:text-primary-600 shadow-sm group-hover:shadow-md">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9" viewBox="0 0 24 24"
-                                                fill="currentColor">
+                                            class="shrink-0 w-18 h-18 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center text-gray-600 transition-all duration-500 group-hover:scale-110 shadow-sm group-hover:shadow-md">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9"
+                                                viewBox="0 0 24 24" fill="currentColor">
                                                 <path
                                                     d="M3 5a2 2 0 0 1 2-2h3l2 2h6a2 2 0 0 1 2 2v2H3V5Zm0 6h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8Zm9 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
                                             </svg>
                                         </div>
                                     </div>
-
                                     <div class="flex flex-col items-center justify-center gap-4 text-center">
                                         <span
-                                            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-full bg-gradient-to-r from-[#E1D5B6] to-[#d4c6a2] text-[#6f5e49] transition-all duration-500 group-hover:scale-105 group-hover:shadow-lg group-hover:from-[#d4c6a2] group-hover:to-[#c8b994] transform hover:-translate-y-0.5">
+                                            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-full bg-gradient-to-r from-[#E1D5B6] to-[#d4c6a2] text-[#6f5e49] transition-all duration-500 group-hover:scale-105 shadow-lg group-hover:from-[#d4c6a2] group-hover:to-[#c8b994]">
                                             Browse files
-                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                class="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5"
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
                                                 viewBox="0 0 24 24" fill="currentColor">
                                                 <path d="M12 16l-6-6h12l-6 6z" />
                                             </svg>
                                         </span>
-
                                         <div class="flex flex-col gap-2">
                                             <p
                                                 class="text-sm font-semibold text-gray-700 bg-gray-100/50 px-3 py-1.5 rounded-lg">
@@ -142,216 +217,273 @@
                                         </div>
                                     </div>
                                 </div>
-
                                 <div
                                     class="absolute inset-0 rounded-3xl bg-gradient-to-r from-primary-100/20 to-blue-100/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10">
                                 </div>
                             </label>
                         </div>
 
-                        <!-- Hidden multiple file input -->
                         <input id="donationImages" name="images[]" type="file" accept="image/*" multiple
                             class="hidden">
 
-                        <!-- Hidden inputs for deletions -->
-                        <div id="deletedImages"></div>
-
-                        <p class="mt-2 text-xs text-gray-500">You can upload up to 5 clear photos of the donation item.
-                        </p>
+                        {{-- Counters and Error Messages --}}
+                        <p class="mt-2 text-xs text-gray-500">Upload 2–8 photos. You currently have <span
+                                id="currentImageCount">{{ count($donation->donationImages) }}</span> images.</p>
                         <p id="donationImageError" class="mt-2 text-sm text-red-600 hidden"></p>
+                        <p id="donationReachLimitError" class="mt-2 text-sm text-red-600 hidden">You can only upload
+                            up to 8 photos.</p>
                     </div>
 
-                    <!-- Submit Button -->
-                    <div class="flex items-center justify-between gap-4 pt-2">
+                    <div
+                        class="flex items-center justify-between gap-4 pt-4 border-t border-gray-200 dark:border-gray-700 mt-6">
                         <button type="submit"
-                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white bg-[#B59F84] hover:bg-[#a08e77] shadow-sm transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
+                            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white bg-[#B59F84] hover:bg-[#a08e77] shadow-lg transition-transform transform hover:scale-[1.02]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M5 13l4 4L19 7" />
                             </svg>
-                            Update Donation
+                            @if ($donation->approval_status === 'rejected' || $donation->approval_status === 'changes_requested')
+                                Update & Resubmit
+                            @else
+                                Update Donation
+                            @endif
                         </button>
                         <a href="{{ route('donations.index') }}"
                             class="text-gray-600 hover:text-gray-800 underline-offset-2 hover:underline">Cancel</a>
                     </div>
+
                 </form>
             </div>
         </div>
     </div>
 
+    {{-- Javascript Logic (Identical to Products but mapped for Donations) --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const MAX_IMAGES = 5;
-            const MAX_SIZE_MB = 5;
-
             const input = document.getElementById('donationImages');
-            const preview = document.getElementById('donationPreview');
-            const existingContainer = document.getElementById('existingImageContainer');
-            const dropZone = document.getElementById('donationDropZone');
-            const dropZoneContent = document.getElementById('dropZoneContent');
-            const addMoreText = document.getElementById('donationAddMoreText');
+            const previews = document.getElementById('donationPreviews');
+            const form = document.getElementById('donationEditForm');
             const errorEl = document.getElementById('donationImageError');
-            const deletedContainer = document.getElementById('deletedImages');
+            const dropZone = document.getElementById('donationDropZone');
+            const addMoreText = document.getElementById('donationAddMoreText');
+            const dropZoneContent = document.getElementById('dropZoneContent');
+            const reachLimitEl = document.getElementById('donationReachLimitError');
+            const existingImagesContainer = document.getElementById('existingImagesContainer');
+            const currentImageCountEl = document.getElementById('currentImageCount');
+            let selectedFiles = [];
 
-            let newFiles = []; // newly selected files
-            let deletedIds = []; // existing images marked for deletion
-
-            // ------------------------------------------------------------------ utils
             function showError(msg) {
-                errorEl.textContent = msg;
-                errorEl.classList.remove('hidden');
+                if (errorEl) {
+                    errorEl.textContent = msg;
+                    errorEl.classList.remove('hidden');
+                }
             }
 
             function hideError() {
-                errorEl.classList.add('hidden');
+                if (errorEl) errorEl.classList.add('hidden');
             }
 
-            function totalImages() {
-                return existingContainer.querySelectorAll('.existing-img-item:not(.deleting)').length + preview
-                    .children.length;
+            function showReachLimit() {
+                if (reachLimitEl) {
+                    reachLimitEl.classList.remove('hidden');
+                    setTimeout(() => reachLimitEl.classList.add('hidden'), 2500);
+                }
             }
 
-            function updateUI() {
-                const canAddMore = totalImages() < MAX_IMAGES;
-                dropZoneContent.classList.toggle('hidden', !canAddMore);
-                addMoreText.classList.toggle('hidden', !canAddMore);
-                addMoreText.querySelector('p').textContent =
-                    `Tap to add up to ${MAX_IMAGES - totalImages()} more photos`;
+            function hideReachLimit() {
+                if (reachLimitEl) reachLimitEl.classList.add('hidden');
             }
 
-            function createPreviewItem(file) {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'relative group preview-item';
+            function getExistingCount() {
+                if (!existingImagesContainer) return 0;
+                return existingImagesContainer.querySelectorAll('.existing-img-item:not([data-deleted="true"])')
+                    .length;
+            }
 
-                const img = document.createElement('img');
-                img.className = 'w-full aspect-square object-cover rounded-xl border shadow-sm';
-                img.alt = file.name;
+            function getNewCount() {
+                return selectedFiles.length;
+            }
 
-                const removeBtn = document.createElement('button');
-                removeBtn.type = 'button';
-                removeBtn.className =
-                    'absolute top-0 right-0 -translate-x-1/4 -translate-y-1/4 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center opacity-80 hover:opacity-100 text-xs';
-                removeBtn.innerHTML = '×';
-                removeBtn.onclick = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    newFiles = newFiles.filter(f => f !== file);
-                    wrapper.remove();
-                    syncInput();
-                    updateUI();
-                };
+            function getTotalCount() {
+                return getExistingCount() + getNewCount();
+            }
 
-                wrapper.appendChild(img);
-                wrapper.appendChild(removeBtn);
-                preview.appendChild(wrapper);
+            function updateImageCount() {
+                if (currentImageCountEl) currentImageCountEl.textContent = getTotalCount();
+            }
 
-                const reader = new FileReader();
-                reader.onload = e => img.src = e.target.result;
-                reader.readAsDataURL(file);
+            function renderPreviews(files) {
+                previews.innerHTML = '';
+                files.forEach((file, index) => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'preview-item relative';
+                    const img = document.createElement('img');
+                    img.className = 'w-full h-24 object-cover rounded-lg';
+                    const badge = document.createElement('span');
+                    badge.className =
+                        'preview-number absolute top-1 left-1 bg-black bg-opacity-70 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs';
+                    badge.textContent = index + 1;
+                    const removeBtn = document.createElement('span');
+                    removeBtn.className =
+                        'remove-btn absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs cursor-pointer';
+                    removeBtn.textContent = '×';
+                    removeBtn.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        removeAt(index);
+                    };
+
+                    wrapper.appendChild(img);
+                    wrapper.appendChild(badge);
+                    wrapper.appendChild(removeBtn);
+                    previews.appendChild(wrapper);
+
+                    const r = new FileReader();
+                    r.onload = (ev) => {
+                        img.src = ev.target.result;
+                    };
+                    r.readAsDataURL(file);
+                });
+                updateDropZoneVisibility();
+                updateImageCount();
             }
 
             function syncInput() {
                 const dt = new DataTransfer();
-                newFiles.forEach(f => dt.items.add(f));
+                selectedFiles.forEach(f => dt.items.add(f));
                 input.files = dt.files;
             }
 
-            // ------------------------------------------------------------------ file validation
-            function validateFiles(files) {
+            function removeAt(idx) {
+                selectedFiles.splice(idx, 1);
+                syncInput();
+                renderPreviews(selectedFiles);
                 hideError();
-                const valid = [];
-                for (let file of files) {
-                    if (!file.type.match(/^image\/(jpeg|png)$/i)) {
-                        showError('Only JPG/PNG images are allowed.');
-                        continue;
-                    }
-                    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-                        showError(`"${file.name}" exceeds ${MAX_SIZE_MB} MB limit.`);
-                        continue;
-                    }
-                    valid.push(file);
-                }
-                return valid;
             }
 
-            // ------------------------------------------------------------------ input change
+            function canAddMore() {
+                return getTotalCount() < 8;
+            }
+
+            function updateDropZoneVisibility() {
+                const total = getTotalCount();
+                if (total > 0) {
+                    dropZoneContent.classList.add('hidden');
+                    if (canAddMore()) addMoreText.classList.remove('hidden');
+                    else addMoreText.classList.add('hidden');
+                    dropZone.style.minHeight = 'auto';
+                } else {
+                    dropZoneContent.classList.remove('hidden');
+                    addMoreText.classList.add('hidden');
+                    dropZone.style.minHeight = '192px';
+                }
+
+                if (!canAddMore()) {
+                    showReachLimit();
+                    addMoreText.classList.add('hidden');
+                } else {
+                    hideReachLimit();
+                }
+            }
+
+            const label = document.querySelector('label[for="donationImages"]');
+            if (label) label.addEventListener('mousedown', () => {
+                if (input) input.value = '';
+            });
+
             input.addEventListener('change', () => {
-                const incoming = validateFiles(input.files);
-                if (incoming.length === 0) return;
-
-                const slotsLeft = MAX_IMAGES - totalImages();
-                const toAdd = incoming.slice(0, slotsLeft);
-
-                if (incoming.length > slotsLeft) {
-                    showError(`You can only add ${slotsLeft} more image(s).`);
+                hideError();
+                const newly = Array.from(input.files || []);
+                const makeKey = (f) => `${f.name}|${f.size}|${f.lastModified}`;
+                const keys = new Set(selectedFiles.map(makeKey));
+                for (const f of newly) {
+                    if (getTotalCount() >= 8) break;
+                    const k = makeKey(f);
+                    if (keys.has(k)) continue;
+                    selectedFiles.push(f);
+                    keys.add(k);
                 }
-
-                newFiles.push(...toAdd);
-                toAdd.forEach(f => createPreviewItem(f));
+                if (getTotalCount() >= 8 && newly.length > 0) showReachLimit();
                 syncInput();
-                updateUI();
+                renderPreviews(selectedFiles);
             });
 
-            // ------------------------------------------------------------------ drag & drop
-            dropZone.addEventListener('dragover', e => {
-                e.preventDefault();
-                dropZone.classList.add('ring-2', 'ring-blue-400');
-            });
-            dropZone.addEventListener('dragleave', () => {
-                dropZone.classList.remove('ring-2', 'ring-blue-400');
-            });
-            dropZone.addEventListener('drop', e => {
-                e.preventDefault();
-                dropZone.classList.remove('ring-2', 'ring-blue-400');
+            // Drag & Drop
+            if (dropZone) {
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if (canAddMore()) dropZone.classList.add('ring-2', 'ring-blue-400');
+                    else dropZone.classList.add('ring-2', 'ring-red-400');
+                });
+                dropZone.addEventListener('dragleave', () => {
+                    dropZone.classList.remove('ring-2', 'ring-blue-400', 'ring-red-400');
+                });
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('ring-2', 'ring-blue-400', 'ring-red-400');
+                    if (!canAddMore()) {
+                        showReachLimit();
+                        return;
+                    }
+                    const files = Array.from(e.dataTransfer.files || []);
+                    const makeKey = (f) => `${f.name}|${f.size}|${f.lastModified}`;
+                    const keys = new Set(selectedFiles.map(makeKey));
+                    let added = false;
+                    for (const f of files) {
+                        if (getTotalCount() >= 8) break;
+                        const k = makeKey(f);
+                        if (keys.has(k)) continue;
+                        selectedFiles.push(f);
+                        keys.add(k);
+                        added = true;
+                    }
+                    if (added) {
+                        syncInput();
+                        renderPreviews(selectedFiles);
+                    }
+                });
+            }
 
-                if (totalImages() >= MAX_IMAGES) {
-                    showError('Maximum 5 images allowed.');
-                    return;
+            // Delete existing images logic
+            document.querySelectorAll('.delete-image-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const imageId = this.getAttribute('data-id');
+                    const wrapper = this.closest('.existing-img-item');
+
+                    wrapper.style.display = 'none';
+                    wrapper.setAttribute('data-deleted', 'true');
+
+                    // Create hidden input: name="deletedImages[]" to match controller
+                    if (form && !form.querySelector(
+                            `input[name="deletedImages[]"][value="${imageId}"]`)) {
+                        const deletedInput = document.createElement('input');
+                        deletedInput.type = 'hidden';
+                        deletedInput.name = 'deletedImages[]'; // Matches your Controller
+                        deletedInput.value = imageId;
+                        form.appendChild(deletedInput);
+                    }
+
+                    updateDropZoneVisibility();
+                    updateImageCount();
+                });
+            });
+
+            form.addEventListener('submit', (e) => {
+                const count = getTotalCount();
+                if (count < 2) {
+                    e.preventDefault();
+                    showError('Please keep at least 2 photos.');
                 }
-
-                const files = validateFiles(e.dataTransfer.files);
-                const slotsLeft = MAX_IMAGES - totalImages();
-                const toAdd = files.slice(0, slotsLeft);
-
-                newFiles.push(...toAdd);
-                toAdd.forEach(f => createPreviewItem(f));
-                syncInput();
-                updateUI();
             });
 
-            // ------------------------------------------------------------------ delete existing image
-            existingContainer.addEventListener('click', e => {
-                if (!e.target.matches('button.delete-existing')) return;
-                e.preventDefault();
-                e.stopPropagation();
-
-                const item = e.target.closest('.existing-img-item');
-                const id = item.dataset.id;
-
-                item.classList.add('deleting', 'opacity-30');
-                deletedIds.push(id);
-
-                // hidden input for Laravel to know what to delete
-                const hidden = document.createElement('input');
-                hidden.type = 'hidden';
-                hidden.name = 'delete_images[]';
-                hidden.value = id;
-                deletedContainer.appendChild(hidden);
-
-                setTimeout(() => {
-                    item.remove();
-                    updateUI();
-                }, 300);
-            });
-
-            // ------------------------------------------------------------------ init
-            updateUI();
+            updateDropZoneVisibility();
         });
     </script>
 
     <style>
-        /* Simple tiles for the photo grid */
         .upload-tile {
             border: 2px dashed rgba(209, 213, 219, 1);
             border-radius: 0.5rem;
@@ -366,56 +498,17 @@
             border-color: rgba(156, 163, 175, 1);
         }
 
-        .tile-body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            width: 100%;
-            text-align: center;
-            color: #6B7280;
-            font-size: 0.85rem;
-        }
-
-        .tile-preview {
-            max-height: 100%;
-            max-width: 100%;
-            object-fit: contain;
-        }
-
-        .tile-label {
-            pointer-events: none;
-        }
-
-        /* Preview styling */
-        #donationPreview .preview-item {
+        #donationPreviews .preview-item {
             position: relative;
-            height: 128px;
-            width: 128px;
+            height: 100px;
             border-radius: 0.5rem;
             overflow: hidden;
         }
 
-        #donationPreview .preview-item img {
+        #donationPreviews .preview-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }
-
-        #donationPreview .remove-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(255, 0, 0, 0.7);
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            cursor: pointer;
         }
     </style>
 </x-app-layout>

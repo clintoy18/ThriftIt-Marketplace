@@ -27,7 +27,8 @@ class Donation extends Model
         // 'segment_id',
         'barangay_id',
         'proof',
-        'verification_status',           
+        'verification_status',        
+        'admin_notes',  
 
     ];
 
