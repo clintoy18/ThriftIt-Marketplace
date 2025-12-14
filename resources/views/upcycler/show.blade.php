@@ -16,6 +16,22 @@
                     View and manage appointment information
                 </p>
             </div>
+
+            <!-- Back Button -->
+            <a href="{{ route('upcycler.index') }}"
+                class="inline-flex items-center px-4 py-2 bg-[#B59F84] border border-transparent rounded-md 
+    font-semibold text-xs text-white uppercase tracking-widest 
+    hover:bg-[#6B5B48] active:bg-[#6B5B48] 
+    focus:outline-none focus:border-[#6B5B48] focus:ring ring-[#B59F84] 
+    transition ease-in-out duration-150">
+
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+
+                Back
+            </a>
         </div>
     </x-slot>
 
@@ -139,9 +155,10 @@
                                 <div>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Scheduled Date & Time</p>
                                     <p class="font-medium text-gray-900 dark:text-gray-100">
-                                        {{ \Carbon\Carbon::parse($appointment->appdate)->setTimezone('Asia/Manila')->format('F j, Y') }} {{ \Carbon\Carbon::parse($appointment->app_time)->format('h:i A') }}
+                                        {{ \Carbon\Carbon::parse($appointment->appdate)->setTimezone('Asia/Manila')->format('F j, Y') }}
+                                        {{ \Carbon\Carbon::parse($appointment->app_time)->format('h:i A') }}
                                     </p>
-                                   
+
                                 </div>
                             </div>
 
@@ -189,7 +206,7 @@
                 </div>
 
                 @php
-                    // Logic: 
+                    // Logic:
                     // 1. Status Update is locked if status is completed, declined, or cancelled (terminal states).
                     // 2. Delete is locked unless status is strictly 'pending'.
                     $currentStatus = strtolower($appointment->appstatus);
@@ -211,7 +228,7 @@
                             <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100">Update Appointment
                                 Status</h4>
                             <p class="text-sm text-gray-600 dark:text-gray-400">
-                                @if($isTerminal)
+                                @if ($isTerminal)
                                     Status cannot be changed because it is {{ $appointment->appstatus }}.
                                 @else
                                     Change the current status of this appointment.
@@ -223,40 +240,38 @@
                     <form method="POST" action="{{ route('upcycler.update', $appointment) }}">
                         @csrf
                         @method('PATCH')
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                            
-                            <select name="appstatus" @if($isTerminal) disabled @endif
+                        <div
+                            class="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+
+                            <select name="appstatus" @if ($isTerminal) disabled @endif
                                 class="border-[#E9DFC7] dark:border-gray-600 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md shadow-sm focus:ring-[#B59F84] focus:border-[#B59F84] flex-1
                                 {{ $isTerminal ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : '' }}">
-                                
-                                <option value="pending" 
+
+                                <option value="pending"
                                     {{ old('appstatus', $appointment->appstatus) == 'pending' ? 'selected' : '' }}>
                                     Pending
                                 </option>
-                                
-                                <option value="approved" 
+
+                                <option value="approved"
                                     {{ old('appstatus', $appointment->appstatus) == 'approved' ? 'selected' : '' }}>
                                     Approved
                                 </option>
-                                
-                                <option value="declined" 
+
+                                <option value="declined"
                                     {{ old('appstatus', $appointment->appstatus) == 'declined' ? 'selected' : '' }}>
                                     Declined
                                 </option>
-                                
-                                <option value="completed" 
+
+                                <option value="completed"
                                     {{ old('appstatus', $appointment->appstatus) == 'completed' ? 'selected' : '' }}>
                                     Completed
                                 </option>
-                                
+
                             </select>
 
-                            <button type="submit" @if($isTerminal) disabled @endif
+                            <button type="submit" @if ($isTerminal) disabled @endif
                                 class="inline-flex items-center px-4 py-2 rounded-md transition-colors duration-200
-                                {{ $isTerminal 
-                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                                    : 'bg-[#B59F84] hover:bg-[#9C8770] text-white' 
-                                }}">
+                                {{ $isTerminal ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-[#B59F84] hover:bg-[#9C8770] text-white' }}">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M5 13l4 4L19 7"></path>
@@ -285,12 +300,11 @@
                         class="flex">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" @if(!$canDelete) disabled @endif
+                        <button type="submit" @if (!$canDelete) disabled @endif
                             class="inline-flex items-center px-4 py-2 rounded-md transition-colors duration-200
                             {{ !$canDelete
                                 ? 'bg-gray-300 text-gray-400 cursor-not-allowed border border-gray-300'
-                                : 'bg-[#8A7560] hover:bg-[#6B5B48] text-white' 
-                            }}">
+                                : 'bg-[#8A7560] hover:bg-[#6B5B48] text-white' }}">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">

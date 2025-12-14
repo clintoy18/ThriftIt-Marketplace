@@ -33,4 +33,5 @@ class StoreAppointmentRequest extends FormRequest
             'images.*'      => 'image|mimes:jpg,jpeg,png,webp,gif|max:5120',
         ];
     }
+    
 }

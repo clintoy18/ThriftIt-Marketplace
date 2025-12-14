@@ -96,11 +96,16 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function (
     Route::resource('categories', CategoriesController::class);
 
     // Appointments
+    Route::get('/appointments/booked-slots', [AppointmentController::class, 'getBookedSlots'])
+        ->name('appointments.booked-slots');
+
     Route::get('appointments/myAppointments', [AppointmentController::class, 'myAppointments'])
         ->name('appointments.myAppointments');
-    Route::resource('appointments', AppointmentController::class);
+
     Route::patch('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])
         ->name('appointments.cancel');
+
+    Route::resource('appointments', AppointmentController::class);
 
     // Comments & Reactions
     Route::resource('comments', CommentController::class);

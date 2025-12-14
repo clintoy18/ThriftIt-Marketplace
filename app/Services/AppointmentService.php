@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\Notification;
 use App\Events\AppointmentBookedNotification;
 use Carbon\Carbon;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 
@@ -46,10 +47,10 @@ class AppointmentService
         // Create appointment
         $appointment = $this->appointmentRepository->create($data);
 
-        // Handle images
+        // Handle images (Multiple for Create)
         if ($apptImages && count($apptImages) > 0) {
             foreach ($apptImages as $image) {
-                if ($image instanceof \Illuminate\Http\UploadedFile) {
+                if ($image instanceof UploadedFile) {
                     $path = $image->store('appointment_images', [
                         'disk' => 's3',
                         'visibility' => 'public',
@@ -88,14 +89,35 @@ class AppointmentService
         ];
     }
 
-
-    public function updateAppointment(Appointment $appointment, array $data)
+    /**
+     * Update appointment with S3 image support
+     */
+    public function updateAppointment(Appointment $appointment, array $data, $image = null)
     {
-        return $this->appointmentRepository->update($appointment, $data);
+        // 1. Update basic fields (Status, Details, Contact)
+        $this->appointmentRepository->update($appointment, $data);
+
+        // 2. Handle Single Image Upload
+        if ($image instanceof UploadedFile) {
+
+            // Upload new image to S3
+            $path = $image->store('appointment_images', [
+                'disk' => 's3',
+                'visibility' => 'public',
+            ]);
+
+            // Save to Relationship
+            $appointment->apptImages()->create([
+                'image_path' => $path,
+            ]);
+        }
+
+        return $appointment;
     }
 
     public function deleteAppointment(Appointment $appointment)
     {
+        // Optionally delete S3 images associated with this appointment here
         return $this->appointmentRepository->delete($appointment);
     }
 

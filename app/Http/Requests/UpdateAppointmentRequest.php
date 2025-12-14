@@ -1,8 +1,8 @@
 <?php
 
 namespace App\Http\Requests;
-use Illuminate\Support\Facades\Auth;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateAppointmentRequest extends FormRequest
@@ -13,21 +13,21 @@ class UpdateAppointmentRequest extends FormRequest
     public function authorize(): bool
     {
         return Auth::check();
-
     }
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            // Allow all possible appointment statuses, including declined
-            'appstatus' => 'required|string|in:pending,approved,completed,declined,rejected',
-            'appdetails' => 'nullable|string|min:15|max:255',
-            'contactnumber' => 'nullable|numeric|digits_between:10,15',
+            // Status is specific to update
+            'appstatus'     => 'required|string|in:pending,approved,completed,declined,rejected,cancelled',
+            'appdetails'    => 'required|string|min:10|max:255',
+            'contactnumber' => ['required', 'string', 'regex:/^[0-9]+$/', 'digits_between:10,15'],
+            // Validation for adding multiple new images (similar to your Store Request)
+            'images'          => 'nullable|array|max:8', // Optional: set a max limit per upload
+            'images.*'        => 'image|mimes:jpg,jpeg,png,webp,gif|max:5120',
         ];
     }
 }

@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Appointment;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use App\Http\Requests\UpdateAppointmentRequest;
+use App\Http\Requests\UpdateAppointmentStatusRequest;
 use App\Services\UpcyclerService;
 
 class UpcyclerController extends Controller
@@ -46,12 +46,12 @@ class UpcyclerController extends Controller
         $appointment = Appointment::with('apptImages')->findOrFail($id);
         return view('upcycler.show', compact('appointment'));
     }
-    public function update(UpdateAppointmentRequest $request, $appointmentid)
+    public function update(UpdateAppointmentStatusRequest $request, $appointmentid)
     {
-        $validated = $request->validated(); // ✅ reuse this
+        $validated = $request->validated();
         $this->upcyclerService->updateAppointmentStatus($appointmentid, $validated, Auth::id());
 
-        return redirect()->back()->with('status', 'Appointment status updated.');
+        return redirect()->back()->with('success', 'Appointment status updated.');
     }
 
     /**
