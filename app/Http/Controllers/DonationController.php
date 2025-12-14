@@ -19,15 +19,16 @@ use Illuminate\Http\RedirectResponse;
 
 class DonationController extends Controller
 {
-
     protected $donationService;
+
     public function __construct(DonationService $donationService)
     {
         $this->donationService = $donationService;
     }
+
     public function index(): View
     {
-        // 1. Get ALL donations for this user (ensure your service returns a Collection, not Paginator)
+        // 1. Get ALL donations for this user
         $allDonations = $this->donationService->getDonationsByUser(Auth::id());
 
         // 2. Filter the collection into groups
@@ -42,6 +43,7 @@ class DonationController extends Controller
             'rejected' => $rejected
         ]);
     }
+
     public function create()
     {
         $categories = Categories::all();
@@ -53,7 +55,6 @@ class DonationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-
     public function store(StoreDonationRequest $request)
     {
         // Validate request data
@@ -73,9 +74,6 @@ class DonationController extends Controller
             ->route('donations.index')
             ->with('success', 'Donation created successfully!');
     }
-
-
-
 
     /**
      * Display the specified resource.
@@ -129,8 +127,15 @@ class DonationController extends Controller
      */
     public function edit(string $id)
     {
-        $categories = Categories::all();
         $donation = $this->donationService->getDonationById($id);
+
+        // 1. SECURITY CHECK: Redirect if user is not the owner
+        if (Auth::id() !== $donation->user_id) {
+            return redirect()->route('donations.index')
+                ->with('error', 'You are not authorized to edit this donation.');
+        }
+
+        $categories = Categories::all();
 
         return view('donations.edit', ['donation' => $donation, 'categories' => $categories]);
     }
@@ -140,7 +145,13 @@ class DonationController extends Controller
      */
     public function update(UpdateDonationRequest $request, Donation $donation)
     {
-        // 1️⃣ Validate request
+        // 1. SECURITY CHECK: Redirect if user is not the owner
+        if (Auth::id() !== $donation->user_id) {
+            return redirect()->route('donations.index')
+                ->with('error', 'You are not authorized to update this donation.');
+        }
+
+        // 2️⃣ Validate request
         $validated = $request->validated();
 
         // --------------------------------------------
@@ -150,16 +161,16 @@ class DonationController extends Controller
         }
         // --------------------------------------------
 
-        // 2️⃣ Prepare images array for service
+        // 3️⃣ Prepare images array for service
         $images = [
             'main' => $request->file('image'),       // Main image (if applicable)
             'gallery' => $request->file('images', []) // Gallery images
         ];
 
-        // 3️⃣ Call service to handle update including S3 uploads
+        // 4️⃣ Call service to handle update including S3 uploads
         $this->donationService->updateDonation($donation, $validated, $images);
 
-        // 4️⃣ Handle deletion of gallery images if any
+        // 5️⃣ Handle deletion of gallery images if any
         $deleteIds = collect($request->input('deletedImages', []))
             ->map(fn($id) => (int)$id)
             ->filter()
@@ -177,7 +188,7 @@ class DonationController extends Controller
             DonationImage::where('donation_id', $donation->id)->whereIn('id', $deleteIds)->delete();
         }
 
-        // 5️⃣ Determine redirect message based on previous status
+        // 6️⃣ Determine redirect message based on previous status
         $message = ($donation->approval_status === 'rejected')
             ? 'Donation updated and resubmitted for approval!'
             : 'Donation updated successfully!';
@@ -185,12 +196,20 @@ class DonationController extends Controller
         return redirect()->route('donations.show', $donation)
             ->with('success', $message);
     }
+
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
         $donation = $this->donationService->getDonationById($id);
+
+        // 1. SECURITY CHECK: Redirect if user is not the owner
+        if (Auth::id() !== $donation->user_id) {
+            return redirect()->route('donations.index')
+                ->with('error', 'You are not authorized to delete this donation.');
+        }
+
         $donation->delete();
         return redirect()->route('donations.index')->with('success', 'Donation deleted successfully!');
     }
@@ -230,7 +249,18 @@ class DonationController extends Controller
 
     public function markAsDonated(SubmitProofRequest $request, Donation $donation): RedirectResponse
     {
+        // 1. SECURITY CHECK
+        if (Auth::id() !== $donation->user_id) {
+            return redirect()->route('donations.index')
+                ->with('error', 'You are not authorized to edit this donation.');
+        }
+
         // Pass the proof file to the service (not stored here)
+        if ($donation->status === 'donated') {
+            return redirect()->route('donations.show', $donation->id)
+                ->with('error', 'This item is already donated and cannot be edited.');
+        }
+
         $this->donationService->updateDonation(
             $donation,
             ['verification_status' => 'pending',],
