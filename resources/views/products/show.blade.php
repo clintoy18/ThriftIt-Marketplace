@@ -146,7 +146,7 @@
                                 {{-- Update Product is ALWAYS allowed --}}
                                 <a href="{{ route('products.edit', $product->id) }}"
                                     class="px-6 py-3 bg-[#B59F84] text-white rounded-lg hover:bg-[#a08e77] transition-all duration-300 text-center font-medium">
-                                    Update Product
+                                    Update Item
                                 </a>
 
                                 {{-- Mark as Sold allowed ONLY if approved by admin --}}
