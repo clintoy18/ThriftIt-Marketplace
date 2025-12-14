@@ -81,7 +81,7 @@
                         <!-- Product Meta -->
                         <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
                             <span class="font-medium">Size:</span> {{ $product->size }} ·
-                            <span class="font-medium">Condition:</span> {{ ucfirst($product->condition) }} ·
+                            {{-- <span class="font-medium">Condition:</span> {{ ucfirst($product->condition) }} · --}}
                             <span class="font-medium">Category:</span> {{ $product->category->name ?? 'No Category' }}
                         </p>
 
