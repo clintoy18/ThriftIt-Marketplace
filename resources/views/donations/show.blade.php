@@ -65,7 +65,6 @@
 
                         <div class="mt-4 flex flex-col gap-3">
                             <p class="text-lg font-bold text-[#B59F84]">Free</p>
-                            <p class="text-sm text-gray-500">Quantity: {{ $donation->qty }}</p>
                             <p class="text-sm text-gray-500">Status: {{ ucfirst($donation->status) }}</p>
 
                             @if (Auth::id() === $donation->user_id)

@@ -1,20 +1,25 @@
 <x-app-layout>
+  
+
     <x-slot name="header">
-        <div class="flex items-center space-x-3">
-            <div class="flex-shrink-0">
-                <svg class="w-6 h-6 text-[#B59F84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                    </path>
-                </svg>
-            </div>
-            <div>
-                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                    {{ __('Appointment Details') }}
-                </h2>
-                <p class="text-sm text-gray-600 dark:text-gray-400">
-                    View and manage appointment information
-                </p>
+        <div class="flex items-center justify-between">
+
+            <div class="flex items-center space-x-3">
+                <div class="flex-shrink-0">
+                    <svg class="w-6 h-6 text-[#B59F84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                        {{ __('Appointment Details') }}
+                    </h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        View and manage appointment information
+                    </p>
+                </div>
             </div>
 
             <!-- Back Button -->
@@ -30,11 +35,10 @@
                         d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
 
-                Back
+                Back to Appointments
             </a>
         </div>
     </x-slot>
-
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6">
@@ -102,7 +106,6 @@
                                         {{ $appointment->user->lname }}, {{ $appointment->user->fname }}</p>
                                 </div>
                             </div>
-
                             <div class="flex items-center space-x-3">
                                 <svg class="w-5 h-5 text-[#B59F84]" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -114,6 +117,19 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Email</p>
                                     <p class="font-medium text-gray-900 dark:text-gray-100">
                                         {{ $appointment->user->email }}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-5 h-5 text-[#B59F84]" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
+                                    </path>
+                                </svg>
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Contact Number</p>
+                                    <p class="font-medium text-gray-900 dark:text-gray-100">
+                                        {{ $appointment->contactnumber }}</p>
                                 </div>
                             </div>
                         </div>

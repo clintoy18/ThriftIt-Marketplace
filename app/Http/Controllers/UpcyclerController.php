@@ -16,8 +16,9 @@ class UpcyclerController extends Controller
     public function __construct(UpcyclerService $upcyclerService)
     {
         $this->upcyclerService = $upcyclerService;
+        $this->middleware('subscribed')->only(['update']);
     }
-    
+
     public function index()
     {
         $appointments = $this->upcyclerService->getAppointmentsForUpcycler(Auth::id());
@@ -48,9 +49,20 @@ class UpcyclerController extends Controller
     }
     public function update(UpdateAppointmentStatusRequest $request, $appointmentid)
     {
+        // 1. Validation runs automatically here. 
+        // If it fails, it redirects back. If you see NOTHING, check your View for validation errors.
         $validated = $request->validated();
-        $this->upcyclerService->updateAppointmentStatus($appointmentid, $validated, Auth::id());
 
+        // 2. Call Service and CAPTURE the result
+        $result = $this->upcyclerService->updateAppointmentStatus($appointmentid, $validated, Auth::id());
+
+        // 3. Check if Service returned an error array
+        // (Your service returns ['success' => false] on failure)
+        if (is_array($result) && isset($result['success']) && $result['success'] === false) {
+            return redirect()->back()->with('error', $result['message']);
+        }
+
+        // 4. Success
         return redirect()->back()->with('success', 'Appointment status updated.');
     }
 

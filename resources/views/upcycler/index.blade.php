@@ -14,7 +14,7 @@
                 <div>
                     <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                         {{ __('Upcycler Dashboard') }}
-                    </h2>
+                </h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
                         Manage your client appointments and consultations
                     </p>
@@ -34,7 +34,7 @@
                         d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
 
-                Back
+                Back to Dashboard
             </a>
         </div>
     </x-slot>

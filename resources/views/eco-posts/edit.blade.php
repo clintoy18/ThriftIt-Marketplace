@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="py-8 bg-gradient-to-br  dark:from-gray-900 dark:to-gray-800 min-h-screen">
+    <div class="py-8 bg-gradient-to-br dark:from-gray-900 dark:to-gray-800 min-h-screen">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- Header Section --}}
@@ -113,25 +113,35 @@
                                 </svg>
                                 Update Image (Optional)
                             </label>
+                            
+                            {{-- Added ID for JS preview and explanatory text --}}
                             <input type="file" 
+                                   id="image_input"
                                    name="image" 
                                    accept="image/*" 
+                                   onchange="previewImage(event)"
                                    class="w-full px-4 py-2 bg-[#F8F4EC] dark:bg-gray-700 border border-[#E9DFC7] dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-[#B59F84] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#E1D5B6] file:text-gray-800 hover:file:bg-[#D5C39A] transition-all duration-200">
+                            
+                            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                Note: You can only have 1 image per post. Uploading a new file will replace the current one.
+                            </p>
                         </div>
 
-                        {{-- Current Image Preview --}}
-                        @if($post->image)
-                            <div class="bg-[#F8F4EC] dark:bg-gray-700 rounded-2xl p-4 border border-[#E9DFC7] dark:border-gray-600">
-                                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-[#B59F84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                    Current Image
-                                </p>
-                                <img src="{{ asset('storage/'.$post->image) }}" 
-                                     class="w-full max-h-80 object-contain rounded-xl border border-[#E9DFC7] dark:border-gray-600 bg-white dark:bg-gray-600 p-2">
-                            </div>
-                        @endif
+                        {{-- Image Preview Container --}}
+                        {{-- Logic: Show if DB image exists OR if JS shows it --}}
+                        <div id="image_preview_container" class="{{ $post->image ? '' : 'hidden' }} bg-[#F8F4EC] dark:bg-gray-700 rounded-2xl p-4 border border-[#E9DFC7] dark:border-gray-600 transition-all duration-300">
+                            <p id="preview_label" class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-[#B59F84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span id="preview_text">Current Image</span>
+                            </p>
+                            
+                            {{-- Image Element --}}
+                            <img id="preview_image" 
+                                 src="{{ $post->image ? Storage::disk('s3')->url($post->image) : '' }}" 
+                                 class="w-full max-h-80 object-contain rounded-xl border border-[#E9DFC7] dark:border-gray-600 bg-white dark:bg-gray-600 p-2">
+                        </div>
                     </div>
 
                     {{-- Video Link Field --}}
@@ -202,4 +212,26 @@
 
         </div>
     </div>
+
+    {{-- Script for Image Preview --}}
+    <script>
+        function previewImage(event) {
+            const reader = new FileReader();
+            const imageField = document.getElementById("preview_image");
+            const previewContainer = document.getElementById("image_preview_container");
+            const previewText = document.getElementById("preview_text");
+
+            reader.onload = function(){
+                if(reader.readyState == 2){
+                    imageField.src = reader.result;
+                    previewContainer.classList.remove('hidden');
+                    previewText.innerText = "New Image Preview (Will Replace Current)";
+                }
+            }
+
+            if(event.target.files[0]) {
+                reader.readAsDataURL(event.target.files[0]);
+            }
+        }
+    </script>
 </x-app-layout>

@@ -47,9 +47,12 @@
                 </div>
 
                 <div class="md:w-1/2 h-[420px] flex gap-4 relative">
-                    <img src="{{ asset('images/upcycle-fashion.png') }}" alt="Upcycle Fashion"
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url('images/upcycle-fashion.png') }}"
+                        alt="Upcycle Fashion"
                         class="w-1/2 h-full object-cover rounded-xl shadow-lg hover:scale-[1.02] transition-transform duration-300">
-                    <img src="{{ asset('images/upcycle-community.png') }}" alt="Upcycle Community"
+
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url('images/upcycle-community.png') }}"
+                        alt="Upcycle Community"
                         class="w-1/2 h-full object-cover rounded-xl shadow-lg hover:scale-[1.02] transition-transform duration-300">
                 </div>
             </div>
@@ -72,7 +75,7 @@
             {{-- Location Filter --}}
             @if(isset($barangays) && $barangays->count() > 0)
                 <div class="flex justify-end mb-6">
-                    <div x-data="{ open: false, locationSearch: '' }" class="relative z-[100] w-full sm:w-auto">
+                    <div x-data="{ open: false, locationSearch: '' }" class="relative z-[20] w-full sm:w-auto">
                         <button @click="open = !open"
                             class="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start gap-2 px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm shadow-sm z-50">
                             <span id="locationButtonText">
@@ -87,7 +90,7 @@
                             </svg>
                         </button>
                         <div x-cloak x-show="open" @click.outside="open = false; locationSearch = ''"
-                            class="absolute right-0 mt-2 w-full sm:w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-[101] py-1">
+                            class="absolute right-0 mt-2 w-full sm:w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-[20] py-1">
 
                             <div class="px-3 py-1">
                                 <input x-model="locationSearch" placeholder="Search location..."
