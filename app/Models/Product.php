@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Categories;
 use App\Models\Comment;
 use App\Models\Barangay;
+use App\Models\Favorite;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
@@ -120,5 +121,17 @@ class Product extends Model
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    // Favorites relationship
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    // Check if product is favorited by a user
+    public function isFavoritedBy($userId)
+    {
+        return $this->favorites()->where('user_id', $userId)->exists();
     }
 }

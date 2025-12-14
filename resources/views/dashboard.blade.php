@@ -1082,24 +1082,98 @@
             // Helper function to initialize favorite buttons
             function initFavoriteButtons() {
                 document.querySelectorAll('.favorite-btn').forEach(button => {
-                    // Remove existing event listeners
-                    const newButton = button.cloneNode(true);
-                    button.parentNode.replaceChild(newButton, button);
+                    const productId = button.getAttribute('data-id');
+                    if (!productId) return;
 
-                    // Add new event listener
-                    newButton.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const svg = this.querySelector('svg');
-                        if (svg.getAttribute('fill') === 'none') {
+                    // Skip if already initialized
+                    if (button.dataset.initialized === 'true') return;
+                    button.dataset.initialized = 'true';
+
+                    // Check initial favorite status
+                    fetch(`/products/${productId}/favorite/check`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const svg = button.querySelector('svg');
+                        if (data.isFavorited) {
                             svg.setAttribute('fill', 'currentColor');
                             svg.setAttribute('stroke', 'none');
-                            this.classList.add('text-red-500');
+                            button.classList.add('text-red-500');
+                            button.classList.remove('text-gray-400');
                         } else {
                             svg.setAttribute('fill', 'none');
                             svg.setAttribute('stroke', 'currentColor');
-                            this.classList.remove('text-red-500');
+                            button.classList.remove('text-red-500');
+                            button.classList.add('text-gray-400');
                         }
+                    })
+                    .catch(error => console.error('Error checking favorite status:', error));
+
+                    // Handle click
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const svg = this.querySelector('svg');
+                        const isCurrentlyFavorited = svg.getAttribute('fill') === 'currentColor';
+
+                        // Optimistic UI update
+                        if (isCurrentlyFavorited) {
+                            svg.setAttribute('fill', 'none');
+                            svg.setAttribute('stroke', 'currentColor');
+                            this.classList.remove('text-red-500');
+                            this.classList.add('text-gray-400');
+                        } else {
+                            svg.setAttribute('fill', 'currentColor');
+                            svg.setAttribute('stroke', 'none');
+                            this.classList.add('text-red-500');
+                            this.classList.remove('text-gray-400');
+                        }
+
+                        // Make API call
+                        fetch(`/products/${productId}/favorite`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Update UI based on response
+                            if (data.isFavorited) {
+                                svg.setAttribute('fill', 'currentColor');
+                                svg.setAttribute('stroke', 'none');
+                                this.classList.add('text-red-500');
+                                this.classList.remove('text-gray-400');
+                            } else {
+                                svg.setAttribute('fill', 'none');
+                                svg.setAttribute('stroke', 'currentColor');
+                                this.classList.remove('text-red-500');
+                                this.classList.add('text-gray-400');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error toggling favorite:', error);
+                            // Revert on error
+                            if (isCurrentlyFavorited) {
+                                svg.setAttribute('fill', 'currentColor');
+                                svg.setAttribute('stroke', 'none');
+                                this.classList.add('text-red-500');
+                                this.classList.remove('text-gray-400');
+                            } else {
+                                svg.setAttribute('fill', 'none');
+                                svg.setAttribute('stroke', 'currentColor');
+                                this.classList.remove('text-red-500');
+                                this.classList.add('text-gray-400');
+                            }
+                        });
                     });
                 });
             }
@@ -1248,24 +1322,44 @@
                 });
             });
 
-            // Initialize favorite buttons on page load
-            initFavoriteButtons();
+            // Initialize favorite buttons on page load (with a small delay to ensure DOM is ready)
+            setTimeout(() => {
+                initFavoriteButtons();
+            }, 100);
+            
+            // Also initialize immediately in case DOM is already ready
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                initFavoriteButtons();
+            }
 
-            // Existing JavaScript for other interactions
-            document.querySelectorAll('.favorite-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const svg = this.querySelector('svg');
-                    if (svg.getAttribute('fill') === 'none') {
-                        svg.setAttribute('fill', 'currentColor');
-                        svg.setAttribute('stroke', 'none');
-                        this.classList.add('text-red-500');
-                    } else {
-                        svg.setAttribute('fill', 'none');
-                        svg.setAttribute('stroke', 'currentColor');
-                        this.classList.remove('text-red-500');
+            // Use MutationObserver to re-initialize favorite buttons when new content is added
+            const favoriteObserver = new MutationObserver(function(mutations) {
+                // Reset initialization flags for new buttons and re-initialize
+                document.querySelectorAll('.favorite-btn').forEach(btn => {
+                    // Only reset if the button is in a newly added node
+                    const wasAdded = mutations.some(mutation => {
+                        return Array.from(mutation.addedNodes).some(node => {
+                            if (node.nodeType === 1) {
+                                return node.contains && node.contains(btn);
+                            }
+                            return false;
+                        });
+                    });
+                    if (wasAdded) {
+                        btn.dataset.initialized = 'false';
                     }
                 });
+                initFavoriteButtons();
             });
+            
+            // Observe the products grid for changes
+            const productsGrid = document.getElementById('productsGrid');
+            if (productsGrid) {
+                favoriteObserver.observe(productsGrid, { 
+                    childList: true, 
+                    subtree: true 
+                });
+            }
 
             // Intersection Observer for scroll animations
             const observerOptions = {
@@ -1322,6 +1416,11 @@
                         // Reattach event listeners
                         attachPaginationLinks();
                         attachFilterLinks();
+                        
+                        // Re-initialize favorite buttons
+                        if (typeof initFavoriteButtons === 'function') {
+                            initFavoriteButtons();
+                        }
 
                         if (loading) loading.classList.add('hidden');
 

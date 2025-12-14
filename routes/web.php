@@ -231,6 +231,11 @@ Route::middleware('auth')->group(function () {
         ->name('products.markAsSold')
         ->middleware('auth');
 
+    // Favorites
+    Route::get('/favorites', [\App\Http\Controllers\FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/products/{product}/favorite', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
+    Route::get('/products/{product}/favorite/check', [\App\Http\Controllers\FavoriteController::class, 'check'])->name('favorites.check');
+
     //mark item as sold
     Route::put('/donations/{donation}/mark-as-donated', [DonationController::class, 'markAsDonated'])
         ->name('donations.markAsDonated');

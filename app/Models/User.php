@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Barangay;
 use App\Models\Donation;
 use App\Models\Appointment;
+use App\Models\Favorite;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Laravel\Cashier\Billable;
 use Illuminate\Support\Facades\Storage;
@@ -218,5 +219,17 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // Otherwise, return the public default profile image URL
         return 'https://thriftit-bucket-s3.s3.ap-southeast-1.amazonaws.com/profile_pictures/default-profile.jpg';
+    }
+
+    // Favorites relationship
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    // Check if user has favorited a product
+    public function hasFavorited($productId)
+    {
+        return $this->favorites()->where('product_id', $productId)->exists();
     }
 }

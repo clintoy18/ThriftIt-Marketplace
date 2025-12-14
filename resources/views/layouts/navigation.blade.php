@@ -47,6 +47,11 @@
                      <a href="{{ route('help') }}" class="text-gray-700 dark:text-gray-200 hover:text-[#B59F84] transition-colors duration-200" title="Help & Support">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </a>
+                        <a href="{{ route('favorites.index') }}" class="text-gray-700 dark:text-gray-200 hover:text-[#B59F84] transition-colors duration-200" title="Favorites">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </a>
                         <a href="{{ route('messages.index') }}" class="text-gray-700 dark:text-gray-200 relative"
                             x-data="{
                                 unreadCount: {{ $totalUnreadCount ?? 0 }},
@@ -274,6 +279,11 @@
 
               <div class="flex items-center space-x-1"> @auth
         @if ($role !== 2)
+            <a href="{{ route('favorites.index') }}" class="p-2 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" title="Favorites">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+            </a>
             <a href="{{ route('messages.index') }}" class="p-2 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-800 relative transition-colors"
                 x-data="{
                     unreadCount: {{ $totalUnreadCount ?? 0 }},
@@ -565,5 +575,115 @@
         if (window.location.pathname.includes('chat/')) {
             setTimeout(() => { markMessagesAsRead(); }, 500);
         }
+
+        // Global favorite button handler
+        function initGlobalFavoriteButtons() {
+            document.querySelectorAll('.favorite-btn').forEach(button => {
+                const productId = button.getAttribute('data-id');
+                if (!productId) return;
+
+                // Skip if already initialized
+                if (button.dataset.initialized === 'true') return;
+                button.dataset.initialized = 'true';
+
+                // Check initial favorite status
+                fetch(`/products/${productId}/favorite/check`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const svg = button.querySelector('svg');
+                    if (data.isFavorited) {
+                        svg.setAttribute('fill', 'currentColor');
+                        svg.setAttribute('stroke', 'none');
+                        button.classList.add('text-red-500');
+                        button.classList.remove('text-gray-400');
+                    } else {
+                        svg.setAttribute('fill', 'none');
+                        svg.setAttribute('stroke', 'currentColor');
+                        button.classList.remove('text-red-500');
+                        button.classList.add('text-gray-400');
+                    }
+                })
+                .catch(error => console.error('Error checking favorite status:', error));
+
+                // Handle click
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const svg = this.querySelector('svg');
+                    const isCurrentlyFavorited = svg.getAttribute('fill') === 'currentColor';
+
+                    // Optimistic UI update
+                    if (isCurrentlyFavorited) {
+                        svg.setAttribute('fill', 'none');
+                        svg.setAttribute('stroke', 'currentColor');
+                        this.classList.remove('text-red-500');
+                        this.classList.add('text-gray-400');
+                    } else {
+                        svg.setAttribute('fill', 'currentColor');
+                        svg.setAttribute('stroke', 'none');
+                        this.classList.add('text-red-500');
+                        this.classList.remove('text-gray-400');
+                    }
+
+                    // Make API call
+                    fetch(`/products/${productId}/favorite`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            // Revert on error
+                            if (isCurrentlyFavorited) {
+                                svg.setAttribute('fill', 'currentColor');
+                                svg.setAttribute('stroke', 'none');
+                                this.classList.add('text-red-500');
+                                this.classList.remove('text-gray-400');
+                            } else {
+                                svg.setAttribute('fill', 'none');
+                                svg.setAttribute('stroke', 'currentColor');
+                                this.classList.remove('text-red-500');
+                                this.classList.add('text-gray-400');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error toggling favorite:', error);
+                        // Revert on error
+                        if (isCurrentlyFavorited) {
+                            svg.setAttribute('fill', 'currentColor');
+                            svg.setAttribute('stroke', 'none');
+                            this.classList.add('text-red-500');
+                            this.classList.remove('text-gray-400');
+                        } else {
+                            svg.setAttribute('fill', 'none');
+                            svg.setAttribute('stroke', 'currentColor');
+                            this.classList.remove('text-red-500');
+                            this.classList.add('text-gray-400');
+                        }
+                    });
+                });
+            });
+        }
+
+        // Initialize on page load
+        initGlobalFavoriteButtons();
+
+        // Re-initialize when new content is loaded (for AJAX updates)
+        const observer = new MutationObserver(function(mutations) {
+            initGlobalFavoriteButtons();
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
     });
 </script>
