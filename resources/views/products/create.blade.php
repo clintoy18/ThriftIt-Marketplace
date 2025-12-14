@@ -1,9 +1,8 @@
 @php
-    // Prepare existing images from session
+    // Prepare existing images from session (e.g. if validation fails and page reloads)
     $existingImages = [];
     if (session()->has('product_images')) {
         foreach (session('product_images') as $path) {
-            // Only add if path is valid and non-empty
             if (!empty($path) && is_string($path) && trim($path) !== '') {
                 try {
                     $url = Storage::disk('s3')->url(trim($path));
@@ -13,7 +12,6 @@
                         'name' => basename($path),
                     ];
                 } catch (\Exception $e) {
-                    // Skip invalid paths
                     continue;
                 }
             }
@@ -23,7 +21,6 @@
 
 <x-app-layout>
     <div class="pt-8 sm:pt-12 pb-8">
-        {{-- Added overflow-x-hidden to main container to prevent any horizontal scrolling issues on mobile --}}
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-hidden lg:overflow-visible">
 
             {{-- Mobile Header --}}
@@ -35,26 +32,27 @@
                 <hr class="w-full mt-4 h-px bg-gray-800 border-0 dark:bg-gray-700">
             </div>
 
+            {{-- Verification Status --}}
             @if(auth()->user()->is_verified)
                 <x-step-progress :currentStep="$currentStep" />
             @else
-            <div class="mb-8 rounded-2xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20 px-4 py-3 flex items-center gap-3">
-    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-800/60 flex items-center justify-center">
-        <svg class="w-5 h-5 text-amber-700 dark:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.1 19h13.8A2.1 2.1 0 0021 16.9V7.1A2.1 2.1 0 0018.9 5H5.1A2.1 2.1 0 003 7.1v9.8A2.1 2.1 0 005.1 19z"/>
-        </svg>
-    </div>
-    <div class="flex-1">
-        <p class="text-sm font-semibold text-amber-800 dark:text-amber-200">Not verified</p>
-        <div class="flex items-center gap-2 mt-1">
-            <p class="text-sm text-amber-700 dark:text-amber-300">Please verify your account to enable the selling steps.</p>
-            <a href="{{ route('profile.edit') ?? url('/email/verify') }}"
-               class="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold hover:underline hover:text-blue-700 dark:hover:text-blue-300 transition whitespace-nowrap">
-                Click here to verify
-            </a>
-        </div>
-    </div>
-</div>
+                <div class="mb-8 rounded-2xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20 px-4 py-3 flex items-center gap-3">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-800/60 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-amber-700 dark:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.1 19h13.8A2.1 2.1 0 0021 16.9V7.1A2.1 2.1 0 0018.9 5H5.1A2.1 2.1 0 003 7.1v9.8A2.1 2.1 0 005.1 19z"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-amber-800 dark:text-amber-200">Not verified</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <p class="text-sm text-amber-700 dark:text-amber-300">Please verify your account to enable the selling steps.</p>
+                            <a href="{{ route('profile.edit') ?? url('/email/verify') }}"
+                               class="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold hover:underline hover:text-blue-700 dark:hover:text-blue-300 transition whitespace-nowrap">
+                                Click here to verify
+                            </a>
+                        </div>
+                    </div>
+                </div>
             @endif
 
             <form id="productForm" action="{{ route('sell-item.store-step1') }}" method="POST"
@@ -64,24 +62,20 @@
                 {{-- Hidden Container for Removed Images --}}
                 <div id="removedImagesContainer"></div>
 
-                {{-- GRID LAYOUT: Stacks vertically (cols-1) on mobile, becomes 5-col grid on Desktop (lg) --}}
+                {{-- GRID LAYOUT --}}
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10 items-start lg:relative lg:left-[-150px]">
 
                     {{-- LEFT COLUMN (Photos) --}}
-                    {{-- FIX: Added 'w-full' for mobile, kept 'lg:w-[450px]' for desktop --}}
                     <div class="lg:col-span-2 flex flex-col w-full lg:w-[450px]">
                         <div class="space-y-4">
                             <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Photos</h3>
 
                             {{-- Photo Guidelines --}}
-                            <div
-                                class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
-                                <h4
-                                    class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                            <div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24"
                                         fill="currentColor">
-                                        <path
-                                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
                                     </svg>
                                     Photo Guidelines
                                 </h4>
@@ -102,7 +96,7 @@
 
                                     {{-- PREVIEW CONTAINER --}}
                                     <div id="allPreviews" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 w-full">
-                                        {{-- Existing images loop... --}}
+                                        {{-- Existing images loop --}}
                                         @foreach ($existingImages as $index => $img)
                                             <div id="existing-{{ $index }}"
                                                 class="preview-item existing-item relative h-24 rounded-lg overflow-hidden border border-gray-200">
@@ -150,31 +144,40 @@
 
                             <input id="productImages" name="images[]" type="file" accept="image/*" multiple
                                 class="hidden">
+                            
+                            {{-- Validation Errors for Images --}}
                             <p id="productImageError" class="mt-2 text-sm text-red-600 hidden"></p>
-                            <p id="productReachLimitError" class="mt-2 text-sm text-red-600 hidden">You can only upload
-                                up to 8 photos.</p>
+                            <p id="productReachLimitError" class="mt-2 text-sm text-red-600 hidden">You can only upload up to 8 photos.</p>
+                            @error('images')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                            @error('images.*')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
                     {{-- RIGHT COLUMN (Form Details) --}}
-                    {{-- FIX: Changed w-[640px] to w-full lg:w-[640px] --}}
                     <div class="lg:col-span-3 flex lg:justify-end lg:relative lg:left-[250px] w-full lg:w-[640px]">
 
-                        {{-- FIX: Changed w-[150px] to w-full lg:w-[680px]. This was the main cause of the squished form. --}}
-                        <div
-                            class="bg-[#F4F2ED] dark:bg-gray-800 shadow-lg rounded-lg overflow-visible w-full lg:w-[680px] ml-auto">
+                        <div class="bg-[#F4F2ED] dark:bg-gray-800 shadow-lg rounded-lg overflow-visible w-full lg:w-[680px] ml-auto">
                             <div class="p-4 sm:p-6">
-                                <div class="space-y-4">
-                                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">Step
-                                        1: Item Details</h3>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Essential information about your
-                                        item.</p>
-                                    <div class="h-px w-full bg-gray-200 dark:bg-gray-700"></div>
-
+                                <div class="space-y-6">
+                                    
+                                    {{-- Header --}}
                                     <div>
-                                        <label for="name"
-                                            class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Item
-                                            Name <span class="ml-1 text-red-500">*</span></label>
+                                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">Step 1: Item Details</h3>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Essential information about your item.</p>
+                                        <div class="h-px w-full bg-gray-200 dark:bg-gray-700 mt-4"></div>
+                                    </div>
+
+                                    {{-- HIDDEN INPUTS (Preserving required backend data) --}}
+                                    <input type="hidden" name="condition" value="{{ old('condition', session('product_step1.condition')) ?? 'used' }}">
+                                    <input type="hidden" name="status" value="available">
+
+                                    {{-- 1. ITEM NAME (Full Width) --}}
+                                    <div>
+                                        <label for="name" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Item Name <span class="ml-1 text-red-500">*</span></label>
                                         <input type="text" id="name" name="name"
                                             class="mt-1 block w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#B59F84] focus:border-[#B59F84] transition"
                                             placeholder="e.g., Vintage Denim Jacket"
@@ -184,11 +187,11 @@
                                         @enderror
                                     </div>
 
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                                    {{-- 2. CATEGORY & SIZE (Grid: Category First, then Size) --}}
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                                        {{-- Category --}}
                                         <div>
-                                            <label for="category_id"
-                                                class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Category
-                                                <span class="ml-1 text-red-500">*</span></label>
+                                            <label for="category_id" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Category <span class="ml-1 text-red-500">*</span></label>
                                             <select id="category_id" name="category_id"
                                                 class="mt-1 block w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#B59F84] focus:border-[#B59F84] transition"
                                                 required>
@@ -199,81 +202,20 @@
                                                         {{ $category->name }}</option>
                                                 @endforeach
                                             </select>
+                                            @error('category_id')
+                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
 
+                                        {{-- Size --}}
                                         <div>
-                                            <label for="segment_id"
-                                                class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Target
-                                                Audience <span class="ml-1 text-red-500">*</span></label>
-                                            <select id="segment_id" name="segment_id"
+                                            <label for="size" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Size <span class="ml-1 text-red-500">*</span></label>
+                                            <select id="size" name="size"
                                                 class="mt-1 block w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#B59F84] focus:border-[#B59F84] transition"
                                                 required>
-                                                <option value="" disabled selected>Select segment</option>
-                                                @foreach ($segments as $segment)
-                                                    <option value="{{ $segment->id }}"
-                                                        {{ old('segment_id', session('product_step1.segment_id')) == $segment->id ? 'selected' : '' }}>
-                                                        {{ ucfirst($segment->name) }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="space-y-4">
-                                        <div class="mb-8">
-                                            <label for="barangay_id"
-                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">Barangay</label>
-                                            <select id="barangay_id" name="barangay_id"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
-                                                required>
-                                                <option value="" disabled selected>Select a barangay</option>
-                                                @foreach ($barangays as $barangay)
-                                                    <option value="{{ $barangay->id }}"
-                                                        {{ old('barangay_id', session('product_step1.barangay_id')) == $barangay->id ? 'selected' : '' }}>
-                                                        {{ $barangay->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label for="description"
-                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                                        <textarea id="description" name="description" rows="4"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
-                                            placeholder="Enter detailed description" required>{{ old('description', session('product_step1.description')) }}</textarea>
-                                    </div>
-                                </div>
-
-                                <div class="space-y-4 mt-4">
-                                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Specifics</h3>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                                        <div>
-                                            <label for="condition"
-                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">Condition</label>
-                                            <select id="condition" name="condition"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
-                                                required>
-                                                <option value="new"
-                                                    {{ old('condition', session('product_step1.condition')) == 'new' ? 'selected' : '' }}>
-                                                    New</option>
-                                                <option value="used"
-                                                    {{ old('condition', session('product_step1.condition')) == 'used' ? 'selected' : '' }}>
-                                                    Used</option>
-                                            </select>
-                                        </div>
-
-                                        <input type="hidden" name="status" value="available">
-
-                                        <div>
-                                            <label for="size"
-                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">Size</label>
-                                            <select id="size" name="size"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
-                                                required>
-                                                <option value="" disabled
-                                                    {{ old('size', session('product_step1.size')) ? '' : 'selected' }}>
-                                                    Select size</option>
-                                                <optgroup label="Shirts, Dresses, Outerwear, Pants">
+                                                <option value="" disabled {{ old('size', session('product_step1.size')) ? '' : 'selected' }}>Select size</option>
+                                                {{-- Options grouped carefully for JS logic --}}
+                                                <optgroup label="Clothing">
                                                     <option value="XS">XS</option>
                                                     <option value="S">S</option>
                                                     <option value="M">M</option>
@@ -299,20 +241,81 @@
                                                     <option value="L">L</option>
                                                 </optgroup>
                                             </select>
+                                            @error('size')
+                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <label for="price"
-                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Price
-                                            (PHP)</label>
-                                        <input type="number" step="0.01" id="price" name="price"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
-                                            placeholder="Enter price"
-                                            value="{{ old('price', session('product_step1.price')) }}" required>
+                                    {{-- 3. PRICE & TARGET AUDIENCE (Grid) --}}
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                                        {{-- Price --}}
+                                        <div>
+                                            <label for="price" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Price (PHP) <span class="ml-1 text-red-500">*</span></label>
+                                            <div class="relative mt-1">
+                                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                                                    <span class="text-gray-500 sm:text-sm">₱</span>
+                                                </div>
+                                                <input type="number" step="0.01" id="price" name="price"
+                                                    class="block w-full pl-8 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#B59F84] focus:border-[#B59F84] transition"
+                                                    placeholder="0.00"
+                                                    value="{{ old('price', session('product_step1.price')) }}" required>
+                                            </div>
+                                            @error('price')
+                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        {{-- Target Audience --}}
+                                        <div>
+                                            <label for="segment_id" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Target Audience <span class="ml-1 text-red-500">*</span></label>
+                                            <select id="segment_id" name="segment_id"
+                                                class="mt-1 block w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#B59F84] focus:border-[#B59F84] transition"
+                                                required>
+                                                <option value="" disabled selected>Select segment</option>
+                                                @foreach ($segments as $segment)
+                                                    <option value="{{ $segment->id }}"
+                                                        {{ old('segment_id', session('product_step1.segment_id')) == $segment->id ? 'selected' : '' }}>
+                                                        {{ ucfirst($segment->name) }}</option>
+                                                @endforeach
+                                            </select>
+                                            @error('segment_id')
+                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
                                     </div>
 
-                                    <div class="flex justify-center sm:justify-end mt-9 mb-[-40px]">
+                                    {{-- 4. BARANGAY (Full Width) --}}
+                                    <div>
+                                        <label for="barangay_id" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Barangay <span class="ml-1 text-red-500">*</span></label>
+                                        <select id="barangay_id" name="barangay_id"
+                                            class="mt-1 block w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#B59F84] focus:border-[#B59F84] transition"
+                                            required>
+                                            <option value="" disabled selected>Select a barangay</option>
+                                            @foreach ($barangays as $barangay)
+                                                <option value="{{ $barangay->id }}"
+                                                    {{ old('barangay_id', session('product_step1.barangay_id')) == $barangay->id ? 'selected' : '' }}>
+                                                    {{ $barangay->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('barangay_id')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    {{-- 5. DESCRIPTION (Full Width) --}}
+                                    <div>
+                                        <label for="description" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Description <span class="ml-1 text-red-500">*</span></label>
+                                        <textarea id="description" name="description" rows="5"
+                                            class="mt-1 block w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#B59F84] focus:border-[#B59F84] transition shadow-sm resize-none"
+                                            placeholder="Tell us about the condition, brand, or story of your item..." required>{{ old('description', session('product_step1.description')) }}</textarea>
+                                        @error('description')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    {{-- SUBMIT BUTTON --}}
+                                    <div class="flex justify-center sm:justify-end pt-4 pb-2">
                                         <button type="submit"
                                             class="inline-flex items-center justify-center bg-[#B59F84] text-white px-8 sm:px-10 py-3 rounded-[10px] text-sm sm:text-base font-semibold hover:bg-[#a08e77] transform hover:scale-105 transition-all duration-300 shadow-md w-full sm:w-auto">
                                             @if (auth()->user()->is_verified)
@@ -330,26 +333,25 @@
             </form>
         </div>
     </div>
+
     <script>
         // GLOBAL FUNCTION: Handle deletion of Existing (Session) images
         window.removeExistingImage = function(path, elementId) {
-            // 1. Remove the visual element from DOM
             const el = document.getElementById(elementId);
             if (el) el.remove();
 
-            // 2. Create a hidden input to tell the backend to delete this specific path
             const container = document.getElementById('removedImagesContainer');
             const input = document.createElement('input');
             input.type = 'hidden';
-            input.name = 'removed_images[]'; // Array of paths to remove
+            input.name = 'removed_images[]';
             input.value = path;
             container.appendChild(input);
 
-            // 3. Dispatch event so the main script recalculates counts/limits
             document.dispatchEvent(new Event('existingImageRemoved'));
         };
 
         document.addEventListener('DOMContentLoaded', function() {
+            // --- IMAGE UPLOAD LOGIC ---
             const input = document.getElementById('productImages');
             const allPreviewsContainer = document.getElementById('allPreviews');
             const dropZone = document.getElementById('productDropZone');
@@ -359,18 +361,14 @@
             const reachLimitEl = document.getElementById('productReachLimitError');
             const form = document.getElementById('productForm');
 
-            let newFiles = []; // Track only newly added files
+            let newFiles = [];
 
-            // --- UI HELPER: Calculates visible items and updates UI ---
             function getVisibleCount() {
-                // Counts both .existing-item and .new-preview-item
                 return document.querySelectorAll('.preview-item').length;
             }
 
             function updateUI() {
                 const count = getVisibleCount();
-
-                // 1. Show/Hide Empty State
                 if (count > 0) {
                     dropZoneContent.classList.add('hidden');
                     addMoreText.classList.remove('hidden');
@@ -380,34 +378,24 @@
                     addMoreText.classList.add('hidden');
                     dropZone.style.minHeight = '192px';
                 }
-
-                // 2. Renumber Badges
                 document.querySelectorAll('.preview-number').forEach((badge, idx) => {
                     badge.textContent = idx + 1;
                 });
-
-                // 3. Toggle Limit Warning (Max 8)
                 if (count >= 8) {
                     addMoreText.classList.add('hidden');
                 }
             }
 
-            // Listen for removals of existing images (triggered by global function)
             document.addEventListener('existingImageRemoved', updateUI);
 
-            // --- NEW FILE HANDLING ---
             input.addEventListener('change', () => {
                 const files = Array.from(input.files || []);
-
-                // Reset error
                 if (errorEl) errorEl.classList.add('hidden');
-
                 files.forEach(file => {
                     if (getVisibleCount() < 8) {
                         newFiles.push(file);
                         renderNewFile(file);
                     } else {
-                        // Limit reached
                         if (reachLimitEl) {
                             reachLimitEl.classList.remove('hidden');
                             setTimeout(() => reachLimitEl.classList.add('hidden'), 2500);
@@ -420,22 +408,15 @@
 
             function renderNewFile(file) {
                 const wrapper = document.createElement('div');
-                wrapper.className =
-                    'preview-item new-preview-item relative h-24 rounded-lg overflow-hidden border border-gray-200';
-
+                wrapper.className = 'preview-item new-preview-item relative h-24 rounded-lg overflow-hidden border border-gray-200';
                 const img = document.createElement('img');
                 img.className = 'w-full h-full object-cover';
-
                 const removeBtn = document.createElement('span');
-                removeBtn.className =
-                    'absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs cursor-pointer hover:bg-red-600 transition-colors z-20';
+                removeBtn.className = 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs cursor-pointer hover:bg-red-600 transition-colors z-20';
                 removeBtn.textContent = '×';
-
                 const badge = document.createElement('span');
-                badge.className =
-                    'preview-number absolute top-1 left-1 bg-black bg-opacity-70 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs';
+                badge.className = 'preview-number absolute top-1 left-1 bg-black bg-opacity-70 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs';
 
-                // Remove logic for NEW files
                 removeBtn.onclick = (e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -462,7 +443,6 @@
                 input.files = dt.files;
             }
 
-            // --- SUBMIT VALIDATION ---
             form.addEventListener('submit', (e) => {
                 if (getVisibleCount() < 2) {
                     e.preventDefault();
@@ -473,18 +453,13 @@
                 }
             });
 
-            // Initialize on Load
             updateUI();
 
-            // Drag and Drop Logic
             if (dropZone) {
                 dropZone.addEventListener('dragover', (e) => {
                     e.preventDefault();
-                    if (getVisibleCount() < 8) {
-                        dropZone.classList.add('ring-2', 'ring-blue-400');
-                    } else {
-                        dropZone.classList.add('ring-2', 'ring-red-400');
-                    }
+                    if (getVisibleCount() < 8) dropZone.classList.add('ring-2', 'ring-blue-400');
+                    else dropZone.classList.add('ring-2', 'ring-red-400');
                 });
                 dropZone.addEventListener('dragleave', () => {
                     dropZone.classList.remove('ring-2', 'ring-blue-400', 'ring-red-400');
@@ -513,10 +488,7 @@
                         updateUI();
                     }
                 });
-
-                // Click handler wrapper
                 dropZone.addEventListener('click', (e) => {
-                    // Prevent file dialog if clicking delete button or if limit reached
                     if (e.target.closest('.remove-btn') || e.target.tagName === 'BUTTON') {
                         e.preventDefault();
                         return;
@@ -532,18 +504,22 @@
             }
         });
 
-        // Size Logic Helper (Included for completeness)
+        // --- DYNAMIC SIZE LOGIC ---
         (function() {
             let sizeTemplates = null;
 
             function initSizeTemplates() {
                 const sizeSelect = document.getElementById('size');
                 if (!sizeSelect || sizeTemplates) return;
+
                 const placeholder = sizeSelect.querySelector('option[value=""]');
-                const clothingGroup = sizeSelect.querySelector('optgroup[label^="Shirts"]');
+                
+                // Matches standard optgroup labels used in HTML
+                const clothingGroup = sizeSelect.querySelector('optgroup[label="Clothing"]');
                 const shoesGroup = sizeSelect.querySelector('optgroup[label="Shoes"]');
                 const accessoriesGroup = sizeSelect.querySelector('optgroup[label="Accessories"]');
-                const socksGroup = sizeSelect.querySelector('optgroup[label^="Socks"]');
+                const socksGroup = sizeSelect.querySelector('optgroup[label="Socks / Hosiery"]');
+
                 sizeTemplates = {
                     placeholder: placeholder ? placeholder.outerHTML : '',
                     clothing: clothingGroup ? clothingGroup.outerHTML : '',
@@ -558,32 +534,69 @@
                 const categorySelect = document.getElementById('category_id');
                 const sizeSelect = document.getElementById('size');
                 if (!categorySelect || !sizeSelect) return;
+
                 initSizeTemplates();
                 if (!sizeTemplates) return;
+
                 const selectedIndex = categorySelect.selectedIndex;
+                // If selection is empty, reset
                 if (selectedIndex <= 0) {
                     sizeSelect.innerHTML = sizeTemplates.full;
                     return;
                 }
+
                 const selectedText = (categorySelect.options[selectedIndex].text || '').toLowerCase();
                 let group = 'clothing';
-                if (selectedText.includes('shoe') || selectedText.includes('footwear')) group = 'shoes';
-                else if (selectedText.includes('accessor') || selectedText.includes('bag') || selectedText.includes(
-                        'hat') || selectedText.includes('belt') || selectedText.includes('scarf') || selectedText
-                    .includes('jewel') || selectedText.includes('watch')) group = 'accessories';
-                else if (selectedText.includes('sock') || selectedText.includes('hosiery') || selectedText.includes(
-                        'stocking') || selectedText.includes('tights')) group = 'socks';
+
+                // Map category names to groups
+                if (selectedText.includes('shoe') || selectedText.includes('footwear') || selectedText.includes('sneaker') || selectedText.includes('boot') || selectedText.includes('sandal') || selectedText.includes('heels')) {
+                    group = 'shoes';
+                } else if (
+                    selectedText.includes('accessor') || 
+                    selectedText.includes('bag') || 
+                    selectedText.includes('hat') || 
+                    selectedText.includes('cap') || 
+                    selectedText.includes('belt') || 
+                    selectedText.includes('scarf') || 
+                    selectedText.includes('jewel') || 
+                    selectedText.includes('watch') ||
+                    selectedText.includes('wallet') ||
+                    selectedText.includes('sunglasses')
+                ) {
+                    group = 'accessories';
+                } else if (
+                    selectedText.includes('sock') || 
+                    selectedText.includes('hosiery') || 
+                    selectedText.includes('tights')
+                ) {
+                    group = 'socks';
+                }
 
                 let optionsHtml = sizeTemplates.placeholder;
-                if (group === 'shoes' && sizeTemplates.shoes) optionsHtml += sizeTemplates.shoes;
-                else if (group === 'accessories' && sizeTemplates.accessories) optionsHtml += sizeTemplates.accessories;
-                else if (group === 'socks' && sizeTemplates.socks) optionsHtml += sizeTemplates.socks;
-                else optionsHtml += sizeTemplates.clothing;
+                
+                if (group === 'shoes') {
+                    optionsHtml += sizeTemplates.shoes;
+                } else if (group === 'accessories') {
+                    optionsHtml += sizeTemplates.accessories;
+                } else if (group === 'socks') {
+                    optionsHtml += sizeTemplates.socks;
+                } else {
+                    optionsHtml += sizeTemplates.clothing;
+                }
 
                 sizeSelect.innerHTML = optionsHtml;
+                
+                // Preserve old selection if applicable
                 const currentSize = "{{ old('size', session('product_step1.size')) }}";
-                if (currentSize) sizeSelect.value = currentSize;
+                if (currentSize) {
+                    if(optionsHtml.includes(`value="${currentSize}"`)) {
+                        sizeSelect.value = currentSize;
+                    } else {
+                         sizeSelect.value = "";
+                    }
+                }
             }
+
             document.addEventListener('DOMContentLoaded', function() {
                 initSizeTemplates();
                 updateSizeOptions();
