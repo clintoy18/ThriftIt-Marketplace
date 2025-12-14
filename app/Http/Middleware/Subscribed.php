@@ -37,7 +37,7 @@ class Subscribed
 
         // --- 2. CHECK PRODUCT LIMIT (When creating products) ---
         // Make sure your routes for products are named 'listings.*' or 'products.*'
-        if ($request->routeIs('listings.create', 'listings.store')) {
+        if ($request->routeIs('products.create', 'products.store')) {
             $listingCount = $user->products()->count();
             if ($listingLimit !== null && $listingCount >= $listingLimit) {
                 return redirect()->route('pricing.index')
