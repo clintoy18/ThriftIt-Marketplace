@@ -1,5 +1,5 @@
 <x-app-layout>
-  
+
 
     <x-slot name="header">
         <div class="flex items-center justify-between">
@@ -75,14 +75,19 @@
                             </div>
                             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                 @foreach ($appointment->apptImages as $image)
-                                    <div class="relative group">
+                                    {{-- CHANGED: Wrapped in an <a> tag instead of a <div> --}}
+                                    <a href="{{ Storage::disk('s3')->url($image->image_path) }}" target="_blank"
+                                        class="relative group block cursor-pointer">
+
                                         <img src="{{ Storage::disk('s3')->url($image->image_path) }}"
                                             alt="Appointment Image"
                                             class="rounded-lg shadow-md object-cover w-full h-40 transition-transform duration-300 group-hover:scale-105">
+
+                                        {{-- Overlay stays inside the link so clicking anywhere works --}}
                                         <div
                                             class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition duration-300">
                                         </div>
-                                    </div>
+                                    </a>
                                 @endforeach
                             </div>
                         </div>
