@@ -606,7 +606,12 @@
                     </div>
                     <!-- Comments Section -->
                     <div class="bg-[#F4F2ED] dark:bg-gray-800   rounded-xl p-10 shadow-md">
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Comments</h3>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                            Comments 
+                            <span id="comment-count" class="text-gray-600 dark:text-gray-400 font-normal">
+                                ({{ $product->comments->whereNull('parent_id')->count() }})
+                            </span>
+                        </h3>
 
                         <!-- Scrollable Comment List -->
                         <div id="comments-container" class="space-y-4 max-h-80 overflow-y-auto pr-2">
@@ -1498,6 +1503,9 @@
                                 container.innerHTML =
                                     '<p class="text-gray-500 text-center py-4">No comments yet. Be the first to comment!</p>';
                             }
+
+                            // Update comment count
+                            updateCommentCount();
                         } else {
                             console.error('Comment element not found for ID:', commentId);
                             alert('Comment not found. Please refresh the page.');
@@ -1651,6 +1659,9 @@
                                     if (noCommentsMsg) {
                                         noCommentsMsg.remove();
                                     }
+
+                                    // Update comment count
+                                    updateCommentCount();
                                 }
                             } else {
                                 throw new Error(data.message || 'An error occurred');
@@ -2052,6 +2063,16 @@
                 if (repliesButton) {
                     repliesButton.textContent = `${repliesCount} ${repliesCount === 1 ? 'reply' : 'replies'}`;
                 }
+            }
+        }
+
+        // Update comment count in heading
+        function updateCommentCount() {
+            const commentsContainer = document.getElementById('comments-container');
+            const countSpan = document.getElementById('comment-count');
+            if (commentsContainer && countSpan) {
+                const topLevelComments = commentsContainer.querySelectorAll('.comment-item').length;
+                countSpan.textContent = `(${topLevelComments})`;
             }
         }
     </script>
