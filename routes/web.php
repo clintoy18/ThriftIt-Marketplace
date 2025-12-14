@@ -159,6 +159,7 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:admin'])->prefix('admin')
     Route::get('/sales/monthly-report/{month}', [App\Http\Controllers\Admin\SalesReportController::class, 'generateMonthlyReport'])->name('sales.monthly-report');
     Route::get('/sales/yearly-report', [App\Http\Controllers\Admin\SalesReportController::class, 'generateYearlyReport'])->name('sales.yearly-report');
     Route::get('/sales/monthly-export/{month}', [App\Http\Controllers\Admin\SalesReportController::class, 'exportMonthlyDataPdf'])->name('sales.monthly-export');
+    Route::get('/sales/yearly-export/{year?}', [App\Http\Controllers\Admin\SalesReportController::class, 'exportYearlyDataPdf'])->name('sales.yearly-export');
 
     //approve and reject product
     Route::put('/products/{product}/approve', [AdminProductController::class, 'approve'])
@@ -230,6 +231,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/products/{product}/mark-as-sold', [ProductController::class, 'markAsSold'])
         ->name('products.markAsSold')
         ->middleware('auth');
+
 
     //mark item as sold
     Route::put('/donations/{donation}/mark-as-donated', [DonationController::class, 'markAsDonated'])
