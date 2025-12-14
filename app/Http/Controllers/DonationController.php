@@ -143,9 +143,16 @@ class DonationController extends Controller
         // 1️⃣ Validate request
         $validated = $request->validated();
 
+        // --------------------------------------------
+        // LOGIC: If the donation was rejected, editing it resets status to 'pending' for review.
+        if ($donation->approval_status === 'rejected') {
+            $validated['approval_status'] = 'pending';
+        }
+        // --------------------------------------------
+
         // 2️⃣ Prepare images array for service
         $images = [
-            'main' => $request->file('image'),       // Main product image
+            'main' => $request->file('image'),       // Main image (if applicable)
             'gallery' => $request->file('images', []) // Gallery images
         ];
 
@@ -170,11 +177,14 @@ class DonationController extends Controller
             DonationImage::where('donation_id', $donation->id)->whereIn('id', $deleteIds)->delete();
         }
 
-        // 5️⃣ Redirect with success message
-        return redirect()->route('donations.show', $donation)
-            ->with('success', 'Donation updated successfully!');
-    }
+        // 5️⃣ Determine redirect message based on previous status
+        $message = ($donation->approval_status === 'rejected')
+            ? 'Donation updated and resubmitted for approval!'
+            : 'Donation updated successfully!';
 
+        return redirect()->route('donations.show', $donation)
+            ->with('success', $message);
+    }
     /**
      * Remove the specified resource from storage.
      */
