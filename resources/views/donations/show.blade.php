@@ -129,10 +129,12 @@
 
                             @if (Auth::id() === $donation->user_id)
                                 <div class="flex flex-col gap-3 mt-4">
+                                @if($donation->status !== 'donated')
                                     <a href="{{ route('donations.edit', $donation->id) }}"
                                         class="px-6 py-3 bg-[#B59F84] text-white rounded-lg hover:bg-[#a08e77] transition-all duration-300 text-center font-medium">
                                         Update Donation
                                     </a>
+                                @endif
 
                                     {{-- 1. MARK AS DONATED (Strict Check: Must be Available AND Approved) --}}
                                     @if ($donation->status === 'available' && $donation->approval_status === 'approved')
@@ -164,11 +166,12 @@
                                             class="w-full px-6 py-3 bg-yellow-50 text-yellow-600 rounded-lg dark:bg-yellow-900/20 dark:text-yellow-400 font-medium cursor-not-allowed border border-yellow-200 dark:border-yellow-800">
                                             Pending Approval
                                         </button>
-                                    @elseif($donation->approval_status === 'rejected' || $donation->approval_status === 'changes_requested')
+                                    @elseif($donation->approval_status === 'rejected')
                                         <button type="button" disabled
                                             class="w-full px-6 py-3 bg-red-50 text-red-500 rounded-lg dark:bg-red-900/20 dark:text-red-400 font-medium cursor-not-allowed border border-red-200 dark:border-red-800">
                                             Rejected - Please Update
                                         </button>
+
                                     @endif
                                 </div>
                             @endif
