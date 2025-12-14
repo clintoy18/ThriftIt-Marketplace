@@ -94,7 +94,7 @@ class DonationService
                 $donation->donationImages()->create(['image' => $path]);
             }
         }
-        //handle donation proofs
+        
         // 4️⃣ Handle proof image
         if (!empty($images['proof']) && $images['proof'] instanceof UploadedFile) {
             if ($donation->proof && Storage::disk('s3')->exists($donation->proof)) {
@@ -107,7 +107,7 @@ class DonationService
             ]);
         }
 
-        // 4️⃣ Update other donation fields
+        // 5️⃣ Update other donation fields
         return $this->donationRepository->update($donation, $data);
     }
 
@@ -126,14 +126,18 @@ class DonationService
         return $this->donationRepository->all();
     }
 
-    public function getDonationsByStatusPaginated(string $status, int $perPage = 10)
+    // --- UPDATED METHODS WITH PAGINATION NAME SUPPORT ---
+
+    public function getDonationsByStatusPaginated(string $status, int $perPage = 10, string $pageName = 'page')
     {
-        return $this->donationRepository->getByStatusPaginated($status, $perPage);
+        // Passes the custom page name to the repository
+        return $this->donationRepository->getByStatusPaginated($status, $perPage, $pageName);
     }
 
-    public function getDonationsByVerificationStatusPaginated(string $status, int $perPage = 10)
+    public function getDonationsByVerificationStatusPaginated(string $status, int $perPage = 10, string $pageName = 'page')
     {
-        return $this->donationRepository->getByVerificationStatusPaginated($status, $perPage);
+        // Passes the custom page name to the repository
+        return $this->donationRepository->getByVerificationStatusPaginated($status, $perPage, $pageName);
     }
 
     public function getDonationsByUser($userId)

@@ -68,19 +68,34 @@ class DonationRepository
         return $query->get();
     }
 
-    public function getByStatusPaginated(string $status, int $perPage = 10)
+    // --- UPDATED METHODS BELOW ---
+
+    /**
+     * Now accepts $pageName to prevent pagination conflicts.
+     */
+    public function getByStatusPaginated(string $status, int $perPage = 10, string $pageName = 'page')
     {
         return Donation::with(['user', 'category'])
             ->where('approval_status', $status)
             ->latest()
-            ->paginate($perPage);
+            // 3rd argument is the custom page parameter name (e.g. 'approved_page')
+            ->paginate($perPage, ['*'], $pageName);
     }
 
-    public function getByVerificationStatusPaginated(string $status, int $perPage = 10)
+    /**
+     * Now accepts $pageName AND filters out pending items with no proof.
+     */
+    public function getByVerificationStatusPaginated(string $status, int $perPage = 10, string $pageName = 'page')
     {
-        return Donation::with(['user', 'category'])
-            ->where('verification_status', $status)
-            ->orderBy('updated_at','desc')
-            ->paginate($perPage);
+        $query = Donation::with(['user', 'category'])
+            ->where('verification_status', $status);
+
+        // FIX: If status is 'pending', ONLY show items that actually have a proof.
+        if ($status === 'pending') {
+            $query->whereNotNull('proof')->where('proof', '!=', '');
+        }
+
+        return $query->orderBy('updated_at', 'desc')
+            ->paginate($perPage, ['*'], $pageName);
     }
 }
