@@ -186,7 +186,7 @@ class ProductController extends Controller
             session()->forget(['product_step1', 'product_images', 'product_qr']);
 
             return redirect()->route('products.show', $product->id)
-                ->with('success', 'Product published!');
+                ->with('success', 'Item published!');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors('Error: ' . $e->getMessage());
@@ -228,7 +228,7 @@ class ProductController extends Controller
         // 1. SECURITY CHECK: Redirect if user is not the owner
         if (Auth::id() !== $product->user_id) {
             return redirect()->route('products.index')
-                ->with('error', 'You are not authorized to edit this product.');
+                ->with('error', 'You are not authorized to edit this item.');
         }
 
         $categories = $this->categoryService->getAllCategories();
@@ -243,7 +243,7 @@ class ProductController extends Controller
         // 1. SECURITY CHECK: Redirect if user is not the owner
         if (Auth::id() !== $product->user_id) {
             return redirect()->route('products.index')
-                ->with('error', 'You are not authorized to update this product.');
+                ->with('error', 'You are not authorized to update this item.');
         }
 
         // 2. Validate request
@@ -306,8 +306,8 @@ class ProductController extends Controller
 
         // 7. Redirect with appropriate message
         $message = ($product->approval_status === 'rejected')
-            ? 'Product updated and resubmitted for approval!'
-            : 'Product updated successfully!';
+            ? 'Item updated and resubmitted for approval!'
+            : 'Item updated successfully!';
 
         return redirect()->route('products.show', $product)
             ->with('success', $message);
@@ -368,11 +368,11 @@ class ProductController extends Controller
         // 1. SECURITY CHECK: Redirect if user is not the owner
         if (Auth::id() !== $product->user_id) {
             return redirect()->route('products.index')
-                ->with('error', 'You are not authorized to delete this product.');
+                ->with('error', 'You are not authorized to delete this item.');
         }
 
         $this->productService->deleteProduct($product);
-        return redirect()->route('products.index')->with('success', 'Product deleted successfully!');
+        return redirect()->route('products.index')->with('success', 'Item deleted successfully!');
     }
 
     public function markAsSold(Product $product): RedirectResponse
