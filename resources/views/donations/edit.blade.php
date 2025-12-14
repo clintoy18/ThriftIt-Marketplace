@@ -74,47 +74,48 @@
                             @enderror
                         </div>
 
-                        {{-- Status --}}
+                       {{-- Status --}}
                         <div>
                             <x-input-label for="status" :value="__('Status')" />
 
-                            {{-- CASE 1: IF REJECTED - LOCK STATUS --}}
+                            {{-- CASE 1: IF REJECTED OR PENDING APPROVAL --}}
+                            {{-- We lock the UI, but we must send a valid 'status' value (available) so validation passes --}}
                             @if ($donation->approval_status === 'rejected' || $donation->approval_status === 'pending')
-                                <div
-                                    class="mt-2 px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed flex items-center justify-between">
-                                    <span>Pending Approval (Resubmission)</span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                <div class="mt-2 px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed flex items-center justify-between">
+                                    <span>
+                                        @if($donation->approval_status === 'rejected')
+                                            Resubmitting for Approval
+                                        @else
+                                            Pending Approval
+                                        @endif
+                                    </span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                     </svg>
                                 </div>
-                                {{-- Force value to pending so backend knows --}}
-                                <input type="hidden" name="status" value="pending">
+                                
+                                {{-- FIX: Send 'available' instead of 'pending'. 
+                                    Logic: If you are editing/resubmitting, you want the item to be Available once approved. --}}
+                                <input type="hidden" name="status" value="available">
 
-                                {{-- CASE 2: NORMAL - ALLOW EDIT --}}
+                            {{-- CASE 2: APPROVED - ALLOW EDIT (Available vs Donated) --}}
                             @else
                                 <select id="status" name="status"
                                     class="w-full mt-2 px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#E1D5B6] focus:outline-none"
                                     required>
-                                    <option value="available" @if ($donation->status === 'donated') disabled @endif
+                                    
+                                    <option value="available" 
                                         {{ old('status', $donation->status) === 'available' ? 'selected' : '' }}>
                                         Available
                                     </option>
+                                    
                                     <option value="donated"
                                         {{ old('status', $donation->status) === 'donated' ? 'selected' : '' }}>
                                         Donated
                                     </option>
-                                    {{-- Preserve pending if it's currently pending but NOT rejected (e.g. first time upload) --}}
-                                    @if ($donation->status === 'pending')
-                                        <option value="pending" selected>Pending Approval</option>
-                                    @endif
                                 </select>
                             @endif
 
-                            @if ($donation->status === 'donated')
-                                <p class="text-sm text-red-600 mt-1">This donation is marked as donated.</p>
-                            @endif
                             @error('status')
                                 <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                             @enderror
@@ -243,7 +244,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M5 13l4 4L19 7" />
                             </svg>
-                            @if ($donation->approval_status === 'rejected' || $donation->approval_status === 'changes_requested')
+                            @if ($donation->approval_status === 'rejected')
                                 Update & Resubmit
                             @else
                                 Update Donation
