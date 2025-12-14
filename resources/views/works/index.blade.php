@@ -35,7 +35,7 @@
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
                         <a href="{{ route('works.create') }}"
-                           class="inline-block border border-[#B59F84] text-[#634600] hover:bg-[#F8EED6] 
+                            class="inline-block border border-[#B59F84] text-[#634600] hover:bg-[#F8EED6] 
                                   dark:border-[#B59F84] dark:text-[#B59F84] dark:hover:bg-gray-700 
                                   font-semibold px-6 py-3 rounded-full shadow-md transition">
                             Add New Work
@@ -43,10 +43,13 @@
                     </div>
                 </div>
                 <div class="md:w-1/2 h-[420px] flex gap-4 relative">
-                    <img src="{{ asset('images/upcycle-hero1.png') }}" alt="Upcycle Work"
-                         class="w-1/2 h-full object-cover rounded-xl shadow-lg hover:scale-[1.02] transition-transform duration-300">
-                    <img src="{{ asset('images/upcycle-hero2.png') }}" alt="Sustainable Style"
-                         class="w-1/2 h-full object-cover rounded-xl shadow-lg hover:scale-[1.02] transition-transform duration-300">
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url('images/upcycle-fashion.png') }}"
+                        alt="Upcycle Fashion"
+                        class="w-1/2 h-full object-cover rounded-xl shadow-lg hover:scale-[1.02] transition-transform duration-300">
+
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url('images/upcycle-community.png') }}"
+                        alt="Upcycle Community"
+                        class="w-1/2 h-full object-cover rounded-xl shadow-lg hover:scale-[1.02] transition-transform duration-300">
                 </div>
             </div>
         </div>
@@ -58,11 +61,11 @@
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">My Works</h2>
                 <a href="{{ route('works.create') }}"
-                   class="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full bg-[#B59F84] text-white shadow-sm hover:bg-[#a08e77] active:scale-[.98] transition">
+                    class="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full bg-[#B59F84] text-white shadow-sm hover:bg-[#a08e77] active:scale-[.98] transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                         stroke="currentColor">
+                        stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                     <span class="font-semibold">Add Work</span>
                 </a>
@@ -73,11 +76,14 @@
                     @if ($works->count() > 0)
                         <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             @foreach ($works as $work)
-                                <div class="group relative bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition duration-200 border border-[#D9D9D9] dark:border-gray-700">
+                                <div
+                                    class="group relative bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition duration-200 border border-[#D9D9D9] dark:border-gray-700">
                                     <a href="{{ route('works.show', $work->id) }}" class="block h-full">
                                         <div class="relative aspect-square overflow-hidden">
-                                            <img src="{{ $work->first_image }}" alt="{{ $work->title }}" class="w-full h-full object-cover" />
-                                            <div class="absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-medium
+                                            <img src="{{ $work->first_image }}" alt="{{ $work->title }}"
+                                                class="w-full h-full object-cover" />
+                                            <div
+                                                class="absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-medium
                                                 {{ $work->approval_status == 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' : ($work->approval_status == 'approved' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200') }}">
                                                 {{ ucfirst($work->approval_status) }}
                                             </div>
@@ -86,10 +92,12 @@
                                             <h3 class="text-sm font-bold text-gray-900 dark:text-white truncate">
                                                 {{ $work->title }}
                                             </h3>
-                                            <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 truncate">
-                                               {{ ucfirst($work->upcycle_type) }}
+                                            <p
+                                                class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 truncate">
+                                                {{ ucfirst($work->upcycle_type) }}
                                             </p>
-                                            <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 truncate">
+                                            <p
+                                                class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 truncate">
                                                 {{ Str::limit($work->description, 60) }}
                                             </p>
                                         </div>
@@ -98,12 +106,8 @@
                             @endforeach
                         </div>
                     @else
-                    <x-empty-message 
-                        message="You haven't added any works yet." 
-                        link="{{ route('works.create') }}" 
-                        buttonText="Add Work" 
-                        icon="shopping-cart" 
-                    />                    
+                        <x-empty-message message="You haven't added any works yet." link="{{ route('works.create') }}"
+                            buttonText="Add Work" icon="shopping-cart" />
                     @endif
                 </div>
             </div>

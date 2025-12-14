@@ -47,9 +47,12 @@
                 </div>
 
                 <div class="md:w-1/2 h-[420px] flex gap-4 relative">
-                    <img src="{{ asset('images/upcycle-fashion.png') }}" alt="Upcycle Fashion"
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url('images/upcycle-fashion.png') }}"
+                        alt="Upcycle Fashion"
                         class="w-1/2 h-full object-cover rounded-xl shadow-lg hover:scale-[1.02] transition-transform duration-300">
-                    <img src="{{ asset('images/upcycle-community.png') }}" alt="Upcycle Community"
+
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url('images/upcycle-community.png') }}"
+                        alt="Upcycle Community"
                         class="w-1/2 h-full object-cover rounded-xl shadow-lg hover:scale-[1.02] transition-transform duration-300">
                 </div>
             </div>
