@@ -252,8 +252,12 @@
                         </div>
                         <div class="mt-4 md:mt-0 flex space-x-3">
                             <a href="{{ route('admin.sales.yearly-report') }}"
-                                class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:ring-2 focus:ring-green-500 shadow-md transition">
-                                <i class="fas fa-file-pdf mr-2"></i> EXPORT YEARLY
+                                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 shadow-md transition">
+                                <i class="fas fa-eye mr-2"></i> VIEW YEARLY
+                            </a>
+                            <a href="{{ route('admin.sales.yearly-export', now()->year) }}"
+                                class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:ring-2 focus:ring-red-500 shadow-md transition">
+                                <i class="fas fa-file-pdf mr-2"></i> EXPORT YEARLY PDF
                             </a>
                         </div>
                     </div>

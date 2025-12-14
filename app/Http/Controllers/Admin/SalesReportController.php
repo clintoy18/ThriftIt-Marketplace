@@ -176,4 +176,102 @@ class SalesReportController extends Controller
         $pdf = Pdf::loadView('admin.reports.monthly-export', $data)->setPaper('a4','portrait');
         return $pdf->download("monthly-export-{$monthName}-{$year}.pdf");
     }
+
+    /**
+     * Export combined yearly data (users, upcyclers, sold products, works, reports, donations, listed items) as PDF
+     */
+    public function exportYearlyDataPdf(int $year = null)
+    {
+        $year = $year ?? Carbon::now()->year;
+        $year = (int) $year;
+
+        // Users registered in the year
+        $users = User::select('id','fname','lname','email','role','created_at')
+            ->whereYear('created_at', $year)
+            ->orderBy('created_at','desc')
+            ->get();
+
+        // Users by role breakdown
+        $usersByRole = [
+            'admin' => User::where('role', 2)
+                ->whereYear('created_at', $year)
+                ->count(),
+            'upcycler' => User::where('role', 1)
+                ->whereYear('created_at', $year)
+                ->count(),
+            'user' => User::where('role', 0)
+                ->whereYear('created_at', $year)
+                ->count(),
+        ];
+
+        // Upcyclers are users with role = 1
+        $upcyclers = User::select('id','fname','lname','email','created_at')
+            ->where('role', 1)
+            ->whereYear('created_at', $year)
+            ->orderBy('created_at','desc')
+            ->get();
+
+        // Sold products in the year
+        $products = Product::with(['user','category'])
+            ->select('id','user_id','name','price','status','created_at','category_id')
+            ->where('status','sold')
+            ->whereYear('created_at', $year)
+            ->orderBy('created_at','desc')
+            ->get();
+
+        // Listed items (active and pending products)
+        $listedItems = Product::with(['user','category'])
+            ->select('id','user_id','name','price','status','created_at','category_id')
+            ->whereIn('status', ['active', 'pending'])
+            ->whereYear('created_at', $year)
+            ->orderBy('created_at','desc')
+            ->get();
+
+        // Works (upcycled works) created in the year
+        $works = Work::with(['user'])
+            ->whereYear('created_at', $year)
+            ->orderBy('created_at','desc')
+            ->get();
+
+        // Reported users (reports) created in the year
+        $reportedUsers = Report::with(['reporter', 'reportedUser'])
+            ->whereYear('created_at', $year)
+            ->orderBy('created_at','desc')
+            ->get();
+
+        // Donations created in the year
+        $donations = Donation::with(['user', 'category'])
+            ->whereYear('created_at', $year)
+            ->orderBy('created_at','desc')
+            ->get();
+
+        // Monthly breakdown for summary
+        $monthlyBreakdown = [];
+        for ($month = 1; $month <= 12; $month++) {
+            $monthlyBreakdown[$month] = [
+                'month' => Carbon::create()->month($month)->format('F'),
+                'users' => User::whereYear('created_at', $year)->whereMonth('created_at', $month)->count(),
+                'soldProducts' => Product::where('status', 'sold')->whereYear('created_at', $year)->whereMonth('created_at', $month)->count(),
+                'totalSales' => Product::where('status', 'sold')->whereYear('created_at', $year)->whereMonth('created_at', $month)->sum('price'),
+                'works' => Work::whereYear('created_at', $year)->whereMonth('created_at', $month)->count(),
+                'donations' => Donation::whereYear('created_at', $year)->whereMonth('created_at', $month)->count(),
+            ];
+        }
+
+        $data = compact(
+            'users',
+            'usersByRole',
+            'upcyclers',
+            'products',
+            'listedItems',
+            'works',
+            'reportedUsers',
+            'donations',
+            'monthlyBreakdown',
+            'year'
+        );
+
+        $pdf = Pdf::loadView('admin.reports.yearly-export', $data)->setPaper('a4','portrait');
+        return $pdf->download("yearly-export-{$year}.pdf");
+    }
 } 
