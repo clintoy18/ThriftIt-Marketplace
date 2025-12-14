@@ -92,9 +92,9 @@
 
                 <!-- Images -->
                 <div class="md:w-1/2 h-[420px] flex gap-4 relative">
-                    <img src="{{ asset('images/donate-clothes.png') }}" alt="Donate Clothes"
+                    <img src="{{ Storage::disk('s3')->url('images/donate-clothes.png') }}" alt="Donate Clothes"
                         class="w-1/2 h-full object-cover rounded-xl shadow-lg hover:scale-[1.02] transition-transform duration-300">
-                    <img src="{{ asset('images/helping-community.png') }}" alt="Helping Community"
+                    <img src="{{  Storage::disk('s3')->url('images/helping-community.png') }}" alt="Helping Community"
                         class="w-1/2 h-full object-cover rounded-xl shadow-lg hover:scale-[1.02] transition-transform duration-300">
                 </div>
             </div>
