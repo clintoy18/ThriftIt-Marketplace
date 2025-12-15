@@ -264,34 +264,69 @@
                                     <!-- Content -->
                                     <div class="p-6 max-h-[80vh] overflow-y-auto">
                                         <!-- QR Code Section -->
-                                        @if ($product->qr_code)
-                                            <div class="text-center mb-6">
-                                                <div class="flex items-center justify-center mb-3">
-                                                    <svg class="w-5 h-5 text-[#B59F84] mr-2" fill="currentColor"
-                                                        viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd"
-                                                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                    <h3 class="font-semibold text-gray-800">Scan to Pay</h3>
-                                                </div>
-                                                <div
-                                                    class="bg-gray-50 rounded-xl p-4 border-2 border-dashed border-gray-200">
-                                                    <img src="{{ Storage::disk('s3')->url($product->qr_code) }}"
-                                                        alt="QR Code" class="w-48 h-48 object-contain mx-auto mb-3">
-                                                    <p class="text-sm text-gray-600">Use your banking app to scan this
-                                                        QR
-                                                        code</p>
+                                    @if ($product->qr_code)
+                                    <div class="text-center mb-6" x-data="{ showQrModal: false }">
+                                        
+                                        <div class="flex items-center justify-center mb-3">
+                                            <svg class="w-5 h-5 text-[#B59F84] mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                                            </svg>
+                                            <h3 class="font-semibold text-gray-800">Scan to Pay</h3>
+                                        </div>
+
+                                        <div class="bg-gray-50 rounded-xl p-4 border-2 border-dashed border-gray-200">
+                                            
+                                            <div class="relative group cursor-zoom-in inline-block" @click="showQrModal = true">
+                                                <img src="{{ Storage::disk('s3')->url($product->qr_code) }}" 
+                                                    alt="QR Code" 
+                                                    class="w-48 h-48 object-contain mx-auto rounded-lg shadow-sm bg-white p-2 transition-transform duration-300 group-hover:scale-105">
+                                                
+                                                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-lg flex items-center justify-center">
+                                                    <span class="opacity-0 group-hover:opacity-100 bg-white text-gray-800 text-xs px-2 py-1 rounded shadow font-medium transform translate-y-2 group-hover:translate-y-0 transition-all">
+                                                        Click to Enlarge
+                                                    </span>
                                                 </div>
                                             </div>
-                                        @else
-                                            <div
-                                                class="text-center mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
-                                                <p class="text-sm text-yellow-700">
-                                                    The seller has not uploaded a payment QR code for this product yet.
-                                                </p>
+
+                                            <div class="mt-3 space-y-1">
+                                                <p class="text-sm text-gray-600">Scan with your banking app</p>
+                                                <a href="{{ Storage::disk('s3')->url($product->qr_code) }}" 
+                                                download="qr-code-payment.jpg" 
+                                                target="_blank"
+                                                class="text-xs text-[#B59F84] font-semibold hover:underline flex items-center justify-center gap-1">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                                    Save QR Image
+                                                </a>
                                             </div>
-                                        @endif
+                                        </div>
+
+                                        <div x-show="showQrModal" 
+                                            x-transition.opacity
+                                            style="display: none;"
+                                            class="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-90 p-4"
+                                            @click.self="showQrModal = false">
+                                            
+                                            <div class="relative max-w-2xl w-full flex flex-col items-center">
+                                                <button @click="showQrModal = false" class="absolute -top-12 right-0 text-white hover:text-gray-300">
+                                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                </button>
+
+                                                <img src="{{ Storage::disk('s3')->url($product->qr_code) }}" 
+                                                    alt="QR Code Full" 
+                                                    class="max-w-full max-h-[80vh] rounded-lg shadow-2xl bg-white p-4">
+                                                
+                                                <p class="text-white mt-4 text-center text-sm opacity-80">Tap anywhere outside to close</p>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                @else
+                                    <div class="text-center mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+                                        <p class="text-sm text-yellow-700">
+                                            The seller has not uploaded a payment QR code for this product yet.
+                                        </p>
+                                    </div>
+                                @endif
                                         <!-- Buyer Awareness Notice -->
                                         <div
                                             class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-6 rounded-lg flex items-start gap-3">

@@ -27,7 +27,7 @@
             {{-- LOGIC: Split the 'approved' verification items into Available vs Claimed --}}
             @php
                 // Items that are verified AND claimed/donated
-                $donatedItems = $approved->filter(fn($d) => $d->status === 'claimed'); 
+                $donatedItems = $approved->filter(fn($d) => $d->status === 'donated'); 
                 
                 // Items that are verified AND still available
                 $availableDonations = $approved->diff($donatedItems);
