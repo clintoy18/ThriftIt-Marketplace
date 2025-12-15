@@ -11,8 +11,8 @@
                 </div>
                 Top Contributors
             </h4>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 ml-1 leading-relaxed">
-                Recognizing our most <span class="font-semibold text-emerald-600 dark:text-emerald-400">trusted</span> members. Ranked by their generous donations, verified upcycling, and community impact points.
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 ml-1 leading-relaxed">
+                Ranked by their <span class="font-semibold text-emerald-600 dark:text-emerald-400">generous donations and upcycling</span>. Because of their high community standing, we strongly urge you to <span class="font-semibold text-emerald-600 dark:text-emerald-400">transact with these trusted members</span> for a safe experience.
             </p>
         </div>
 
@@ -52,11 +52,13 @@
 
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
-                            <div class="w-7 h-7 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                             <img src="{{ $product->user->profileImageUrl() }}" alt="{{ $product->user->name }}">
+                           <div class="w-7 h-7 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full overflow-hidden flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                <img src="{{ $user->profileImageUrl() }}" 
+                                    alt="{{ $user->name }}" 
+                                    class="w-full h-full object-cover">
                             </div>
                             <p class="font-semibold text-gray-800 dark:text-gray-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                                 <x-user-name-badge :user="$product->user" />
+                                 <x-user-name-badge :user="$user" />
                             </p>
                             
                             {{-- Trusted Icon --}}
@@ -76,13 +78,13 @@
                                     Top Donor
                                 </span>
                             @endif
-                            @if($user->is_trusted_upcycler)
+                            @if($user->isUpcyler)
                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
-                                    {{ $user->eco_posts_count }} Upcycles
+                                    {{ $user->works->count() }} Upcycles
                                 </span>
                             @endif
                             <span class="text-[10px] text-gray-400">
-                                {{ number_format($user->points) }} pts
+                                {{ $user->eco_posts_count }} posts
                             </span>
                         </div>
                     </div>
@@ -90,6 +92,7 @@
                     <div class="hidden sm:block"> 
                          <div class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md whitespace-nowrap">
                             {{ number_format($user->points) }} pts
+                              
                         </div>
                     </div>
                 </a>
