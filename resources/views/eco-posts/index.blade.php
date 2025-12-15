@@ -21,7 +21,6 @@
         @include('eco-posts.partials._modal')
 
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <style>
         [x-cloak] { display: none !important; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
