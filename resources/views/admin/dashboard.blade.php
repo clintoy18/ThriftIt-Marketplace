@@ -116,7 +116,7 @@
 
                                 <div class="flex items-center mt-2 text-sm text-gray-500">
                                     <i class="fas fa-exclamation-triangle text-amber-500 mr-1"></i>
-                                    <span>{{ $stats['new_reports_today'] }} active reports</span>
+                                    <span>+{{ $stats['new_reports_today'] }} today</span>
                                 </div>
                             </div>
                             <div class="p-3 rounded-full bg-amber-100 dark:bg-amber-900 text-amber-600">
@@ -137,11 +137,11 @@
                             <div>
                                 <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100"> Upcycled
                                     Works</h3>
-                                <p class="text-3xl font-bold text-emerald-600">{{ $stats['pending_works'] }}</p>
+                                <p class="text-3xl font-bold text-emerald-600">{{ $stats['active_works'] }}</p>
 
                                 <div class="flex items-center mt-2 text-sm text-gray-500">
                                     <i class="fas fa-scissors text-emerald-500 mr-1"></i>
-                                    <span>{{ $stats['new_works_today'] }} active works</span>
+                                    <span>+{{ $stats['new_works_today'] }}today</span>
                                 </div>
                             </div>
 
