@@ -32,9 +32,8 @@
             @csrf
 
             <div class="relative">
-                <input type="text" name="title" id="modal-title" placeholder=" " required
-                       class="peer w-full px-4 py-4 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl focus:ring-4 focus:ring-emerald-500/30 focus:border-emerald-500 text-gray-900 dark:text-white placeholder-transparent transition-all duration-300"
-                       x-ref="titleInput" x-init="$nextTick(() => $refs.titleInput.focus())">
+               <input type="text" name="title" id="modal-title" placeholder=" " required
+                 class="peer w-full px-4 py-4 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl focus:ring-4 focus:ring-emerald-500/30 focus:border-emerald-500 text-gray-900 dark:text-white placeholder-transparent transition-all duration-300">
                 <label for="modal-title" class="absolute left-4 -top-3 bg-white dark:bg-gray-800 px-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 transition-all duration-300 peer-placeholder-shown:top-4 peer-placeholder-shown:text-gray-500 peer-focus:-top-3 peer-focus:text-emerald-600">
                     Post Title
                 </label>
