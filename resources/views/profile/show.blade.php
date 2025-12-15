@@ -29,6 +29,9 @@
                 @if (Auth::id() === $user->id && !$user->isUpcycler())
                     @include('profile.partials._tab_orders')
                 @endif
+
+                {{-- Donations should be visible to all viewers (actions gated inside) --}}
+                @include('profile.partials._tab_donations')
             </div>
 
             {{-- ===== MODALS ===== --}}
@@ -78,14 +81,16 @@
                     products: document.getElementById('tab-products'),
                     reviews: document.getElementById('tab-reviews'),
                     works: document.getElementById('tab-works'),
-                    orders: document.getElementById('tab-orders')
+                    orders: document.getElementById('tab-orders'),
+                    donations: document.getElementById('tab-donations')
                 };
 
                 const sections = {
                     products: document.getElementById('products'),
                     reviews: document.getElementById('reviews'),
                     works: document.getElementById('works'),
-                    orders: document.getElementById('orders')
+                    orders: document.getElementById('orders'),
+                    donations: document.getElementById('donations')
                 };
 
                 function activate(tabKey, shouldScroll = true) {
@@ -125,6 +130,7 @@
                 tabs.reviews?.addEventListener('click', () => activate('reviews', true));
                 tabs.works?.addEventListener('click', () => activate('works', true));
                 tabs.orders?.addEventListener('click', () => activate('orders', true));
+                tabs.donations?.addEventListener('click', () => activate('donations', true));
 
                 // --- INITIALIZATION LOGIC ---
 
