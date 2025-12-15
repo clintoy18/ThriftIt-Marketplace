@@ -16,12 +16,17 @@
             class="px-4 py-2 rounded-full text-gray-800 dark:text-gray-100 transition-all hover:bg-gray-200 dark:hover:bg-gray-700 whitespace-nowrap">
             Reviews
         </button>
+         <button id="tab-donations" type="button"
+                class="px-4 py-2 rounded-full text-gray-800 dark:text-gray-100 transition-all hover:bg-gray-200 dark:hover:bg-gray-700 whitespace-nowrap">
+                Donations
+            </button>
         @if (Auth::id() === $user->id && !$user->isUpcycler())
             <button id="tab-orders" type="button"
                 class="px-4 py-2 rounded-full text-gray-800 dark:text-gray-100 transition-all hover:bg-gray-200 dark:hover:bg-gray-700 whitespace-nowrap">
                 Orders
             </button>
         @endif
+       
 
     </div>
 </div>

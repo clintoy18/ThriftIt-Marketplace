@@ -136,43 +136,42 @@
                                     </a>
                                 @endif
 
-                                    {{-- 1. MARK AS DONATED (Strict Check: Must be Available AND Approved) --}}
-                                    @if ($donation->status === 'available' && $donation->approval_status === 'approved')
-                                        <button type="button" onclick="openProofModal({{ $donation->id }})"
-                                            class="w-full px-6 py-3 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800 transition-all duration-300 font-medium">
-                                            Mark as Donated
-                                        </button>
+                                {{-- Proof / verification states first to disable Mark-as-Donated after submission --}}
+                                @if ($donation->proof && $donation->verification_status === 'pending')
+                                    <button type="button" disabled
+                                        class="w-full px-6 py-3 bg-yellow-100 text-yellow-700 rounded-lg dark:bg-yellow-900 dark:text-yellow-300 transition-all duration-300 font-medium cursor-not-allowed opacity-75">
+                                        Awaiting Admin Verification
+                                    </button>
+                                @elseif ($donation->proof && $donation->verification_status === 'approved')
+                                    <button type="button" disabled
+                                        class="w-full px-6 py-3 bg-green-100 text-green-600 rounded-lg dark:bg-green-900 dark:text-green-300 transition-all duration-300 font-medium cursor-not-allowed">
+                                        ✓ Verified | Points Redeemed
+                                    </button>
+                                @elseif ($donation->proof && $donation->verification_status === 'rejected')
+                                    <button type="button" onclick="openProofModal({{ $donation->id }})"
+                                        class="w-full px-6 py-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800 transition-all duration-300 font-medium">
+                                        Proof Rejected - Resubmit
+                                    </button>
 
-                                        {{-- 2. PROOF LOGIC --}}
-                                    @elseif ($donation->proof && $donation->verification_status === 'pending')
-                                        <button type="button" disabled
-                                            class="w-full px-6 py-3 bg-yellow-100 text-yellow-700 rounded-lg dark:bg-yellow-900 dark:text-yellow-300 transition-all duration-300 font-medium cursor-not-allowed opacity-75">
-                                            Awaiting Admin Verification
-                                        </button>
-                                    @elseif ($donation->proof && $donation->verification_status === 'approved')
-                                        <button type="button" disabled
-                                            class="w-full px-6 py-3 bg-green-100 text-green-600 rounded-lg dark:bg-green-900 dark:text-green-300 transition-all duration-300 font-medium cursor-not-allowed">
-                                            ✓ Verified | Points Redeemed
-                                        </button>
-                                    @elseif ($donation->proof && $donation->verification_status === 'rejected')
-                                        <button type="button" onclick="openProofModal({{ $donation->id }})"
-                                            class="w-full px-6 py-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800 transition-all duration-300 font-medium">
-                                            Proof Rejected - Resubmit
-                                        </button>
+                                {{-- Mark as donated only when no proof submitted yet --}}
+                                @elseif ($donation->status === 'available' && $donation->approval_status === 'approved')
+                                    <button type="button" onclick="openProofModal({{ $donation->id }})"
+                                        class="w-full px-6 py-3 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800 transition-all duration-300 font-medium">
+                                        Mark as Donated
+                                    </button>
 
-                                        {{-- 3. APPROVAL STATUS CHECKS (If not approved yet) --}}
-                                    @elseif($donation->approval_status === 'pending')
-                                        <button type="button" disabled
-                                            class="w-full px-6 py-3 bg-yellow-50 text-yellow-600 rounded-lg dark:bg-yellow-900/20 dark:text-yellow-400 font-medium cursor-not-allowed border border-yellow-200 dark:border-yellow-800">
-                                            Pending Approval
-                                        </button>
-                                    @elseif($donation->approval_status === 'rejected')
-                                        <button type="button" disabled
-                                            class="w-full px-6 py-3 bg-red-50 text-red-500 rounded-lg dark:bg-red-900/20 dark:text-red-400 font-medium cursor-not-allowed border border-red-200 dark:border-red-800">
-                                            Rejected - Please Update
-                                        </button>
-
-                                    @endif
+                                {{-- Approval gating --}}
+                                @elseif($donation->approval_status === 'pending')
+                                    <button type="button" disabled
+                                        class="w-full px-6 py-3 bg-yellow-50 text-yellow-600 rounded-lg dark:bg-yellow-900/20 dark:text-yellow-400 font-medium cursor-not-allowed border border-yellow-200 dark:border-yellow-800">
+                                        Pending Approval
+                                    </button>
+                                @elseif($donation->approval_status === 'rejected')
+                                    <button type="button" disabled
+                                        class="w-full px-6 py-3 bg-red-50 text-red-500 rounded-lg dark:bg-red-900/20 dark:text-red-400 font-medium cursor-not-allowed border border-red-200 dark:border-red-800">
+                                        Rejected - Please Update
+                                    </button>
+                                @endif
                                 </div>
                             @endif
 
