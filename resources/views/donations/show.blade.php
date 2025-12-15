@@ -268,10 +268,45 @@
                                         <x-user-name-badge :user="$donation->user" />
                                     </div>
                                     <div class="flex items-center mt-2">
-                                        <div class="flex text-yellow-400">
-                                            <span>★★★★★</span>
+                                        @php
+                                            $user = $donation->user;
+                                            $averageRating = $user->average_rating;
+                                            $reviewCount = $user->review_count;
+                                            $fullStars = floor($averageRating);
+                                            $hasHalfStar = ($averageRating - $fullStars) >= 0.5;
+                                        @endphp
+                                        <div class="flex items-center text-yellow-500">
+                                            @for ($i = 1; $i <= 5; $i++)
+                                                @if ($i <= $fullStars)
+                                                    {{-- Full star --}}
+                                                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                                    </svg>
+                                                @elseif ($i == $fullStars + 1 && $hasHalfStar)
+                                                    {{-- Half star --}}
+                                                    <div class="relative w-5 h-5 inline-block">
+                                                        <svg class="absolute inset-0 w-5 h-5 fill-current text-gray-300 dark:text-gray-600" viewBox="0 0 24 24">
+                                                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                                        </svg>
+                                                        <svg class="absolute inset-0 w-5 h-5 fill-current" style="clip-path: inset(0 50% 0 0);" viewBox="0 0 24 24">
+                                                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                                        </svg>
+                                                    </div>
+                                                @else
+                                                    {{-- Empty star --}}
+                                                    <svg class="w-5 h-5 fill-current text-gray-300 dark:text-gray-600" viewBox="0 0 24 24">
+                                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                                    </svg>
+                                                @endif
+                                            @endfor
                                         </div>
-                                        <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">(5)</span>
+                                        <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                                            @if ($reviewCount > 0)
+                                                {{ number_format($averageRating, 1) }} ({{ $reviewCount }})
+                                            @else
+                                                No reviews yet
+                                            @endif
+                                        </span>
                                     </div>
                                 </div>
 
@@ -358,7 +393,12 @@
                     </div>
 
                     <div class="bg-[#F4F2ED] dark:bg-gray-800 rounded-xl p-10 shadow-md">
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Comments</h3>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                            Comments 
+                            <span id="comment-count" class="text-gray-600 dark:text-gray-400 font-normal">
+                                ({{ $donation->comments->whereNull('parent_id')->count() }})
+                            </span>
+                        </h3>
 
                         <div id="comments-container" class="space-y-4 max-h-80 overflow-y-auto pr-2">
                             @forelse($donation->comments as $comment)
@@ -492,7 +532,7 @@
                                                     <div
                                                         class="w-8 h-8 bg-[#B59F84] rounded-full border-2 border-white dark:border-gray-800 overflow-hidden flex items-center justify-center">
                                                         @if ($reply->user->profile_pic)
-                                                            <img src="{{ asset('storage/' . $reply->user->profile_pic) }}"
+                                                            <img src="{{ Storage::disk('s3')->url($reply->user->profile_pic) }}"
                                                                 alt="{{ $reply->user->fname }}'s Profile Picture"
                                                                 class="w-full h-full object-cover">
                                                         @else
@@ -573,7 +613,7 @@
                                         class="hidden ml-2 text-[#B59F84] hover:underline">Cancel</button>
                                 </div>
 
-                                <div id="comment-error" class="text-red-500 mt-2 text-sm hidden"></div>
+                                <div id="comment-error" class="text-gray-600 mt-2 text-sm hidden"></div>
 
                                 <div id="reply-indicator"
                                     class="hidden mt-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
@@ -828,6 +868,676 @@
 
         function closeProofModal() {
             document.getElementById('proofModal').classList.add('hidden');
+        }
+
+        // Handle comment input to show/hide cancel button
+        function handleCommentInput() {
+            const textarea = document.getElementById('comment-content');
+            const cancelBtn = document.getElementById('reply-cancel-btn');
+
+            if (textarea && cancelBtn) {
+                if (textarea.value.trim().length > 0) {
+                    cancelBtn.classList.remove('hidden');
+                } else {
+                    cancelBtn.classList.add('hidden');
+                }
+            }
+        }
+
+        // Global variables to track reply state
+        let currentReplyParentId = null;
+        let currentReplyUsername = null;
+
+        // Function to start a reply (Instagram-style)
+        function startReply(commentId, displayName) {
+            // Set the current reply state
+            currentReplyParentId = commentId;
+            currentReplyUsername = displayName;
+
+            // Update the main comment form
+            const commentTextarea = document.getElementById('comment-content');
+            const parentIdField = document.getElementById('parent_id');
+            const replyIndicator = document.getElementById('reply-indicator');
+            const replyingToSpan = document.getElementById('replying-to');
+
+            // Set the parent_id
+            parentIdField.value = commentId;
+
+            // Update textarea with @username
+            if (displayName) {
+                const prefix = `@${displayName} `;
+                commentTextarea.value = prefix;
+                commentTextarea.setSelectionRange(prefix.length, prefix.length);
+            }
+
+            // Show reply indicator
+            replyingToSpan.textContent = `Replying to ${displayName}`;
+            replyIndicator.classList.remove('hidden');
+
+            // Show cancel button since we have content (the @username)
+            handleCommentInput();
+            // Focus on the textarea
+            commentTextarea.focus();
+
+            // Scroll to the comment form
+            commentTextarea.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+
+            // Ensure the parent's replies container is visible
+            const parentRepliesContainer = document.getElementById(`replies-${commentId}`);
+            if (parentRepliesContainer) {
+                parentRepliesContainer.classList.remove('hidden');
+            }
+        }
+
+        // Function to cancel reply
+        function cancelReply() {
+            currentReplyParentId = null;
+            currentReplyUsername = null;
+
+            const commentTextarea = document.getElementById('comment-content');
+            const parentIdField = document.getElementById('parent_id');
+            const replyIndicator = document.getElementById('reply-indicator');
+            const cancelBtn = document.getElementById('reply-cancel-btn');
+
+            // Clear values
+            commentTextarea.value = '';
+            parentIdField.value = '';
+
+            // Hide reply indicator
+            replyIndicator.classList.add('hidden');
+
+            // Hide cancel button
+            if (cancelBtn) {
+                cancelBtn.classList.add('hidden');
+            }
+
+            // Reset textarea height
+            commentTextarea.style.height = 'auto';
+
+            // Focus on textarea
+            commentTextarea.focus();
+        }
+
+        function toggleDropdown(commentId) {
+            const dropdown = document.getElementById('dropdown-' + commentId);
+            if (dropdown.classList.contains('hidden')) {
+                // Close all other dropdowns first
+                document.querySelectorAll('[id^="dropdown-"]').forEach(el => {
+                    el.classList.add('hidden');
+                });
+                // Open this dropdown
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('[onclick^="toggleDropdown"]') && !event.target.closest('[id^="dropdown-"]')) {
+                document.querySelectorAll('[id^="dropdown-"]').forEach(el => {
+                    el.classList.add('hidden');
+                });
+            }
+        });
+
+        function toggleEditForm(commentId) {
+            const contentDiv = document.getElementById(`comment-content-${commentId}`);
+            const form = document.getElementById(`inline-edit-form-${commentId}`);
+            const dropdown = document.getElementById(`dropdown-${commentId}`);
+
+            if (dropdown) dropdown.classList.add('hidden'); // hide dropdown when editing
+            contentDiv.classList.toggle('hidden');
+            form.classList.toggle('hidden');
+        }
+
+        function cancelEdit(commentId) {
+            const contentDiv = document.getElementById(`comment-content-${commentId}`);
+            const form = document.getElementById(`inline-edit-form-${commentId}`);
+
+            contentDiv.classList.remove('hidden');
+            form.classList.add('hidden');
+        }
+
+        function deleteComment(commentId) {
+            console.log('Attempting to delete comment with ID:', commentId);
+
+            fetch(`/comments/${commentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Delete response:', data);
+                    if (data.success) {
+                        // Find the specific comment element
+                        const commentElement = document.getElementById(`comment-${commentId}`) || document
+                            .querySelector(`.comment-item[data-comment-id="${commentId}"]`);
+                        const replyElement = document.querySelector(`.reply-item[data-comment-id="${commentId}"]`);
+
+                        const elementToRemove = commentElement || replyElement;
+
+                        if (elementToRemove) {
+                            elementToRemove.remove();
+
+                            // Check if there are any remaining comments
+                            const remainingComments = document.querySelectorAll('.comment-item');
+                            if (remainingComments.length === 0) {
+                                // Show "no comments" message if no comments left
+                                const container = document.getElementById('comments-container');
+                                container.innerHTML =
+                                    '<p class="text-gray-500 text-center py-4">No comments yet. Be the first to comment!</p>';
+                            }
+
+                            // Update comment count
+                            updateCommentCount();
+                        } else {
+                            console.error('Comment element not found for ID:', commentId);
+                            alert('Comment not found. Please refresh the page.');
+                        }
+                    } else {
+                        alert('Failed to delete comment: ' + (data.message || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting comment:', error);
+                    alert('Something went wrong while deleting the comment.');
+                });
+        }
+
+        // Delegate inline edit form submissions
+        document.addEventListener('submit', function(e) {
+            if (e.target && e.target.classList.contains('inline-edit-form')) {
+                e.preventDefault();
+
+                const form = e.target;
+                const formData = new FormData(form);
+                formData.append('_method', 'PUT');
+
+                const commentId = form.dataset.id;
+                const url = form.action;
+
+                fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const contentDiv = document.getElementById('comment-content-' + commentId);
+                            if (contentDiv) contentDiv.innerText = data.comment.content;
+                            form.classList.add('hidden');
+                            if (contentDiv) contentDiv.classList.remove('hidden');
+                        } else {
+                            alert(data.error || 'Failed to update comment.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating comment:', error);
+                        alert('Something went wrong while updating the comment.');
+                    });
+            }
+        });
+
+        // AJAX comment submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const commentForm = document.getElementById('comment-form');
+            if (commentForm) {
+                commentForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(this);
+                    const errorDiv = document.getElementById('comment-error');
+                    const submitButton = this.querySelector('button[type="submit"]');
+                    const originalButtonText = submitButton.innerHTML;
+
+                    // Show loading state
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    submitButton.disabled = true;
+                    errorDiv.classList.add('hidden');
+
+                    fetch("{{ route('comments.store') }}", {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: formData
+                        })
+                        .then(async (response) => {
+                            const contentType = response.headers.get('content-type') || '';
+                            if (!response.ok) {
+                                if (contentType.includes('application/json')) {
+                                    const errorData = await response.json();
+                                    const msg = errorData.message || errorData.errors?.content?.[0] || 'Error';
+                                    throw new Error(msg);
+                                } else {
+                                    throw new Error('Request failed (maybe login required).');
+                                }
+                            }
+                            if (!contentType.includes('application/json')) {
+                                throw new Error('Unexpected response from server.');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                // Clear the textarea and reset form
+                                document.getElementById('comment-content').value = '';
+                                handleCommentInput();
+                                cancelReply(); // Reset reply state
+
+                                // Add the new comment/reply to the list
+                                if (data.comment.parent_id) {
+                                    // This is a reply
+                                    addReplyToDOM(data.comment);
+
+                                    // Show the replies container if it's hidden
+                                    const repliesContainer = document.getElementById(`replies-${data.comment.parent_id}`);
+                                    if (repliesContainer && repliesContainer.classList.contains('hidden')) {
+                                        repliesContainer.classList.remove('hidden');
+                                    }
+
+                                    // Update replies count
+                                    updateRepliesCount(data.comment.parent_id);
+                                } else {
+                                    // This is a top-level comment
+                                    addCommentToDOM(data.comment);
+
+                                    // If there was a "no comments" message, remove it
+                                    const noCommentsMsg = document.querySelector('#comments-container > p');
+                                    if (noCommentsMsg) {
+                                        noCommentsMsg.remove();
+                                    }
+
+                                    // Update comment count
+                                    updateCommentCount();
+                                }
+                            } else {
+                                throw new Error(data.message || 'An error occurred');
+                            }
+                        })
+                        .catch(error => {
+                            errorDiv.textContent = error.message || 'Failed to post comment. Please try again.';
+                            errorDiv.classList.remove('hidden');
+                        })
+                        .finally(() => {
+                            submitButton.innerHTML = originalButtonText;
+                            submitButton.disabled = false;
+                        });
+                });
+            }
+        });
+
+        function addCommentToDOM(commentData) {
+            console.log("Comment data received:", commentData);
+
+            // If this is a reply
+            if (commentData.parent_id) {
+                let repliesContainer = document.getElementById(`replies-${commentData.parent_id}`);
+
+                if (!repliesContainer) {
+                    const parentComment = document.getElementById(`comment-${commentData.parent_id}`) || document
+                        .getElementById(`reply-${commentData.parent_id}`);
+                    if (parentComment) {
+                        repliesContainer = document.createElement('div');
+                        repliesContainer.id = `replies-${commentData.parent_id}`;
+                        repliesContainer.className =
+                            "ml-4 mt-3 space-y-3 border-l-2 border-gray-200 dark:border-gray-600 pl-4";
+                        parentComment.appendChild(repliesContainer);
+                    }
+                }
+
+                if (document.getElementById(`reply-${commentData.id}`)) {
+                    return;
+                }
+
+                const replyHtml = `
+        <div class="reply-item flex gap-3" id="reply-${commentData.id}">
+            <div class="w-8 h-8 bg-[#B59F84] rounded-full flex items-center justify-center">
+                <span class="text-sm font-bold text-white">
+                    ${commentData.user.fname ? (commentData.user.fname.charAt(0) + commentData.user.lname.charAt(0)).toUpperCase() : 'U'}
+                </span>
+            </div>
+            <div class="flex-1">
+                <p class="font-medium">${commentData.user.fname} ${commentData.user.lname}</p>
+                <p>${commentData.content}</p>
+                <button onclick="startReply(${commentData.id}, '${commentData.user.fname} ${commentData.user.lname}')" class="text-xs text-gray-500 hover:text-[#B59F84]">Reply</button>
+            </div>
+        </div>
+    `;
+                repliesContainer.insertAdjacentHTML('beforeend', replyHtml);
+                return;
+            }
+
+            // Otherwise, this is a top-level comment
+            const commentsContainer = document.getElementById('comments-container');
+
+            if (document.getElementById(`comment-${commentData.id}`)) {
+                return;
+            }
+
+            const profilePicUrl = commentData.user.profile_pic_url || '{{ asset("images/default-profile.jpg") }}';
+
+            const commentHtml = `
+            <div class="comment-item bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm" data-comment-id="${commentData.id}" id="comment-${commentData.id}">
+                <div class="flex gap-3">
+              <div class="flex-shrink-0">
+                    <div class="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800 overflow-hidden bg-[#B59F84] flex items-center justify-center">
+                       <img src="${profilePicUrl}" 
+                        alt="${commentData.user.fname}'s Profile Picture"
+                        class="w-full h-full object-cover">
+                    </div>
+                </div>
+                   
+                    <div class="flex-1">
+        <div class="flex justify-between items-start mb-1">
+            <div>
+                <a href="/profile/${commentData.user.id}" class="hover:underline">
+                    ${createUserNameBadge(commentData.user)}
+                </a>
+                <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                    ${commentData.created_at ? getTimeAgo(new Date(commentData.created_at)) : 'just now'}
+                </span>
+            </div>
+            
+            <div class="relative">
+                <button type="button" class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-600" onclick="toggleDropdown(${commentData.id})">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600 dark:text-gray-200" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </button>
+                
+                <div id="dropdown-${commentData.id}" class="absolute right-0 mt-1 w-28 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow z-10 hidden">
+                    <button type="button" onclick="toggleEditForm(${commentData.id})" class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        Edit
+                    </button>
+                    <button type="button" onclick="deleteComment(${commentData.id})" class="w-full text-left px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="comment-content-${commentData.id}" class="text-gray-800 dark:text-gray-200 mb-2">
+            ${commentData.content}
+        </div>
+
+        <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+            <button onclick="toggleLike(${commentData.id})" 
+                    class="flex items-center gap-1 hover:text-[#B59F84] transition-colors duration-200"
+                    id="like-btn-${commentData.id}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+                <span id="like-count-${commentData.id}">0</span>
+            </button>
+
+            <button onclick="startReply(${commentData.id}, '${commentData.user.fname} ${commentData.user.lname}')" 
+                    class="flex items-center gap-1 hover:text-[#B59F84] transition-colors duration-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                Reply
+            </button>
+        </div>
+    </div>
+
+    <form id="inline-edit-form-${commentData.id}" action="/comments/${commentData.id}" method="POST" class="inline-edit-form hidden mt-2 bg-gray-100 dark:bg-gray-600 p-3 rounded-lg" data-id="${commentData.id}">
+        <textarea name="content" rows="2" class="w-full border rounded p-2 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200">${commentData.content}</textarea>
+        <div class="flex gap-2 mt-2">
+            <button type="submit" class="px-3 py-1 bg-[#B59F84] text-white rounded text-sm hover:bg-[#a08e77] transition-all duration-200">Save</button>
+            <button type="button" onclick="cancelEdit(${commentData.id})" class="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 text-sm">Cancel</button>
+        </div>
+    </form>
+
+    <div id="replies-${commentData.id}" class="hidden ml-4 mt-3 space-y-3 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
+    </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+            commentsContainer.insertAdjacentHTML('afterbegin', commentHtml);
+
+            // Scroll to the new comment
+            const newComment = document.getElementById(`comment-${commentData.id}`);
+            if (newComment) {
+                newComment.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest'
+                });
+            }
+        }
+
+        // Toggle like functionality
+        function toggleLike(commentId) {
+            fetch(`/comments/${commentId}/like`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        reaction_type: 'like'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const likeBtn = document.getElementById(`like-btn-${commentId}`);
+                        const likeCount = document.getElementById(`like-count-${commentId}`);
+
+                        // Update button appearance
+                        if (data.is_liked) {
+                            likeBtn.classList.remove('text-gray-500');
+                            likeBtn.classList.add('text-[#B59F84]');
+                            likeBtn.querySelector('svg').setAttribute('fill', 'currentColor');
+                        } else {
+                            likeBtn.classList.remove('text-[#B59F84]');
+                            likeBtn.classList.add('text-gray-500');
+                            likeBtn.querySelector('svg').setAttribute('fill', 'none');
+                        }
+
+                        // Update count
+                        likeCount.textContent = data.likes_count;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error toggling like:', error);
+                });
+        }
+
+        // Toggle replies display
+        function toggleReplies(commentId) {
+            const repliesContainer = document.getElementById(`replies-${commentId}`);
+            if (repliesContainer) {
+                repliesContainer.classList.toggle('hidden');
+            }
+        }
+
+        function addReplyToDOM(commentData) {
+            if (!commentData.parent_id) {
+                console.warn("Tried to add a reply without parent_id:", commentData);
+                return;
+            }
+
+            console.log("Reply data received:", commentData);
+
+            let topLevelCommentId = commentData.parent_id;
+            let currentParentId = commentData.parent_id;
+
+            // Traverse up the reply chain to find the top-level comment
+            while (true) {
+                const parentElement = document.getElementById(`comment-${currentParentId}`) ||
+                    document.getElementById(`reply-${currentParentId}`);
+
+                if (!parentElement) break;
+
+                const parentDataId = parentElement.getAttribute('data-comment-id');
+                if (parentElement.classList.contains('reply-item')) {
+                    const replyParentId = getParentIdFromReply(parentElement);
+                    if (replyParentId) {
+                        currentParentId = replyParentId;
+                        topLevelCommentId = currentParentId;
+                    } else {
+                        break;
+                    }
+                } else {
+                    topLevelCommentId = currentParentId;
+                    break;
+                }
+            }
+
+            let repliesContainer = document.getElementById(`replies-${topLevelCommentId}`);
+
+            if (!repliesContainer) {
+                const topLevelComment = document.getElementById(`comment-${topLevelCommentId}`);
+                if (topLevelComment) {
+                    repliesContainer = document.createElement('div');
+                    repliesContainer.id = `replies-${topLevelCommentId}`;
+                    repliesContainer.className = 'ml-4 mt-3 space-y-3 border-l-2 border-gray-200 dark:border-gray-600 pl-4';
+                    topLevelComment.appendChild(repliesContainer);
+                } else {
+                    console.warn('Top-level comment not found for reply:', topLevelCommentId);
+                    return;
+                }
+            }
+
+            if (document.getElementById(`reply-${commentData.id}`)) {
+                return;
+            }
+
+            const profilePicUrl = commentData.user.profile_pic_url || '{{ asset("images/default-profile.jpg") }}';
+
+            const replyHtml = `
+        <div class="reply-item flex gap-3" id="reply-${commentData.id}" data-comment-id="${commentData.id}" data-parent-id="${commentData.parent_id}">
+            <div class="flex-shrink-0">
+                <div class="w-10 h-10 bg-[#B59F84] rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center">
+                   <img src="${profilePicUrl}" 
+                    alt="${commentData.user.fname}'s Profile Picture"
+                    class="w-full h-full object-cover">
+                </div>
+            </div>
+            <div class="flex-1">
+                <div>
+                    <a href="/profile/${commentData.user?.id}" class="hover:underline">
+                        ${createUserNameBadge(commentData.user)}
+                    </a>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">just now</span>
+                </div>
+                <p class="text-sm text-gray-800 dark:text-gray-200">${commentData.content}</p>
+
+                <div class="mt-2 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                    <button onclick="toggleLike(${commentData.id})" 
+                            class="flex items-center gap-1 hover:text-[#B59F84] transition-colors duration-200"
+                            id="like-btn-${commentData.id}">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                        <span id="like-count-${commentData.id}">0</span>
+                    </button>
+                    <button onclick="startReply(${commentData.id}, '${commentData.user?.fname ?? ''} ${commentData.user?.lname ?? ''}')" class="hover:text-[#B59F84] transition-colors duration-200">Reply</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+            repliesContainer.insertAdjacentHTML('beforeend', replyHtml);
+
+            repliesContainer.classList.remove('hidden');
+
+            updateRepliesCount(topLevelCommentId);
+        }
+
+        // Helper function to get parent ID from a reply element
+        function getParentIdFromReply(replyElement) {
+            const parentId = replyElement.getAttribute('data-parent-id');
+            if (parentId) return parseInt(parentId);
+
+            const parentContainer = replyElement.closest('[id^="replies-"]');
+            if (parentContainer) {
+                const match = parentContainer.id.match(/replies-(\d+)/);
+                if (match) return parseInt(match[1]);
+            }
+
+            return null;
+        }
+
+        // Helper function to format time ago
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+
+            if (diffInSeconds < 60) {
+                return 'just now';
+            } else if (diffInSeconds < 3600) {
+                const minutes = Math.floor(diffInSeconds / 60);
+                return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+            } else if (diffInSeconds < 86400) {
+                const hours = Math.floor(diffInSeconds / 3600);
+                return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            } else if (diffInSeconds < 2592000) {
+                const days = Math.floor(diffInSeconds / 86400);
+                return `${days} day${days > 1 ? 's' : ''} ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
+        }
+
+        // Helper function to create user name badge with verification status
+        function createUserNameBadge(user) {
+            let badgeHtml = `<span class="flex items-center space-x-2">
+                <span class="font-medium text-gray-900 dark:text-gray-100">${user.fname} ${user.lname}</span>`;
+
+            if (user.verification_status === 'approved') {
+                badgeHtml += `
+                    <span class="inline-flex items-center justify-center w-5 h-5 bg-[#B59F84] text-white rounded-full relative">
+                        <svg viewBox="0 0 24 24" class="absolute w-full h-full">
+                            <path fill="#B59F84" d="M12 0l2.9 4.4 5 1.1-3.6 3.8.9 5-4.2-2.2-4.2 2.2.9-5-3.6-3.8 5-1.1L12 0z"/>
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </span>`;
+            }
+
+            badgeHtml += `</span>`;
+            return badgeHtml;
+        }
+
+        // Update replies count
+        function updateRepliesCount(commentId) {
+            const repliesContainer = document.getElementById(`replies-${commentId}`);
+            if (repliesContainer) {
+                const repliesCount = repliesContainer.querySelectorAll('.reply-item').length;
+                const repliesButton = document.querySelector(`button[onclick="toggleReplies(${commentId})"]`);
+                if (repliesButton) {
+                    repliesButton.textContent = `${repliesCount} ${repliesCount === 1 ? 'reply' : 'replies'}`;
+                }
+            }
+        }
+
+        // Update comment count in heading
+        function updateCommentCount() {
+            const commentsContainer = document.getElementById('comments-container');
+            const countSpan = document.getElementById('comment-count');
+            if (commentsContainer && countSpan) {
+                const topLevelComments = commentsContainer.querySelectorAll('.comment-item').length;
+                countSpan.textContent = `(${topLevelComments})`;
+            }
         }
     </script>
 

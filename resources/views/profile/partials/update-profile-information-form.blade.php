@@ -49,16 +49,22 @@
                     class="w-28 h-28 rounded-full object-cover border-4 border-blue-500 shadow-md hover:scale-105 transition-transform duration-300">
             @else
                 <img src="{{ asset('images/default-profile.jpg') }}" alt="Default Profile Picture"
-                    class="w-28 h-28 rounded-full object-cover border-4 border-gray-300 dark:border-gray-600 shadow-md hover:scale-105 transition-transform duration-300">
+                    class="w-28 h-28 rounded-full object-cover border-4 {{ empty($user->profile_pic) ? 'border-amber-400 dark:border-amber-600' : 'border-gray-300 dark:border-gray-600' }} shadow-md hover:scale-105 transition-transform duration-300">
             @endif
 
             <div class="w-full max-w-xs">
-                <x-input-label for="profile_pic" :value="__('Profile Picture')" />
+                <label for="profile_pic" class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                    Profile Picture <span class="text-red-500">*</span>
+                </label>
                 <input id="profile_pic" name="profile_pic" type="file" accept="image/*"
-                    class="block w-full text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500">
+                    class="block w-full text-sm text-gray-700 dark:text-gray-300 {{ empty($user->profile_pic) ? 'border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20' : 'border-gray-300 dark:border-gray-700' }} rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500"
+                    {{ empty($user->profile_pic) ? 'required' : '' }}>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Allowed types: JPG, PNG — Max size: 2MB
                 </p>
+                @if(empty($user->profile_pic))
+                    <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">Required for verification</p>
+                @endif
                 <x-input-error class="mt-2" :messages="$errors->get('profile_pic')" />
             </div>
         </div>

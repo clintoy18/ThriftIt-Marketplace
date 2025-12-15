@@ -1,5 +1,6 @@
 @php
     $missingFields = [];
+    if (empty($user->profile_pic)) $missingFields[] = 'Profile Picture';
     if (empty($user->fname)) $missingFields[] = 'First Name';
     if (empty($user->lname)) $missingFields[] = 'Last Name';
     if (empty($user->email)) $missingFields[] = 'Email';

@@ -11,8 +11,44 @@
                     <x-user-name-badge :user="$user" :show-full-name="true" />
                 </h3>
                 <div class="flex items-center mt-1">
-                    <div class="flex text-yellow-500">5 stars</div>
-                    <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">(5)</span>
+                    @php
+                        $averageRating = $user->average_rating;
+                        $reviewCount = $user->review_count;
+                        $fullStars = floor($averageRating);
+                        $hasHalfStar = ($averageRating - $fullStars) >= 0.5;
+                    @endphp
+                    <div class="flex items-center text-yellow-500">
+                        @for ($i = 1; $i <= 5; $i++)
+                            @if ($i <= $fullStars)
+                                {{-- Full star --}}
+                                <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                </svg>
+                            @elseif ($i == $fullStars + 1 && $hasHalfStar)
+                                {{-- Half star --}}
+                                <div class="relative w-5 h-5 inline-block">
+                                    <svg class="absolute inset-0 w-5 h-5 fill-current text-gray-300 dark:text-gray-600" viewBox="0 0 24 24">
+                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                    </svg>
+                                    <svg class="absolute inset-0 w-5 h-5 fill-current" style="clip-path: inset(0 50% 0 0);" viewBox="0 0 24 24">
+                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                    </svg>
+                                </div>
+                            @else
+                                {{-- Empty star --}}
+                                <svg class="w-5 h-5 fill-current text-gray-300 dark:text-gray-600" viewBox="0 0 24 24">
+                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                </svg>
+                            @endif
+                        @endfor
+                    </div>
+                    <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                        @if ($reviewCount > 0)
+                            {{ number_format($averageRating, 1) }} ({{ $reviewCount }})
+                        @else
+                            No reviews yet
+                        @endif
+                    </span>
                 </div>
             </div>
             <div class="text-center">
