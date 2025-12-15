@@ -167,8 +167,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function ecoPosts()
     {
-        return $this->hasMany(EcoEducationalPost::class);
+        return $this->hasMany(EcoEducationalPost::class, 'user_id');
     }
+
 
     // Orders placed by this user (as a buyer)
     public function orders()
@@ -235,5 +236,18 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // Otherwise, return the public default profile image URL
         return 'https://thriftit-bucket-s3.s3.ap-southeast-1.amazonaws.com/profile_pictures/default-profile.jpg';
+    }
+
+    public function getIsTopDonorAttribute()
+    {
+        // You can change this threshold (e.g., 1000) here in one place later
+        return $this->points > 50;
+    }
+
+    // 2. Logic for Trusted Upcycler Badge
+    public function getIsTrustedUpcyclerAttribute()
+    {
+        // We can access 'eco_posts_count' safely because the Repository loaded it
+        return $this->eco_posts_count > 5;
     }
 }
