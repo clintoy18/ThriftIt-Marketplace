@@ -86,7 +86,7 @@
                                 </span>
                             @endif
                             <span class="text-[10px] text-gray-400">
-                                {{ number_format($user->points) }} pts
+                                {{ number_format($user->eco_posts_count) }} post
                             </span>
                         </div>
                     </div>
