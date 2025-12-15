@@ -120,6 +120,9 @@ class ProfileController extends Controller
         // Orders received for this user's products
         $orders = $user->ordersAsSeller()->with(['product', 'buyer'])->get();
 
+        // Donations created by this user
+        $donations = $user->donations()->with(['category', 'donationImages'])->latest()->get();
+
         // Works (approved only)
         $works = $user->works()->where('approval_status', 'approved')->get();
 
@@ -149,6 +152,7 @@ class ProfileController extends Controller
             'availableProducts' => $availableProducts,
             'soldProducts' => $soldProducts,
             'orders' => $orders,
+            'donations' => $donations,
             'totalListings' => $totalListings,
             'itemsSold' => $itemsSold,
             'revenue' => $revenue,
