@@ -211,7 +211,7 @@
                         </h3>
                         <p class="text-[#786126] dark:text-white mb-6">Select a conversation from the sidebar to
                             start chatting</p>
-                        <div class="flex flex-col sm:flex-row justify-center gap-3">
+                        {{-- <div class="flex flex-col sm:flex-row justify-center gap-3">
                             <a href="{{ route('dashboard') }}"
                                 class="px-4 py-2 bg-[#634600] dark:bg-yellow-600 text-white rounded-lg hover:bg-[#56432C] dark:hover:bg-yellow-500 transition-colors">
                                 Browse Items
@@ -220,7 +220,7 @@
                                 class="px-4 py-2 border border-[#B59F84] dark:border-yellow-400 text-[#634600] dark:text-white rounded-lg hover:bg-[#B59F84] hover:bg-opacity-20 dark:hover:bg-yellow-700 transition-colors">
                                 My Items
                             </a>
-                        </div>
+                        </div> --}}
                     </div>
                 </div>
 

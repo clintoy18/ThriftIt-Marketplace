@@ -251,10 +251,10 @@
                             </p>
                         </div>
                         <div class="mt-4 md:mt-0 flex space-x-3">
-                            <a href="{{ route('admin.sales.yearly-report') }}"
+                            {{-- <a href="{{ route('admin.sales.yearly-report') }}"
                                 class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 shadow-md transition">
                                 <i class="fas fa-eye mr-2"></i> VIEW YEARLY
-                            </a>
+                            </a> --}}
                             <a href="{{ route('admin.sales.yearly-export', now()->year) }}"
                                 class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:ring-2 focus:ring-red-500 shadow-md transition">
                                 <i class="fas fa-file-pdf mr-2"></i> EXPORT YEARLY PDF
@@ -312,10 +312,10 @@
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                <a href="{{ route('admin.sales.monthly-report', $summary->month) }}"
+                                                  {{-- <a href="{{ route('admin.sales.monthly-report', $summary->month) }}"
                                                     class="inline-flex items-center px-3 py-1 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition">
-                                                    <i class="fas fa-file-pdf mr-1"></i> PDF
-                                                </a>
+                                                    <i class="fas fa-file-pdf mr-1"></i> EXPORT MONTHLY PDF
+                                                </a> --}}
                                             </td>
                                         </tr>
                                     @endforeach
@@ -376,10 +376,10 @@
                                         </p>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <a :href="'/admin/sales/monthly-export/' + month"
-                                            class="inline-flex items-center px-3 py-1 bg-red-600 rounded-md text-xs font-semibold text-white uppercase tracking-widest hover:bg-blue-700 transition duration-150 shadow-sm">
-                                            <i class="fas fa-file-pdf mr-1"></i> Export
-                                        </a>
+                                       <a href="{{ route('admin.sales.monthly-report', $summary->month) }}"
+                                                    class="inline-flex items-center px-3 py-1 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition">
+                                                    <i class="fas fa-file-pdf mr-1"></i> EXPORT MONTHLY PDF
+                                                </a>
                                     </div>
                                 </div>
 

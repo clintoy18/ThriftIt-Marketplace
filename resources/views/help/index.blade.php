@@ -11,7 +11,7 @@
                 </p>
             </div>
 
-            <!-- Search Bar -->
+            {{-- <!-- Search Bar -->
             <div class="mb-8">
                 <div class="relative max-w-2xl mx-auto">
                     <input type="text" placeholder="Search for help..." 
@@ -22,7 +22,7 @@
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                 </div>
-            </div>
+            </div> --}}
 
             <!-- Quick Links -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
