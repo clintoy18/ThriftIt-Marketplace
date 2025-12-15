@@ -36,8 +36,8 @@
                 </svg>
             </div>
             <div>
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Active Donations</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Items awaiting pickup or verification</p>
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Available Items for Donations</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Items awaiting to be claimed.</p>
             </div>
         </div>
 
@@ -73,7 +73,7 @@
             </div>
             <div>
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white">Donated Items</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Successfully donated items</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">This seller's donated items.</p>
             </div>
         </div>
 
