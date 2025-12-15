@@ -25,7 +25,7 @@
                 </div>
             </div>
 
-            {{-- Subscription Type --}}
+            {{-- Subscription Type
             <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg mb-8 max-w-6xl mx-auto">
                 <div class="max-w-xl">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
@@ -40,7 +40,7 @@
                         <p>You are subscribed to our monthly Basic plan.</p>
                     @endif
                 </div>
-            </div>
+            </div> --}}
 
             <div class="grid lg:grid-cols-3 gap-8 lg:gap-6 max-w-6xl mx-auto">
                 
