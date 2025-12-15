@@ -170,7 +170,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(EcoEducationalPost::class, 'user_id');
     }
 
-
     // Orders placed by this user (as a buyer)
     public function orders()
     {
