@@ -312,10 +312,10 @@
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                  <a href="{{ route('admin.sales.monthly-report', $summary->month) }}"
+                                                  {{-- <a href="{{ route('admin.sales.monthly-report', $summary->month) }}"
                                                     class="inline-flex items-center px-3 py-1 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition">
                                                     <i class="fas fa-file-pdf mr-1"></i> EXPORT MONTHLY PDF
-                                                </a>
+                                                </a> --}}
                                             </td>
                                         </tr>
                                     @endforeach
