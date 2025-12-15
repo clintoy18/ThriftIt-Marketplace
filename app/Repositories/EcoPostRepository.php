@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\EcoEducationalPost;
+use App\Models\User;
 
 class EcoPostRepository
 {
@@ -39,5 +40,17 @@ class EcoPostRepository
     {
         $post = $this->find($id);
         return $post->delete();
+    }
+
+    public function getLeaderboard()
+    {
+        return User::withCount('ecoPosts')
+            // 1. Sort by Points (Treat NULL as 0 so the order is correct)
+            ->orderByRaw('COALESCE(points, 0) DESC')
+            // 2. Tie-breaker: If points are equal, the one with more posts is ranked higher
+            ->orderBy('eco_posts_count', 'desc')
+            ->take(5)
+            ->get();
+        // Removed ->map() because we don't need to calculate a fake score anymore
     }
 }

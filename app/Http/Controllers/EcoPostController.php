@@ -19,7 +19,9 @@ class EcoPostController extends Controller
 
     public function index()
     {
-        $posts = $this->service->listPosts()->load('user');
+        // It's good practice to handle eager loading ('load') here or in the service
+        $posts = $this->service->listPosts()->load('user'); 
+        
         $leaderboard = $this->service->getLeaderboard();
 
         return view('eco-posts.index', compact('posts', 'leaderboard'));
