@@ -19,14 +19,14 @@
         <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Dashboard</h2>
         <p class="text-gray-500 dark:text-gray-400 mt-2">Welcome back! Here's your overview.</p>
     </div>
-    {{-- <div class="mt-4 sm:mt-0">
-        <select id="timePeriodSelect" class="text-sm rounded-lg border border-gray-300 bg-white dark:bg-gray-800 px-3 py-2 dark:text-gray-200">
-            <option value="7">Last 7 days</option>
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-            <option value="all" selected>All time</option>
-        </select>
-    </div> --}}
+    <div class="mt-4 sm:mt-0">
+        <a href="{{ route('profile.dashboard.export-pdf') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Export PDF
+        </a>
+    </div>
 </div>
 
 <!-- Desktop Cards -->
