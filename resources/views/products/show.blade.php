@@ -449,21 +449,47 @@
                                                     </div>
                                                 </div>
 
+                                                <!-- Transaction Disclosure -->
+                                                <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
+                                                    <h4 class="text-sm font-semibold text-amber-900">
+                                                        Thrift-IT Transaction Disclosure
+                                                    </h4>
+                                                    <p class="text-xs text-amber-900 leading-relaxed">
+                                                        Thrift-IT is a digital marketplace platform that connects buyers and sellers of thrifted items.
+                                                        Thrift-IT does not process, hold, or guarantee payments. All payments are made directly between
+                                                        buyers and sellers using third-party payment methods (e.g., GCash, Maya). Uploaded proof of
+                                                        payment is for reference only and does not constitute payment verification by Thrift-IT.
+                                                    </p>
+                                                    <p class="text-xs text-amber-900 leading-relaxed">
+                                                        By proceeding, you acknowledge that Thrift-IT acts only as a middleman platform and is not liable
+                                                        for disputes, losses, or fraudulent transactions between users.
+                                                    </p>
+                                                    <div class="flex items-start gap-2">
+                                                        <input id="transaction-disclosure-checkbox" name="transaction_disclosure" type="checkbox"
+                                                               required
+                                                               class="mt-0.5 h-4 w-4 rounded border-amber-300 text-[#B59F84] focus:ring-[#B59F84]">
+                                                        <label for="transaction-disclosure-checkbox" class="text-xs text-amber-900">
+                                                            I have read and agree to the Thrift-IT Transaction Disclosure.
+                                                        </label>
+                                                    </div>
+                                                </div>
+
                                                 <!-- Action Buttons -->
-                                                <div class="flex gap-3">
+                                                <div class="mt-4 flex gap-3">
                                                     <button type="button" @click="open=false; clearModalFileInput()"
                                                         class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium">
                                                         Cancel
                                                     </button>
                                                     <button type="submit" id="modal-submit-btn"
-                                                        class="flex-1 px-4 py-3 bg-gradient-to-r from-[#B59F84] to-[#8A7B66] text-white rounded-xl hover:from-[#a08e77] hover:to-[#78695a] transform hover:scale-105 transition-all duration-200 font-medium shadow-md flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                                                        class="flex-1 px-4 py-3 bg-gradient-to-r from-[#B59F84] to-[#8A7B66] text-white rounded-xl hover:from-[#a08e77] hover:to-[#78695a] transform hover:scale-105 transition-all duration-200 font-medium shadow-md flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        disabled>
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                             viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                                 stroke-width="2"
                                                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
-                                                        <span>Submit Order</span>
+                                                        <span>Agree &amp; Continue</span>
                                                     </button>
                                                 </div>
                                             </form>
@@ -1070,6 +1096,7 @@
             const modalFilePreview = document.getElementById('modal-filePreview');
             const modalFileName = document.getElementById('modal-fileName');
             const modalSubmitBtn = document.getElementById('modal-submit-btn');
+            const disclosureCheckbox = document.getElementById('transaction-disclosure-checkbox');
 
             // Handle file selection for modal
             if (modalFileInput) {
@@ -1124,6 +1151,12 @@
                 }
             }
 
+            if (disclosureCheckbox && modalSubmitBtn) {
+                disclosureCheckbox.addEventListener('change', function() {
+                    modalSubmitBtn.disabled = !this.checked || !modalFileInput || !modalFileInput.files.length;
+                });
+            }
+
             function handleModalFileSelection(e) {
                 if (e.target.files.length > 0) {
                     const file = e.target.files[0];
@@ -1151,7 +1184,10 @@
                     }
 
                     // Enable submit button
-                    if (modalSubmitBtn) modalSubmitBtn.disabled = false;
+                    if (modalSubmitBtn) {
+                        // Only enable when disclosure is checked as well
+                        modalSubmitBtn.disabled = !(disclosureCheckbox && disclosureCheckbox.checked);
+                    }
                 }
             }
 

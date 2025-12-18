@@ -13,6 +13,10 @@
                 @include('profile.partials._dashboard')
             @endif
 
+
+            {{-- ===== FEATURED BUYERS (Influencers & Celebrities) ===== --}}
+            @include('profile.partials._featured_buyers')
+
             {{-- ===== TABS ===== --}}
             @include('profile.partials._tabs')
 

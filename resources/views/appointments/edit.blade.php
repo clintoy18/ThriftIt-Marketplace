@@ -119,7 +119,7 @@
                                 <input id="images" name="images[]" type="file" accept="image/*" multiple
                                     class="block w-full text-sm text-gray-900 border border-gray-300 rounded-xl cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 p-2 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#B59F84]/10 file:text-[#B59F84] hover:file:bg-[#B59F84]/20">
                             </div>
-                            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">               
                                 You can select multiple files. These will be added to your existing collection.
                                 (Max 5MB per file, JPG/PNG/WEBP).
                             </p>

@@ -182,6 +182,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasManyThrough(Order::class, Product::class);
     }
 
+    // Transaction disclosures agreed to by this user
+    public function transactionDisclosures()
+    {
+        return $this->hasMany(TransactionDisclosure::class);
+    }
+
     public function works()
     {
         return $this->hasMany(Work::class);
