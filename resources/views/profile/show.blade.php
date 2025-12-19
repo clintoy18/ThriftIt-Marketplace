@@ -14,6 +14,11 @@
             @endif
 
 
+                        {{-- PROTECTION: Only include the creation modal for the owner --}}
+            @if (Auth::id() === $user->id)
+                @include('profile.partials._featured_buyers_modal')
+            @endif
+
             {{-- ===== FEATURED BUYERS (Influencers & Celebrities) ===== --}}
             @include('profile.partials._featured_buyers')
 

@@ -107,75 +107,81 @@ class ProfileController extends Controller
 
 
 
-    public function show(User $user)
-    {
-        // Available products (approved, not sold)
-        $availableProducts = $user->products()
-            ->where('approval_status', 'approved')
-            ->where('status', '!=', 'sold')
-            ->paginate(8);
+public function show(User $user)
+{
+    // 1. Fetch Featured Buyers with their Items (Eager Loaded)
+    $featuredBuyers = \App\Models\FeaturedBuyer::with('items')
+        ->where('user_id', $user->id)
+        ->latest()
+        ->get();
 
-        // Sold products
-        $soldProducts = $user->products()->where('status', 'sold')->paginate(8);
+    // 2. Available products (approved, not sold)
+    $availableProducts = $user->products()
+        ->where('approval_status', 'approved')
+        ->where('status', '!=', 'sold')
+        ->paginate(8);
 
-        // Orders received for this user's products
-        $orders = $user->ordersAsSeller()->with(['product', 'buyer'])->get();
+    // 3. Sold products
+    $soldProducts = $user->products()->where('status', 'sold')->paginate(8);
 
-        // Orders placed by the authenticated user (as buyer) – across all sellers
-        $buyerOrders = collect();
-        if (Auth::check()) {
-            $buyerOrders = Auth::user()->orders()
-                ->with(['product.images'])
-                ->latest()
-                ->get();
-        }
+    // 4. Orders received for this user's products
+    $orders = $user->ordersAsSeller()->with(['product', 'buyer'])->get();
 
-        // Donations created by this user
-        $donations = $user->donations()->with(['category', 'donationImages'])->latest()->get();
-
-        // Works (approved only)
-        $works = $user->works()->where('approval_status', 'approved')->get();
-
-        // Completed appointments as requester
-        $completedAppointments = $user->appointments()
-            ->where('appstatus', 'completed')
-            ->with(['upcycler'])
+    // 5. Orders placed by the authenticated user (as buyer)
+    $buyerOrders = collect();
+    if (Auth::check()) {
+        $buyerOrders = Auth::user()->orders()
+            ->with(['product.images'])
+            ->latest()
             ->get();
-
-        // Completed appointments as upcycler
-        $completedAppointmentsAsUpcycler = $user->appointmentsAsUpcycler()
-            ->where('appstatus', 'completed')
-            ->with(['upcycler'])
-            ->get();
-
-        // Dashboard statistics
-        $totalListings = $user->products()->where('approval_status', 'approved')->count();
-        $itemsSold = $user->products()->where('status', 'sold')->count();
-        $revenue = $user->products()->where('status', 'sold')->sum('price');
-        $itemsDonated = $user->donations()->where('status', 'donated')->count();
-        $approvedWorks = $user->works()->where('approval_status', 'approved')->count();
-        $completedAppointmentsCount = $completedAppointments->count();
-        $completedAppointmentsAsUpcyclerCount = $completedAppointmentsAsUpcycler->count();
-
-        return view('profile.show', [
-            'user' => $user,
-            'availableProducts' => $availableProducts,
-            'soldProducts' => $soldProducts,
-            'orders' => $orders,
-            'buyerOrders' => $buyerOrders,
-            'donations' => $donations,
-            'totalListings' => $totalListings,
-            'itemsSold' => $itemsSold,
-            'revenue' => $revenue,
-            'itemsDonated' => $itemsDonated,
-            'works' => $works,
-            'approvedWorks' => $approvedWorks,
-            'completedAppointments' => $completedAppointments,
-            'completedAppointmentsCount' => $completedAppointmentsCount,
-            'completedAppointmentsAsUpcycler' => $completedAppointmentsAsUpcycler,
-            'completedAppointmentsAsUpcyclerCount' => $completedAppointmentsAsUpcyclerCount,
-        ]);
     }
+
+    // 6. Donations created by this user
+    $donations = $user->donations()->with(['category', 'donationImages'])->latest()->get();
+
+    // 7. Works (approved only)
+    $works = $user->works()->where('approval_status', 'approved')->get();
+
+    // 8. Completed appointments
+    $completedAppointments = $user->appointments()
+        ->where('appstatus', 'completed')
+        ->with(['upcycler'])
+        ->get();
+
+    $completedAppointmentsAsUpcycler = $user->appointmentsAsUpcycler()
+        ->where('appstatus', 'completed')
+        ->with(['upcycler'])
+        ->get();
+
+    // 9. Dashboard statistics
+    $totalListings = $user->products()->where('approval_status', 'approved')->count();
+    $itemsSold = $user->products()->where('status', 'sold')->count();
+    $revenue = $user->products()->where('status', 'sold')->sum('price');
+    $itemsDonated = $user->donations()->where('status', 'donated')->count();
+    $approvedWorks = $user->works()->where('approval_status', 'approved')->count();
+    $completedAppointmentsCount = $completedAppointments->count();
+    $completedAppointmentsAsUpcyclerCount = $completedAppointmentsAsUpcycler->count();
+
+    return view('profile.show', [
+        'user' => $user,
+        'featuredBuyers' => $featuredBuyers, // <-- Added this
+        'availableProducts' => $availableProducts,
+        'soldProducts' => $soldProducts,
+        'orders' => $orders,
+        'buyerOrders' => $buyerOrders,
+        'donations' => $donations,
+        'totalListings' => $totalListings,
+        'itemsSold' => $itemsSold,
+        'revenue' => $revenue,
+        'itemsDonated' => $itemsDonated,
+        'works' => $works,
+        'approvedWorks' => $approvedWorks,
+        'completedAppointments' => $completedAppointments,
+        'completedAppointmentsCount' => $completedAppointmentsCount,
+        'completedAppointmentsAsUpcycler' => $completedAppointmentsAsUpcycler,
+        'completedAppointmentsAsUpcyclerCount' => $completedAppointmentsAsUpcyclerCount,
+    ]);
+}
 
     /**
      * Delete the user's account.

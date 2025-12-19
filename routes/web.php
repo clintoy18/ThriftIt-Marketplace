@@ -32,6 +32,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\HelpController;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\FeaturedBuyerController;
 use Illuminate\Http\Request;
 
 
@@ -94,7 +95,7 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function (
     // Resources
     Route::resource('products', ProductController::class);
     Route::resource('categories', CategoriesController::class);
-
+    Route::post('/featured-buyers', [FeaturedBuyerController::class, 'store'])->name('featured-buyers.store');
     // Appointments
     Route::get('/appointments/booked-slots', [AppointmentController::class, 'getBookedSlots'])
         ->name('appointments.booked-slots');
