@@ -156,7 +156,7 @@
                         </a>
 
                         {{-- CANCEL BUTTON --}}
-                        <form method="PAT" action="{{ route('appointments.cancel', $appointment->appointmentid) }}" onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
+                        {{-- <form method="PAT" action="{{ route('appointments.cancel', $appointment->appointmentid) }}" onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
                             @csrf
                             @method('PATCH')
                             <button type="submit" 
@@ -167,8 +167,8 @@
                                     : 'border-transparent bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700' 
                                 }}">
                                 Cancel Appointment
-                            </button>
-                        </form>
+                            </button> --}}
+                        {{-- </form> --}}
                     </div>
 
                 </div>

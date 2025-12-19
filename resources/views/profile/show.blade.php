@@ -22,14 +22,23 @@
 
             {{-- ===== TAB CONTENTS ===== --}}
             <div class="mt-6 space-y-12">
+                
+                {{-- 1. PRODUCTS (Visible to All) --}}
                 @include('profile.partials._tab_products')
+
+                @if (!$user->isUpcycler())
+                    @include('profile.partials._tab_donations')
+                @endif
+
+                {{-- 3. REVIEWS (Visible to All) --}}
                 @include('profile.partials._tab_reviews')
 
+                {{-- 4. WORKS (Upcyclers Only) --}}
                 @if ($user->isUpcycler())
                     @include('profile.partials._tab_works')
                 @endif
 
-                {{-- Only show Orders for NON-Upcyclers (even if they own the profile) --}}
+                {{-- 5. ORDERS (Owner & Non-Upcycler Only) --}}
                 @if (Auth::id() === $user->id && !$user->isUpcycler())
                     @include('profile.partials._tab_orders')
                 @endif
@@ -127,8 +136,6 @@
 
                     // 4. Scroll ONLY if requested
                     if (shouldScroll) {
-                        // Scroll to the tabs container instead of the section content
-                        // This ensures the tab buttons remain visible at the top
                         document.getElementById('profile-tabs-container')?.scrollIntoView({
                             behavior: 'smooth',
                             block: 'start'
@@ -136,7 +143,7 @@
                     }
                 }
 
-                // Click handlers (Always scroll when user clicks manually)
+                // Click handlers
                 tabs.products?.addEventListener('click', () => activate('products', true));
                 tabs.reviews?.addEventListener('click', () => activate('reviews', true));
                 tabs.works?.addEventListener('click', () => activate('works', true));
@@ -151,14 +158,15 @@
                 const isUpcycler = @json($user->isUpcycler());
 
                 let activeTab = 'products'; // Default fallback
-                let shouldScrollOnLoad = false; // Default: Don't scroll on normal load
+                let shouldScrollOnLoad = false;
 
                 if (requestedTab && sections[requestedTab]) {
-                    // If coming from Notification (?tab=orders), use that tab AND scroll
+                    // If specifically requested via URL (e.g. notifications)
                     activeTab = requestedTab;
                     shouldScrollOnLoad = true;
                 } else {
-                    // Normal profile visit: use default role tab AND do NOT scroll
+                    // Default Landing Tabs
+                    // If Upcycler, default to Works. Everyone else default to Products.
                     activeTab = isUpcycler ? 'works' : 'products';
                     shouldScrollOnLoad = false;
                 }

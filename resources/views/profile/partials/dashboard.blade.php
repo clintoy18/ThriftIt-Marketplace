@@ -20,13 +20,14 @@
         <p class="text-gray-500 dark:text-gray-400 mt-2">Welcome back! Here's your overview.</p>
     </div>
     <div class="mt-4 sm:mt-0">
-        <a href="{{ route('profile.dashboard.export-pdf') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Export PDF
-        </a>
-    </div>
+    <a href="{{ route('profile.dashboard.export-pdf') }}" 
+       class="inline-flex items-center px-4 py-2 bg-[#EE3124] hover:bg-[#d92b21] text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M7 2c-1.104 0-2 .896-2 2v16c0 1.104.896 2 2 2h10c1.104 0 2-.896 2-2V8l-6-6H7zm4 16H9v-2h2c.552 0 1 .448 1 1s-.448 1-1 1zm5-1c0 .552-.448 1-1 1h-2v-4h2c.552 0 1 .448 1 1v2zm-7-2H7v-4h2c.552 0 1 .448 1 1s-.448 1-1 1h-1v2zm7 0h-1v-2h1v2zM12 9V4l5 5h-5z"/>
+        </svg>
+        Export PDF
+    </a>
+</div>
 </div>
 
 <!-- Desktop Cards -->
