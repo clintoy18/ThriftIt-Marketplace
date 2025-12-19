@@ -40,6 +40,12 @@ class Order extends Model
         );
     }
 
+    // Transaction disclosure relationship
+    public function transactionDisclosure()
+    {
+        return $this->hasOne(TransactionDisclosure::class);
+    }
+
     public function isPending() {
     return $this->status === 'pending';
     }

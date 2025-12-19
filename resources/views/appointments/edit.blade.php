@@ -84,21 +84,44 @@
                     <div class="mb-6 border-t border-gray-200 dark:border-gray-700 pt-6">
                         <x-input-label for="images" :value="__('Reference Photos')" class="mb-2" />
 
-                        {{-- Instructions --}}
-                        <div
-                            class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-4">
-                            <h4
-                                class="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24"
-                                    fill="currentColor">
-                                    <path
-                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-                                </svg>
-                                Photo Guidelines
-                            </h4>
-                            <p class="text-xs text-blue-700 dark:text-blue-300">
-                                Please upload clear reference photos for your appointment.
-                                You can upload up to 8 images (JPG/PNG/WEBP, max 5MB each).
+                        {{-- 1. Existing Images (with Delete option) --}}
+                        @if ($appointment->apptImages && $appointment->apptImages->count() > 0)
+                            <div class="mb-4">
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Current Photos
+                                    (Select checkboxes to delete on save):</p>
+                                <div class="flex gap-3 overflow-x-auto pb-2">
+                                    @foreach ($appointment->apptImages as $img)
+                                        <div class="relative flex-shrink-0">
+                                            <img src="{{ Storage::disk('s3')->url($img->image_path) }}"
+                                                alt="Appointment Image"
+                                                class="h-28 w-28 object-cover rounded-lg border border-gray-300 dark:border-gray-600">
+
+                                            {{-- Delete Checkbox Overlay --}}
+                                            <label
+                                                class="absolute top-0 right-0 bg-white/80 dark:bg-gray-800/80 rounded-bl-lg rounded-tr-lg p-1.5 cursor-pointer shadow-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition"
+                                                title="Select to delete this image">
+                                                <input type="checkbox" name="delete_images[]"
+                                                    value="{{ $img->id }}"
+                                                    class="rounded border-gray-400 text-red-600 shadow-sm focus:ring-red-500 h-5 w-5">
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <x-input-error :messages="$errors->get('delete_images')" class="mt-2" />
+                            </div>
+                        @endif
+
+                        {{-- 2. Add New Images (Multiple) --}}
+                        <div class="mt-4">
+                            <x-input-label for="images" :value="__('Add New Photos (Optional)')" class="mb-2" />
+                            <div class="relative group">
+                                {{-- Changed name to images[] and added multiple attribute --}}
+                                <input id="images" name="images[]" type="file" accept="image/*" multiple
+                                    class="block w-full text-sm text-gray-900 border border-gray-300 rounded-xl cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 p-2 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#B59F84]/10 file:text-[#B59F84] hover:file:bg-[#B59F84]/20">
+                            </div>
+                            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">               
+                                You can select multiple files. These will be added to your existing collection.
+                                (Max 5MB per file, JPG/PNG/WEBP).
                             </p>
                         </div>
 

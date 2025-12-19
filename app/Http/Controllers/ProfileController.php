@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 
 
@@ -242,5 +243,47 @@ class ProfileController extends Controller
         $user->update($dataToUpdate);
 
         return back()->with('status', 'Verification documents uploaded successfully and sent for review.');
+    }
+
+    /**
+     * Export dashboard data as PDF
+     */
+    public function exportDashboardPdf(Request $request)
+    {
+        $user = $request->user();
+
+        // Dashboard statistics
+        $totalListings = $user->products()->where('approval_status', 'approved')->count();
+        $itemsSold = $user->products()->where('status', 'sold')->count();
+        $revenue = $user->products()->where('status', 'sold')->sum('price');
+        $itemsDonated = $user->donations()->where('status', 'donated')->count();
+        $approvedWorks = $user->works()->where('approval_status', 'approved')->count();
+        $completedAppointmentsCount = $user->appointments()->where('appstatus', 'completed')->count();
+        $completedAppointmentsAsUpcyclerCount = $user->appointmentsAsUpcycler()->where('appstatus', 'completed')->count();
+
+        // Recent sold products
+        $soldProducts = $user->products()->where('status', 'sold')->latest()->take(10)->get();
+
+        // Recent donations
+        $donations = $user->donations()->where('status', 'donated')->latest()->take(10)->get();
+
+        $isUpcycler = $user->isUpcycler();
+
+        $data = compact(
+            'user',
+            'totalListings',
+            'itemsSold',
+            'revenue',
+            'itemsDonated',
+            'approvedWorks',
+            'completedAppointmentsCount',
+            'completedAppointmentsAsUpcyclerCount',
+            'soldProducts',
+            'donations',
+            'isUpcycler'
+        );
+
+        $pdf = Pdf::loadView('profile.partials.dashboard-export', $data)->setPaper('a4', 'portrait');
+        return $pdf->download('dashboard-report-' . now()->format('Y-m-d') . '.pdf');
     }
 }
