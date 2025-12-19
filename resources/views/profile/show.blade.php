@@ -14,6 +14,11 @@
             @endif
 
 
+                        {{-- PROTECTION: Only include the creation modal for the owner --}}
+            @if (Auth::id() === $user->id)
+                @include('profile.partials._featured_buyers_modal')
+            @endif
+
             {{-- ===== FEATURED BUYERS (Influencers & Celebrities) ===== --}}
             @include('profile.partials._featured_buyers')
 
@@ -43,6 +48,13 @@
                     @include('profile.partials._tab_orders')
                 @endif
 
+                {{-- Buyers (including this seller if they also purchase) can see order statuses --}}
+                @if (Auth::check())
+                    @include('profile.partials._tab_orders_status')
+                @endif
+
+                {{-- Donations should be visible to all viewers (actions gated inside) --}}
+                @include('profile.partials._tab_donations')
             </div>
 
             {{-- ===== MODALS ===== --}}
@@ -93,6 +105,7 @@
                     reviews: document.getElementById('tab-reviews'),
                     works: document.getElementById('tab-works'),
                     orders: document.getElementById('tab-orders'),
+                    ordersStatus: document.getElementById('tab-orders-status'),
                     donations: document.getElementById('tab-donations')
                 };
 
@@ -101,6 +114,7 @@
                     reviews: document.getElementById('reviews'),
                     works: document.getElementById('works'),
                     orders: document.getElementById('orders'),
+                    ordersStatus: document.getElementById('orders-status'),
                     donations: document.getElementById('donations')
                 };
 
@@ -139,6 +153,7 @@
                 tabs.reviews?.addEventListener('click', () => activate('reviews', true));
                 tabs.works?.addEventListener('click', () => activate('works', true));
                 tabs.orders?.addEventListener('click', () => activate('orders', true));
+                tabs.ordersStatus?.addEventListener('click', () => activate('ordersStatus', true));
                 tabs.donations?.addEventListener('click', () => activate('donations', true));
 
                 // --- INITIALIZATION LOGIC ---
