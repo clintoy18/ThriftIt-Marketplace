@@ -27,6 +27,12 @@
                 Orders
             </button>
         @endif
+        @if (Auth::check())
+            <button id="tab-orders-status" type="button"
+                class="px-4 py-2 rounded-full text-gray-800 dark:text-gray-100 transition-all hover:bg-gray-200 dark:hover:bg-gray-700 whitespace-nowrap">
+                Orders Status
+            </button>
+        @endif
        
 
     </div>
