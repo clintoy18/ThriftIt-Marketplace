@@ -82,7 +82,7 @@
                                 <ul class="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                                     <li class="flex items-start gap-2"><span
                                             class="text-[#B59F84] mt-0.5">•</span><span><strong>Cover Photo:</strong>
-                                            Main product shot</span></li>
+                                            Main item shot</span></li>
                                     <li class="flex items-start gap-2"><span
                                             class="text-[#B59F84] mt-0.5">•</span><span><strong>Details:</strong> Show
                                             any flaws</span></li>

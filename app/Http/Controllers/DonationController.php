@@ -62,6 +62,8 @@ class DonationController extends Controller
 
         // Attach authenticated user ID
         $validated['user_id'] = Auth::id();
+        $validated['approval_status'] = Auth::user()->is_verified ? 'approved' : 'pending';
+
 
         // Handle images safely (if any)
         $images = $request->hasFile('images') ? $request->file('images') : [];
