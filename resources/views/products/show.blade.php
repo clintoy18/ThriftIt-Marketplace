@@ -429,7 +429,7 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Security Note -->
+                                                {{-- <!-- Security Note -->
                                                 <div class="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-200">
                                                     <div class="flex items-start space-x-3">
                                                         <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"
@@ -447,7 +447,7 @@
                                                             </p>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </div> --}}
 
                                                 <!-- Transaction Disclosure -->
                                                 <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
