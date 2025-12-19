@@ -121,6 +121,15 @@ class ProfileController extends Controller
         // Orders received for this user's products
         $orders = $user->ordersAsSeller()->with(['product', 'buyer'])->get();
 
+        // Orders placed by the authenticated user (as buyer) – across all sellers
+        $buyerOrders = collect();
+        if (Auth::check()) {
+            $buyerOrders = Auth::user()->orders()
+                ->with(['product.images'])
+                ->latest()
+                ->get();
+        }
+
         // Donations created by this user
         $donations = $user->donations()->with(['category', 'donationImages'])->latest()->get();
 
@@ -153,6 +162,7 @@ class ProfileController extends Controller
             'availableProducts' => $availableProducts,
             'soldProducts' => $soldProducts,
             'orders' => $orders,
+            'buyerOrders' => $buyerOrders,
             'donations' => $donations,
             'totalListings' => $totalListings,
             'itemsSold' => $itemsSold,
