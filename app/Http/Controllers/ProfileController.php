@@ -109,11 +109,11 @@ class ProfileController extends Controller
 
 public function show(User $user)
 {
-    // 1. Fetch Featured Buyers with their Items (Eager Loaded)
+    // 1. Fetch Featured Buyers with their Items (Eager Loaded) - Paginated (3 per page)
     $featuredBuyers = \App\Models\FeaturedBuyer::with('items')
         ->where('user_id', $user->id)
         ->latest()
-        ->get();
+        ->paginate(3);
 
     // 2. Available products (approved, not sold)
     $availableProducts = $user->products()
