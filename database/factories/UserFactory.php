@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
@@ -30,7 +29,8 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => bcrypt('password'),
             'remember_token' => Str::random(10),
-            'role' => $this->faker->numberBetween(0, 2)
+            'role' => $this->faker->numberBetween(0, 2),
+            'is_active' => true,
         ];
     }
 
@@ -43,7 +43,7 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
-    
+
     /**
      * Indicate that the user is an admin.
      */
@@ -53,7 +53,7 @@ class UserFactory extends Factory
             'role' => 2,
         ]);
     }
-    
+
     /**
      * Indicate that the user is an upcycler.
      */

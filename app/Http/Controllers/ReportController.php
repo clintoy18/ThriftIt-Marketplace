@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IndexReportsRequest;
+use App\Http\Requests\StoreReportsRequest;
 use App\Models\Report;
 use App\Models\User;
-use App\Http\Requests\StoreReportsRequest;
-use App\Http\Requests\IndexReportsRequest;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
 use App\Services\ReportService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class ReportController extends Controller
 {
@@ -40,7 +40,7 @@ class ReportController extends Controller
     public function create(User $user): View
     {
         $validation = $this->reportService->canUserReport(Auth::id(), $user->id);
-        
+
         if (isset($validation['error'])) {
             abort(403, $validation['error']);
         }
@@ -69,12 +69,7 @@ class ReportController extends Controller
      */
     public function show(Report $report): View
     {
-        $isAdmin = Auth::user()->role === 2;
-        $accessCheck = $this->reportService->canUserAccessReport($report->id, Auth::id(), $isAdmin);
-
-        if (isset($accessCheck['error'])) {
-            abort(403, $accessCheck['error']);
-        }
+        $this->authorize('view', $report);
 
         $report = $this->reportService->getReportWithRelations($report->id);
 
@@ -86,14 +81,14 @@ class ReportController extends Controller
      */
     public function update(Request $request, Report $report)
     {
-        $isAdmin = Auth::user()->role === 2;
-        
+        $this->authorize('update', $report);
+
         $validated = $request->validate([
             'status' => 'required|in:pending,rejected,resolved',
             'admin_notes' => 'nullable|string',
         ]);
 
-        $result = $this->reportService->updateReportWithUserManagement($report->id, $validated, $isAdmin);
+        $result = $this->reportService->updateReportWithUserManagement($report->id, $validated, true);
 
         if (isset($result['error'])) {
             abort(403, $result['error']);
@@ -108,12 +103,7 @@ class ReportController extends Controller
      */
     public function destroy(Report $report): RedirectResponse
     {
-        $isAdmin = Auth::user()->role === 2;
-        $accessCheck = $this->reportService->canUserAccessReport($report->id, Auth::id(), $isAdmin);
-
-        if (isset($accessCheck['error'])) {
-            abort(403, $accessCheck['error']);
-        }
+        $this->authorize('delete', $report);
 
         $this->reportService->deleteReport($report->id);
 
@@ -121,4 +111,4 @@ class ReportController extends Controller
             ->route('reports.index')
             ->with('success', 'Report deleted successfully.');
     }
-} 
+}

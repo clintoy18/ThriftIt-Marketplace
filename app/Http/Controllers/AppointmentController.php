@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentRequest;
 use App\Models\Barangay;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Services\AppointmentService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AppointmentController extends Controller
 {
@@ -67,13 +67,18 @@ class AppointmentController extends Controller
     public function show($appointmentid)
     {
         $appointment = $this->appointmentService->getAppointmentById($appointmentid);
+        $this->authorize('view', $appointment);
+
         return view('appointments.show', compact('appointment'));
     }
 
     public function edit($appointmentid)
     {
         $appointment = $this->appointmentService->getAppointmentById($appointmentid);
+        $this->authorize('update', $appointment);
+
         $upcyclers = User::where('role', 1)->get();
+
         return view('appointments.edit', compact('appointment', 'upcyclers'));
     }
 
@@ -83,6 +88,7 @@ class AppointmentController extends Controller
     public function update(UpdateAppointmentRequest $request, $appointmentid)
     {
         $appointment = $this->appointmentService->getAppointmentById($appointmentid);
+        $this->authorize('update', $appointment);
 
         // Retrieve validated data
         $validated = $request->validated();
@@ -100,6 +106,8 @@ class AppointmentController extends Controller
     public function destroy($appointmentid)
     {
         $appointment = $this->appointmentService->getAppointmentById($appointmentid);
+        $this->authorize('delete', $appointment);
+
         $this->appointmentService->deleteAppointment($appointment);
 
         return redirect()->route('appointments.myAppointments')->with('success', 'Appointment deleted successfully!');
@@ -108,12 +116,15 @@ class AppointmentController extends Controller
     public function myAppointments()
     {
         $appointments = $this->appointmentService->getAppointmentsByUser(Auth::id());
+
         return view('appointments.myAppointments', compact('appointments'));
     }
 
     public function cancel($appointmentid)
     {
         $appointment = $this->appointmentService->getAppointmentById($appointmentid);
+        $this->authorize('cancel', $appointment);
+
         $result = $this->appointmentService->cancelAppointment($appointment);
 
         if (isset($result['error'])) {
@@ -127,7 +138,7 @@ class AppointmentController extends Controller
     {
         $request->validate([
             'date' => 'required|date',
-            'upcycler_id' => 'required|exists:users,id'
+            'upcycler_id' => 'required|exists:users,id',
         ]);
 
         $bookedSlots = \App\Models\Appointment::where('upcycler_id', $request->upcycler_id)

@@ -4,26 +4,26 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
-use App\Models\Product;
-use App\Models\Categories;
-use App\Models\Order;
-use Illuminate\Http\Request;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use App\Services\ProductService;
-use App\Services\CategoriesService;
-use App\Models\Segment;
 use App\Models\Barangay;
 use App\Models\Image;
-use Illuminate\Support\Arr;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\Segment;
+use App\Services\CategoriesService;
+use App\Services\ProductService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 
 class ProductController extends Controller
 {
-    protected $productService, $categoryService;
+    protected $productService;
+
+    protected $categoryService;
 
     public function __construct(ProductService $productService, CategoriesService $categoryService)
     {
@@ -63,7 +63,7 @@ class ProductController extends Controller
 
             // Remove these paths from our PHP array so they don't get saved back to session
             $currentSessionImages = array_filter($currentSessionImages, function ($path) use ($removedPaths) {
-                return !in_array($path, $removedPaths);
+                return ! in_array($path, $removedPaths);
             });
         }
 
@@ -97,7 +97,7 @@ class ProductController extends Controller
     public function qrStep(): View
     {
         return view('products.qr.qr-step', [
-            'currentStep' => 2
+            'currentStep' => 2,
         ]);
     }
 
@@ -137,10 +137,10 @@ class ProductController extends Controller
     public function finalStep(): View
     {
         return view('products.qr.qr-final-step', [
-            'step1'       => session('product_step1'),
-            'images'      => session('product_images'),
-            'qr'          => session('product_qr'),
-            'currentStep' => 3
+            'step1' => session('product_step1'),
+            'images' => session('product_images'),
+            'qr' => session('product_qr'),
+            'currentStep' => 3,
         ]);
     }
 
@@ -149,11 +149,11 @@ class ProductController extends Controller
      */
     public function finalize()
     {
-        $step1  = session('product_step1');
+        $step1 = session('product_step1');
         $images = session('product_images', []);
-        $qr     = session('product_qr');
+        $qr = session('product_qr');
 
-        if (!$step1) {
+        if (! $step1) {
             return redirect()->route('products.create')
                 ->withErrors('Session expired. Please start again.');
         }
@@ -173,7 +173,7 @@ class ProductController extends Controller
             foreach ($images as $tempPath) {
                 if (Storage::disk('s3')->exists($tempPath)) {
                     $fileName = basename($tempPath);
-                    $finalPath = 'products/' . $fileName;
+                    $finalPath = 'products/'.$fileName;
 
                     Storage::disk('s3')->move($tempPath, $finalPath);
                     Storage::disk('s3')->setVisibility($finalPath, 'public');
@@ -189,7 +189,8 @@ class ProductController extends Controller
                 ->with('success', 'Item published!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors('Error: ' . $e->getMessage());
+
+            return back()->withErrors('Error: '.$e->getMessage());
         }
     }
 
@@ -198,14 +199,14 @@ class ProductController extends Controller
         $allProducts = $this->productService->getProductsByUser(Auth::id());
         // 2. Filter the collection into groups
         $approved = $allProducts->where('approval_status', 'approved');
-        $pending  = $allProducts->where('approval_status', 'pending');
+        $pending = $allProducts->where('approval_status', 'pending');
         $rejected = $allProducts->where('approval_status', 'rejected');
 
         // 3. Pass the separated lists to the view
         return view('products.index', [
             'approved' => $approved,
-            'pending'  => $pending,
-            'rejected' => $rejected
+            'pending' => $pending,
+            'rejected' => $rejected,
         ]);
     }
 
@@ -225,11 +226,7 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
-        // 1. SECURITY CHECK: Redirect if user is not the owner
-        if (Auth::id() !== $product->user_id) {
-            return redirect()->route('products.index')
-                ->with('error', 'You are not authorized to edit this item.');
-        }
+        $this->authorize('update', $product);
 
         $categories = $this->categoryService->getAllCategories();
         $segments = Segment::all();
@@ -240,11 +237,7 @@ class ProductController extends Controller
 
     public function update(UpdateProductRequest $request, Product $product)
     {
-        // 1. SECURITY CHECK: Redirect if user is not the owner
-        if (Auth::id() !== $product->user_id) {
-            return redirect()->route('products.index')
-                ->with('error', 'You are not authorized to update this item.');
-        }
+        $this->authorize('update', $product);
 
         // 2. Validate request
         $validated = $request->validated();
@@ -280,7 +273,7 @@ class ProductController extends Controller
         // 4. Prepare images array for service
         $images = [
             'main' => $request->file('image'),       // Main product image (if you have one)
-            'gallery' => $request->file('images', []) // Gallery images
+            'gallery' => $request->file('images', []), // Gallery images
         ];
 
         // 5. Call service to handle update including S3 uploads
@@ -288,13 +281,13 @@ class ProductController extends Controller
 
         // 6. Handle deletion of gallery images (User clicked 'X')
         $deleteIds = collect($request->input('deleted_images', []))
-            ->map(fn($id) => (int)$id)
+            ->map(fn ($id) => (int) $id)
             ->filter()
             ->unique()
             ->values()
             ->all();
 
-        if (!empty($deleteIds)) {
+        if (! empty($deleteIds)) {
             $imagesToDelete = $product->images()->whereIn('id', $deleteIds)->get(['id', 'image']);
             foreach ($imagesToDelete as $img) {
                 if ($img->image && Storage::disk('s3')->exists($img->image)) {
@@ -336,7 +329,7 @@ class ProductController extends Controller
                 $flatReplies->push($child);
                 $stack[] = $child;
             }
-            while (!empty($stack)) {
+            while (! empty($stack)) {
                 $node = array_pop($stack);
                 foreach ($byParent->get($node->id, collect()) as $child) {
                     $flatReplies->push($child);
@@ -359,29 +352,22 @@ class ProductController extends Controller
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache')
             ->header('Expires', '0')
-            ->header('Last-Modified', gmdate('D, d M Y H:i:s') . ' GMT')
+            ->header('Last-Modified', gmdate('D, d M Y H:i:s').' GMT')
             ->header('ETag', md5(serialize($product->comments)));
     }
 
     public function destroy(Product $product): RedirectResponse
     {
-        // 1. SECURITY CHECK: Redirect if user is not the owner
-        if (Auth::id() !== $product->user_id) {
-            return redirect()->route('products.index')
-                ->with('error', 'You are not authorized to delete this item.');
-        }
+        $this->authorize('delete', $product);
 
         $this->productService->deleteProduct($product);
+
         return redirect()->route('products.index')->with('success', 'Item deleted successfully!');
     }
 
     public function markAsSold(Product $product): RedirectResponse
     {
-        // 1. SECURITY CHECK: Redirect if user is not the owner
-        if (!Auth::check() || Auth::id() !== $product->user_id) {
-            return redirect()->route('products.show', $product)
-                ->with('error', 'You are not authorized to mark this item as sold.');
-        }
+        $this->authorize('markAsSold', $product);
 
         $product->update(['status' => 'sold']);
 

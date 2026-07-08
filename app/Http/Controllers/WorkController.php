@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\WorkService;
 use App\Http\Requests\StoreWorkRequest;
+use App\Services\WorkService;
 use Illuminate\Support\Facades\Auth;
 
 class WorkController extends Controller
@@ -19,6 +19,7 @@ class WorkController extends Controller
     public function index()
     {
         $works = $this->workService->getApprovedWorks(); // fetch approved works
+
         return view('works.index', compact('works'));
     }
 
@@ -36,7 +37,7 @@ class WorkController extends Controller
 
         $this->workService->createWork(array_merge($data, [
             'user_id' => Auth::id(),
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]), $images);
 
         return redirect()->route('works.index')
@@ -47,14 +48,18 @@ class WorkController extends Controller
     public function show($id)
     {
         $work = $this->workService->getWorkWithRelations($id);
+        $this->authorize('view', $work);
+
         $moreWorks = $this->workService->getMoreWorksByUser($work->user_id, $work->id);
-        return view('works.show', compact('work','moreWorks'));
+
+        return view('works.show', compact('work', 'moreWorks'));
     }
 
     // Show all works by a specific upcycler
     public function byUpcycler($userId)
     {
         $works = $this->workService->getWorksByUser($userId);
+
         return view('works.by-upcycler', compact('works'));
     }
 }

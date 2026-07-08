@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\DonationService;
+use App\Http\Requests\StoreDonationRequest;
+use App\Http\Requests\SubmitProofAction as SubmitProofRequest;
+use App\Http\Requests\UpdateDonationRequest;
+use App\Models\Barangay;
 use App\Models\Categories;
+use App\Models\Comment;
+use App\Models\Donation;
+use App\Models\DonationImage;
+use App\Services\DonationService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\View\View;
-use App\Http\Requests\StoreDonationRequest;
-use App\Http\Requests\UpdateDonationRequest;
-use App\Http\Requests\SubmitProofAction as SubmitProofRequest;
 use Illuminate\Support\Facades\Storage;
-use App\Models\Donation;
-use App\Models\Comment;
-use App\Models\Barangay;
-use App\Models\DonationImage;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class DonationController extends Controller
 {
@@ -33,14 +33,14 @@ class DonationController extends Controller
 
         // 2. Filter the collection into groups
         $approved = $allDonations->where('approval_status', 'approved');
-        $pending  = $allDonations->where('approval_status', 'pending');
+        $pending = $allDonations->where('approval_status', 'pending');
         $rejected = $allDonations->where('approval_status', 'rejected');
 
         // 3. Pass separated lists to the view
         return view('donations.index', [
             'approved' => $approved,
-            'pending'  => $pending,
-            'rejected' => $rejected
+            'pending' => $pending,
+            'rejected' => $rejected,
         ]);
     }
 
@@ -63,7 +63,6 @@ class DonationController extends Controller
         // Attach authenticated user ID
         $validated['user_id'] = Auth::id();
         $validated['approval_status'] = Auth::user()->is_verified ? 'approved' : 'pending';
-
 
         // Handle images safely (if any)
         $images = $request->hasFile('images') ? $request->file('images') : [];
@@ -101,7 +100,7 @@ class DonationController extends Controller
                 $flatReplies->push($child);
                 $stack[] = $child;
             }
-            while (!empty($stack)) {
+            while (! empty($stack)) {
                 $node = array_pop($stack);
                 foreach ($byParent->get($node->id, collect()) as $child) {
                     $flatReplies->push($child);
@@ -120,7 +119,7 @@ class DonationController extends Controller
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache')
             ->header('Expires', '0')
-            ->header('Last-Modified', gmdate('D, d M Y H:i:s') . ' GMT')
+            ->header('Last-Modified', gmdate('D, d M Y H:i:s').' GMT')
             ->header('ETag', md5(serialize($donation->comments)));
     }
 
@@ -130,12 +129,7 @@ class DonationController extends Controller
     public function edit(string $id)
     {
         $donation = $this->donationService->getDonationById($id);
-
-        // 1. SECURITY CHECK: Redirect if user is not the owner
-        if (Auth::id() !== $donation->user_id) {
-            return redirect()->route('donations.index')
-                ->with('error', 'You are not authorized to edit this donation.');
-        }
+        $this->authorize('update', $donation);
 
         $categories = Categories::all();
 
@@ -147,11 +141,7 @@ class DonationController extends Controller
      */
     public function update(UpdateDonationRequest $request, Donation $donation)
     {
-        // 1. SECURITY CHECK: Redirect if user is not the owner
-        if (Auth::id() !== $donation->user_id) {
-            return redirect()->route('donations.index')
-                ->with('error', 'You are not authorized to update this donation.');
-        }
+        $this->authorize('update', $donation);
 
         // 2️⃣ Validate request
         $validated = $request->validated();
@@ -166,7 +156,7 @@ class DonationController extends Controller
         // 3️⃣ Prepare images array for service
         $images = [
             'main' => $request->file('image'),       // Main image (if applicable)
-            'gallery' => $request->file('images', []) // Gallery images
+            'gallery' => $request->file('images', []), // Gallery images
         ];
 
         // 4️⃣ Call service to handle update including S3 uploads
@@ -174,13 +164,13 @@ class DonationController extends Controller
 
         // 5️⃣ Handle deletion of gallery images if any
         $deleteIds = collect($request->input('deletedImages', []))
-            ->map(fn($id) => (int)$id)
+            ->map(fn ($id) => (int) $id)
             ->filter()
             ->unique()
             ->values()
             ->all();
 
-        if (!empty($deleteIds)) {
+        if (! empty($deleteIds)) {
             $imagesToDelete = $donation->donationImages()->whereIn('id', $deleteIds)->get(['id', 'image']);
             foreach ($imagesToDelete as $img) {
                 if ($img->image && Storage::disk('s3')->exists($img->image)) {
@@ -205,14 +195,10 @@ class DonationController extends Controller
     public function destroy(string $id)
     {
         $donation = $this->donationService->getDonationById($id);
-
-        // 1. SECURITY CHECK: Redirect if user is not the owner
-        if (Auth::id() !== $donation->user_id) {
-            return redirect()->route('donations.index')
-                ->with('error', 'You are not authorized to delete this donation.');
-        }
+        $this->authorize('delete', $donation);
 
         $donation->delete();
+
         return redirect()->route('donations.index')->with('success', 'Donation deleted successfully!');
     }
 
@@ -251,11 +237,7 @@ class DonationController extends Controller
 
     public function markAsDonated(SubmitProofRequest $request, Donation $donation): RedirectResponse
     {
-        // 1. SECURITY CHECK
-        if (Auth::id() !== $donation->user_id) {
-            return redirect()->route('donations.index')
-                ->with('error', 'You are not authorized to edit this donation.');
-        }
+        $this->authorize('markAsDonated', $donation);
 
         // Pass the proof file to the service (not stored here)
         if ($donation->status === 'donated') {
@@ -265,8 +247,8 @@ class DonationController extends Controller
 
         $this->donationService->updateDonation(
             $donation,
-            ['verification_status' => 'pending',],
-            ['proof' => $request->file('proof'),]
+            ['verification_status' => 'pending'],
+            ['proof' => $request->file('proof')]
         );
 
         return redirect()

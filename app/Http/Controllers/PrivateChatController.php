@@ -29,6 +29,8 @@ class PrivateChatController extends Controller
 
     public function show(User $user)
     {
+        $this->authorize('message', [Message::class, $user]);
+
         $chatData = $this->messageService->getChatData(Auth::id(), $user->id);
 
         if (isset($chatData['error'])) {
@@ -46,6 +48,8 @@ class PrivateChatController extends Controller
 
     public function send(Request $request, User $user)
     {
+        $this->authorize('message', [Message::class, $user]);
+
         $request->validate([
             'message' => 'nullable|string|max:1000',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240', // 10MB max

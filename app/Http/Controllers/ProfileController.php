@@ -4,22 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Barangay;
+use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\View\View;
-use App\Models\User;
 use Illuminate\Support\Facades\Storage;
-use Barryvdh\DomPDF\Facade\Pdf;
-
-
+use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-
-
-
     /**
      * Display the user's profile form.
      */
@@ -51,6 +46,7 @@ class ProfileController extends Controller
     public function edit1(Request $request): View
     {
         $user = $request->user();
+
         return view('profile.edit1', compact('user'));
     }
 
@@ -60,6 +56,7 @@ class ProfileController extends Controller
     public function edit2(Request $request): View
     {
         $user = $request->user();
+
         return view('profile.edit2', compact('user'));
     }
 
@@ -69,6 +66,7 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
+        $this->authorize('update', $user);
 
         // Validate all form inputs
         $validated = $request->validated();
@@ -104,84 +102,83 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'Profile updated successfully!');
     }
 
+    public function show(User $user)
+    {
+        $this->authorize('view', $user);
 
-
-
-public function show(User $user)
-{
-    // 1. Fetch Featured Buyers with their Items (Eager Loaded) - Paginated (3 per page)
-    $featuredBuyers = \App\Models\FeaturedBuyer::with('items')
-        ->where('user_id', $user->id)
-        ->latest()
-        ->paginate(3);
-
-    // 2. Available products (approved, not sold)
-    $availableProducts = $user->products()
-        ->where('approval_status', 'approved')
-        ->where('status', '!=', 'sold')
-        ->paginate(8);
-
-    // 3. Sold products
-    $soldProducts = $user->products()->where('status', 'sold')->paginate(8);
-
-    // 4. Orders received for this user's products
-    $orders = $user->ordersAsSeller()->with(['product', 'buyer'])->get();
-
-    // 5. Orders placed by the authenticated user (as buyer)
-    $buyerOrders = collect();
-    if (Auth::check()) {
-        $buyerOrders = Auth::user()->orders()
-            ->with(['product.images'])
+        // 1. Fetch Featured Buyers with their Items (Eager Loaded) - Paginated (3 per page)
+        $featuredBuyers = \App\Models\FeaturedBuyer::with('items')
+            ->where('user_id', $user->id)
             ->latest()
+            ->paginate(3);
+
+        // 2. Available products (approved, not sold)
+        $availableProducts = $user->products()
+            ->where('approval_status', 'approved')
+            ->where('status', '!=', 'sold')
+            ->paginate(8);
+
+        // 3. Sold products
+        $soldProducts = $user->products()->where('status', 'sold')->paginate(8);
+
+        // 4. Orders received for this user's products
+        $orders = $user->ordersAsSeller()->with(['product', 'buyer'])->get();
+
+        // 5. Orders placed by the authenticated user (as buyer)
+        $buyerOrders = collect();
+        if (Auth::check()) {
+            $buyerOrders = Auth::user()->orders()
+                ->with(['product.images'])
+                ->latest()
+                ->get();
+        }
+
+        // 6. Donations created by this user
+        $donations = $user->donations()->with(['category', 'donationImages'])->latest()->get();
+
+        // 7. Works (approved only)
+        $works = $user->works()->where('approval_status', 'approved')->get();
+
+        // 8. Completed appointments
+        $completedAppointments = $user->appointments()
+            ->where('appstatus', 'completed')
+            ->with(['upcycler'])
             ->get();
+
+        $completedAppointmentsAsUpcycler = $user->appointmentsAsUpcycler()
+            ->where('appstatus', 'completed')
+            ->with(['upcycler'])
+            ->get();
+
+        // 9. Dashboard statistics
+        $totalListings = $user->products()->where('approval_status', 'approved')->count();
+        $itemsSold = $user->products()->where('status', 'sold')->count();
+        $revenue = $user->products()->where('status', 'sold')->sum('price');
+        $itemsDonated = $user->donations()->where('status', 'donated')->count();
+        $approvedWorks = $user->works()->where('approval_status', 'approved')->count();
+        $completedAppointmentsCount = $completedAppointments->count();
+        $completedAppointmentsAsUpcyclerCount = $completedAppointmentsAsUpcycler->count();
+
+        return view('profile.show', [
+            'user' => $user,
+            'featuredBuyers' => $featuredBuyers, // <-- Added this
+            'availableProducts' => $availableProducts,
+            'soldProducts' => $soldProducts,
+            'orders' => $orders,
+            'buyerOrders' => $buyerOrders,
+            'donations' => $donations,
+            'totalListings' => $totalListings,
+            'itemsSold' => $itemsSold,
+            'revenue' => $revenue,
+            'itemsDonated' => $itemsDonated,
+            'works' => $works,
+            'approvedWorks' => $approvedWorks,
+            'completedAppointments' => $completedAppointments,
+            'completedAppointmentsCount' => $completedAppointmentsCount,
+            'completedAppointmentsAsUpcycler' => $completedAppointmentsAsUpcycler,
+            'completedAppointmentsAsUpcyclerCount' => $completedAppointmentsAsUpcyclerCount,
+        ]);
     }
-
-    // 6. Donations created by this user
-    $donations = $user->donations()->with(['category', 'donationImages'])->latest()->get();
-
-    // 7. Works (approved only)
-    $works = $user->works()->where('approval_status', 'approved')->get();
-
-    // 8. Completed appointments
-    $completedAppointments = $user->appointments()
-        ->where('appstatus', 'completed')
-        ->with(['upcycler'])
-        ->get();
-
-    $completedAppointmentsAsUpcycler = $user->appointmentsAsUpcycler()
-        ->where('appstatus', 'completed')
-        ->with(['upcycler'])
-        ->get();
-
-    // 9. Dashboard statistics
-    $totalListings = $user->products()->where('approval_status', 'approved')->count();
-    $itemsSold = $user->products()->where('status', 'sold')->count();
-    $revenue = $user->products()->where('status', 'sold')->sum('price');
-    $itemsDonated = $user->donations()->where('status', 'donated')->count();
-    $approvedWorks = $user->works()->where('approval_status', 'approved')->count();
-    $completedAppointmentsCount = $completedAppointments->count();
-    $completedAppointmentsAsUpcyclerCount = $completedAppointmentsAsUpcycler->count();
-
-    return view('profile.show', [
-        'user' => $user,
-        'featuredBuyers' => $featuredBuyers, // <-- Added this
-        'availableProducts' => $availableProducts,
-        'soldProducts' => $soldProducts,
-        'orders' => $orders,
-        'buyerOrders' => $buyerOrders,
-        'donations' => $donations,
-        'totalListings' => $totalListings,
-        'itemsSold' => $itemsSold,
-        'revenue' => $revenue,
-        'itemsDonated' => $itemsDonated,
-        'works' => $works,
-        'approvedWorks' => $approvedWorks,
-        'completedAppointments' => $completedAppointments,
-        'completedAppointmentsCount' => $completedAppointmentsCount,
-        'completedAppointmentsAsUpcycler' => $completedAppointmentsAsUpcycler,
-        'completedAppointmentsAsUpcyclerCount' => $completedAppointmentsAsUpcyclerCount,
-    ]);
-}
 
     /**
      * Delete the user's account.
@@ -193,6 +190,8 @@ public function show(User $user)
         ]);
 
         $user = $request->user();
+        $this->authorize('delete', $user);
+
         Auth::logout();
         $user->delete();
         $request->session()->invalidate();
@@ -204,6 +203,7 @@ public function show(User $user)
     public function uploadVerificationDocument(Request $request)
     {
         $user = $request->user();
+        $this->authorize('uploadVerificationDocument', $user);
 
         // Check if profile information is complete
         $missingFields = [];
@@ -220,14 +220,14 @@ public function show(User $user)
             $missingFields[] = 'Barangay';
         }
 
-        if (!empty($missingFields)) {
+        if (! empty($missingFields)) {
             return back()->withErrors([
-                'profile_incomplete' => 'Please complete your profile information before submitting verification documents. Missing: ' . implode(', ', $missingFields)
+                'profile_incomplete' => 'Please complete your profile information before submitting verification documents. Missing: '.implode(', ', $missingFields),
             ])->withInput();
         }
 
         $request->validate([
-            'verification_document'      => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'verification_document' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'verification_document_back' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'terms' => 'required|accepted',
         ], [
@@ -267,6 +267,7 @@ public function show(User $user)
     public function exportDashboardPdf(Request $request)
     {
         $user = $request->user();
+        $this->authorize('exportDashboard', $user);
 
         // Dashboard statistics
         $totalListings = $user->products()->where('approval_status', 'approved')->count();
@@ -300,6 +301,7 @@ public function show(User $user)
         );
 
         $pdf = Pdf::loadView('profile.partials.dashboard-export', $data)->setPaper('a4', 'portrait');
-        return $pdf->download('dashboard-report-' . now()->format('Y-m-d') . '.pdf');
+
+        return $pdf->download('dashboard-report-'.now()->format('Y-m-d').'.pdf');
     }
 }
