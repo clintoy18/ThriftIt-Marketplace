@@ -2,10 +2,9 @@
 
 namespace App\Services;
 
-use App\Repositories\ProductRepository;
 use App\Models\Product;
 use App\Models\Segment;
-use Illuminate\Support\Facades\Storage;
+use App\Repositories\ProductRepository;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
@@ -13,8 +12,10 @@ class ProductService
 {
     protected $productRepository;
 
-    public function __construct(ProductRepository $productRepository)
-    {
+    public function __construct(
+        ProductRepository $productRepository,
+        private readonly FileStorageService $files
+    ) {
         $this->productRepository = $productRepository;
     }
 
@@ -44,27 +45,15 @@ class ProductService
         $product = $this->productRepository->create($data);
 
         // 2️⃣ Handle uploaded images (store in S3)
-        if ($images && count($images) > 0) {
-            foreach ($images as $image) {
-                if ($image instanceof \Illuminate\Http\UploadedFile) {
-
-                    // Store image in S3 under 'products_images' folder
-                    $path = $image->store('products_images', [
-                        'disk' => 's3',
-                        'visibility' => 'public',
-                    ]);
-
-                    // Save record in product_images table
-                    $product->images()->create([
-                        'image' => $path, // store the S3 key/path
-                    ]);
-                }
-            }
+        foreach ($this->files->uploadPublicMany($images, 'products_images') as $path) {
+            // Save record in product_images table
+            $product->images()->create([
+                'image' => $path, // store the S3 key/path
+            ]);
         }
 
         return $product;
     }
-
 
     public function updateProduct(Product $product, array $data, ?array $images = null, ?array $deleteGalleryIds = null)
     {
@@ -72,33 +61,23 @@ class ProductService
 
             // 1️⃣ Handle Main Image (Single Column 'image')
             // Only run this if you have a specific file input named 'image' for a cover photo
-            if (!empty($images['main']) && $images['main'] instanceof UploadedFile) {
-                // Delete old main image from S3
-                if ($product->image && Storage::disk('s3')->exists($product->image)) {
-                    Storage::disk('s3')->delete($product->image);
-                }
-
-                // Store new main image directly to S3 (Public)
-                $data['image'] = $images['main']->storePublicly('products', 's3');
+            if (! empty($images['main']) && $images['main'] instanceof UploadedFile) {
+                $data['image'] = $this->files->replacePublic($product->image, $images['main'], 'products');
             }
 
             // 2️⃣ Handle Deletion of Gallery Images
-            if (!empty($deleteGalleryIds)) {
+            if (! empty($deleteGalleryIds)) {
                 // Find the image records
                 $imagesToDelete = $product->images()->whereIn('id', $deleteGalleryIds)->get();
 
-                foreach ($imagesToDelete as $img) {
-                    // Delete actual file from S3
-                    if ($img->image && Storage::disk('s3')->exists($img->image)) {
-                        Storage::disk('s3')->delete($img->image);
-                    }
-                }
+                $this->files->deleteManyIfExists($imagesToDelete->pluck('image'));
+
                 // Delete database records
                 $product->images()->whereIn('id', $deleteGalleryIds)->delete();
             }
 
             // 3️⃣ Handle New Gallery Images
-            if (!empty($images['gallery'])) {
+            if (! empty($images['gallery'])) {
                 // Calculate remaining slots (Max 8)
                 $currentCount = $product->images()->count();
                 $remainingSlots = max(0, 8 - $currentCount);
@@ -106,14 +85,9 @@ class ProductService
                 // Slice the array to prevent over-uploading
                 $filesToUpload = array_slice($images['gallery'], 0, $remainingSlots);
 
-                foreach ($filesToUpload as $img) {
-                    if ($img instanceof UploadedFile) {
-                        // Upload to S3 (Public)
-                        $path = $img->storePublicly('products', 's3');
-
-                        // Create DB Record
-                        $product->images()->create(['image' => $path]);
-                    }
+                foreach ($this->files->uploadPublicMany($filesToUpload, 'products') as $path) {
+                    // Create DB Record
+                    $product->images()->create(['image' => $path]);
                 }
             }
 
@@ -125,10 +99,14 @@ class ProductService
         });
     }
 
-
     public function deleteProduct(Product $product)
     {
-        // Add business logic here if needed
+        $product->loadMissing('images');
+
+        $this->files->deleteIfExists($product->image);
+        $this->files->deleteIfExists($product->qr_code);
+        $this->files->deleteManyIfExists($product->images->pluck('image'));
+
         return $this->productRepository->delete($product);
     }
 

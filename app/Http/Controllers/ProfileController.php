@@ -5,16 +5,20 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Barangay;
 use App\Models\User;
+use App\Services\FileStorageService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    public function __construct(
+        private readonly FileStorageService $files
+    ) {}
+
     /**
      * Display the user's profile form.
      */
@@ -74,16 +78,11 @@ class ProfileController extends Controller
         // ✅ Handle S3 profile picture upload
         if ($request->hasFile('profile_pic')) {
             // Delete old image if it exists in S3
-            if ($user->profile_pic && Storage::disk('s3')->exists($user->profile_pic)) {
-                Storage::disk('s3')->delete($user->profile_pic);
-            }
-
-            // Store new profile picture in S3
-            $path = $request->file('profile_pic')->store('profile_pictures', 's3');
-
-            Storage::disk('s3')->setVisibility($path, 'public');
-
-            $validated['profile_pic'] = $path;
+            $validated['profile_pic'] = $this->files->replacePublic(
+                $user->profile_pic,
+                $request->file('profile_pic'),
+                'profile_pictures'
+            );
         }
 
         // ✅ Update Barangay if provided
@@ -241,18 +240,20 @@ class ProfileController extends Controller
 
         // 1. Handle Front Image
         if ($request->hasFile('verification_document')) {
-            $pathFront = $request->file('verification_document')->store('verification-documents', 's3');
-            Storage::disk('s3')->setVisibility($pathFront, 'public');
-
-            $dataToUpdate['verification_document'] = $pathFront;
+            $dataToUpdate['verification_document'] = $this->files->replacePublic(
+                $user->verification_document,
+                $request->file('verification_document'),
+                'verification-documents'
+            );
         }
 
         // 2. Handle Back Image
         if ($request->hasFile('verification_document_back')) {
-            $pathBack = $request->file('verification_document_back')->store('verification-documents', 's3');
-            Storage::disk('s3')->setVisibility($pathBack, 'public');
-
-            $dataToUpdate['verification_document_back'] = $pathBack;
+            $dataToUpdate['verification_document_back'] = $this->files->replacePublic(
+                $user->verification_document_back,
+                $request->file('verification_document_back'),
+                'verification-documents'
+            );
         }
 
         // 3. Save changes

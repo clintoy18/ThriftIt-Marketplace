@@ -2,16 +2,17 @@
 
 namespace App\Services;
 
-use App\Repositories\WorkRepository;
 use App\Models\Work;
-use Illuminate\Support\Facades\Storage;
+use App\Repositories\WorkRepository;
 
 class WorkService
 {
     protected $workRepository;
 
-    public function __construct(WorkRepository $workRepository)
-    {
+    public function __construct(
+        WorkRepository $workRepository,
+        private readonly FileStorageService $files
+    ) {
         $this->workRepository = $workRepository;
     }
 
@@ -46,19 +47,10 @@ class WorkService
         $work = $this->workRepository->create($data);
 
         // 2️⃣ Handle uploaded images (S3)
-        if ($images && count($images) > 0) {
-            foreach ($images as $image) {
-                if ($image instanceof \Illuminate\Http\UploadedFile) {
-                    $path = $image->store('works_images', [
-                        'disk' => 's3',
-                        'visibility' => 'public',
-                    ]);
-
-                    $work->images()->create([
-                        'image' => $path,
-                    ]);
-                }
-            }
+        foreach ($this->files->uploadPublicMany($images, 'works_images') as $path) {
+            $work->images()->create([
+                'image' => $path,
+            ]);
         }
 
         return $work;
@@ -68,26 +60,18 @@ class WorkService
     public function updateWork(Work $work, array $data, ?array $images = null, ?array $deleteGalleryIds = null)
     {
         // 1️⃣ Handle deletion of gallery images
-        if (!empty($deleteGalleryIds)) {
+        if (! empty($deleteGalleryIds)) {
             $imagesToDelete = $work->images()->whereIn('id', $deleteGalleryIds)->get();
-            foreach ($imagesToDelete as $img) {
-                if ($img->image && Storage::disk('s3')->exists($img->image)) {
-                    Storage::disk('s3')->delete($img->image);
-                }
-            }
+            $this->files->deleteManyIfExists($imagesToDelete->pluck('image'));
             $work->images()->whereIn('id', $deleteGalleryIds)->delete();
         }
 
         // 2️⃣ Handle new gallery images (limit to 8)
-        if (!empty($images)) {
+        if (! empty($images)) {
             $currentCount = $work->images()->count();
             $remainingSlots = max(0, 8 - $currentCount);
 
-            foreach (array_slice($images, 0, $remainingSlots) as $img) {
-                $path = $img->store('works_images', [
-                    'disk' => 's3',
-                    'visibility' => 'public',
-                ]);
+            foreach ($this->files->uploadPublicMany(array_slice($images, 0, $remainingSlots), 'works_images') as $path) {
                 $work->images()->create(['image' => $path]);
             }
         }
@@ -99,12 +83,8 @@ class WorkService
     // Delete a work
     public function deleteWork(Work $work)
     {
-        // Delete images from S3
-        foreach ($work->images as $img) {
-            if ($img->image && Storage::disk('s3')->exists($img->image)) {
-                Storage::disk('s3')->delete($img->image);
-            }
-        }
+        $work->loadMissing('images');
+        $this->files->deleteManyIfExists($work->images->pluck('image'));
 
         return $this->workRepository->delete($work);
     }

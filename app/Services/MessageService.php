@@ -2,19 +2,21 @@
 
 namespace App\Services;
 
-use App\Repositories\MessageRepository;
+use App\Events\PrivateMessageSent;
 use App\Models\Message;
 use App\Models\Product;
 use App\Models\User;
-use App\Events\PrivateMessageSent;
-use Illuminate\Support\Facades\Storage;
+use App\Repositories\MessageRepository;
+use Illuminate\Http\UploadedFile;
 
 class MessageService
 {
     protected $messageRepository;
 
-    public function __construct(MessageRepository $messageRepository)
-    {
+    public function __construct(
+        MessageRepository $messageRepository,
+        private readonly FileStorageService $files
+    ) {
         $this->messageRepository = $messageRepository;
     }
 
@@ -36,12 +38,14 @@ class MessageService
     public function updateMessage($messageId, array $data)
     {
         $message = $this->messageRepository->find($messageId);
+
         return $this->messageRepository->update($message, $data);
     }
 
     public function deleteMessage($messageId)
     {
         $message = $this->messageRepository->find($messageId);
+
         return $this->messageRepository->delete($message);
     }
 
@@ -61,10 +65,10 @@ class MessageService
 
         // Validate message content - handle null or empty string
         $messageText = $messageContent ? trim($messageContent) : '';
-        $hasMessage = !empty($messageText);
-        $hasImage = $imageFile !== null;
+        $hasMessage = ! empty($messageText);
+        $hasImage = $imageFile instanceof UploadedFile;
 
-        if (!$hasMessage && !$hasImage) {
+        if (! $hasMessage && ! $hasImage) {
             return ['error' => 'Message or image is required.'];
         }
 
@@ -76,18 +80,18 @@ class MessageService
         $imagePath = null;
         if ($hasImage) {
             try {
-                $imagePath = $imageFile->storePublicly('chat_images', 's3');
+                $imagePath = $this->files->uploadPublic($imageFile, 'chat_images');
             } catch (\Exception $e) {
-                return ['error' => 'Failed to upload image: ' . $e->getMessage()];
+                return ['error' => 'Failed to upload image: '.$e->getMessage()];
             }
         }
 
         // Create the message (use empty string for image-only messages since DB doesn't allow null)
         // TODO: Run migration to make message column nullable for proper null handling
         $message = $this->messageRepository->createMessageWithUser(
-            $senderId, 
-            $receiverId, 
-            $hasMessage ? $messageText : '', 
+            $senderId,
+            $receiverId,
+            $hasMessage ? $messageText : '',
             $imagePath
         );
 
@@ -111,14 +115,14 @@ class MessageService
             return null;
         }
 
-        if (!preg_match('/\/products\/(\d+)/', $messageText, $matches)) {
+        if (! preg_match('/\/products\/(\d+)/', $messageText, $matches)) {
             return null;
         }
 
         $productId = (int) $matches[1];
         $product = Product::find($productId);
 
-        if (!$product) {
+        if (! $product) {
             return null;
         }
 
@@ -147,11 +151,11 @@ class MessageService
 
         // Check if receiver exists and is active
         $receiver = User::find($receiverId);
-        if (!$receiver) {
+        if (! $receiver) {
             return ['error' => 'Receiver not found.'];
         }
 
-        if (!$receiver->is_active) {
+        if (! $receiver->is_active) {
             return ['error' => 'Cannot send message to inactive user.'];
         }
 
@@ -182,7 +186,7 @@ class MessageService
         return [
             'success' => true,
             'messages' => $messages,
-            'receiver' => $receiver
+            'receiver' => $receiver,
         ];
     }
 
@@ -190,4 +194,4 @@ class MessageService
     {
         return $this->messageRepository->getUserConversations($userId);
     }
-} 
+}

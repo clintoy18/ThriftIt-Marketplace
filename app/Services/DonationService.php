@@ -2,18 +2,19 @@
 
 namespace App\Services;
 
-use App\Repositories\DonationRepository;
-use Illuminate\Support\Facades\Storage;
-use App\Models\Segment;
 use App\Models\Donation;
+use App\Models\Segment;
+use App\Repositories\DonationRepository;
 use Illuminate\Http\UploadedFile;
 
 class DonationService
 {
     protected $donationRepository;
 
-    public function __construct(DonationRepository $donationRepository)
-    {
+    public function __construct(
+        DonationRepository $donationRepository,
+        private readonly FileStorageService $files
+    ) {
         $this->donationRepository = $donationRepository;
     }
 
@@ -29,26 +30,12 @@ class DonationService
 
     public function createDonation(array $data, ?array $images = null)
     {
-        // 1️⃣ Create donation record first
         $donation = $this->donationRepository->create($data);
 
-        // 2️⃣ Handle uploaded images (store in S3)
-        if ($images && count($images) > 0) {
-            foreach ($images as $image) {
-                if ($image instanceof UploadedFile) {
-
-                    // Store image in S3 under 'donation_images' folder
-                    $path = $image->store('donation_images', [
-                        'disk' => 's3',
-                        'visibility' => 'public',
-                    ]);
-
-                    // Save record in donation_images table
-                    $donation->donationImages()->create([
-                        'image' => $path, // store the S3 key/path
-                    ]);
-                }
-            }
+        foreach ($this->files->uploadPublicMany($images, 'donation_images') as $path) {
+            $donation->donationImages()->create([
+                'image' => $path,
+            ]);
         }
 
         return $donation;
@@ -56,63 +43,41 @@ class DonationService
 
     public function updateDonation(Donation $donation, array $data, ?array $images = null, ?array $deleteGalleryIds = null)
     {
-        // 1️⃣ Handle main image
-        if (!empty($images['main']) && $images['main'] instanceof UploadedFile) {
-            // Delete old main image from S3 if exists
-            if ($donation->image && Storage::disk('s3')->exists($donation->image)) {
-                Storage::disk('s3')->delete($donation->image);
-            }
-
-            // Store new main image in S3
-            $data['image'] = $images['main']->store('donation_images', [
-                'disk' => 's3',
-                'visibility' => 'public',
-            ]);
+        if (! empty($images['main']) && $images['main'] instanceof UploadedFile) {
+            $data['image'] = $this->files->replacePublic($donation->image, $images['main'], 'donation_images');
         }
 
-        // 2️⃣ Handle deletion of gallery images
-        if (!empty($deleteGalleryIds)) {
+        if (! empty($deleteGalleryIds)) {
             $imagesToDelete = $donation->donationImages()->whereIn('id', $deleteGalleryIds)->get();
-            foreach ($imagesToDelete as $img) {
-                if ($img->image && Storage::disk('s3')->exists($img->image)) {
-                    Storage::disk('s3')->delete($img->image);
-                }
-            }
+            $this->files->deleteManyIfExists($imagesToDelete->pluck('image'));
             $donation->donationImages()->whereIn('id', $deleteGalleryIds)->delete();
         }
 
-        // 3️⃣ Handle new gallery images (limit to 8)
-        if (!empty($images['gallery'])) {
+        if (! empty($images['gallery'])) {
             $currentCount = $donation->donationImages()->count();
             $remainingSlots = max(0, 8 - $currentCount);
+            $filesToUpload = array_slice($images['gallery'], 0, $remainingSlots);
 
-            foreach (array_slice($images['gallery'], 0, $remainingSlots) as $img) {
-                $path = $img->store('donations_images', [
-                    'disk' => 's3',
-                    'visibility' => 'public',
-                ]);
+            foreach ($this->files->uploadPublicMany($filesToUpload, 'donations_images') as $path) {
                 $donation->donationImages()->create(['image' => $path]);
             }
         }
-        
-        // 4️⃣ Handle proof image
-        if (!empty($images['proof']) && $images['proof'] instanceof UploadedFile) {
-            if ($donation->proof && Storage::disk('s3')->exists($donation->proof)) {
-                Storage::disk('s3')->delete($donation->proof);
-            }
 
-            $data['proof'] = $images['proof']->store('donation_proofs', [
-                'disk' => 's3',
-                'visibility' => 'public', 
-            ]);
+        if (! empty($images['proof']) && $images['proof'] instanceof UploadedFile) {
+            $data['proof'] = $this->files->replacePublic($donation->proof, $images['proof'], 'donation_proofs');
         }
 
-        // 5️⃣ Update other donation fields
         return $this->donationRepository->update($donation, $data);
     }
 
     public function deleteDonation($donation)
     {
+        $donation->loadMissing('donationImages');
+
+        $this->files->deleteIfExists($donation->image);
+        $this->files->deleteIfExists($donation->proof);
+        $this->files->deleteManyIfExists($donation->donationImages->pluck('image'));
+
         return $this->donationRepository->delete($donation);
     }
 
@@ -126,17 +91,13 @@ class DonationService
         return $this->donationRepository->all();
     }
 
-    // --- UPDATED METHODS WITH PAGINATION NAME SUPPORT ---
-
     public function getDonationsByStatusPaginated(string $status, int $perPage = 10, string $pageName = 'page')
     {
-        // Passes the custom page name to the repository
         return $this->donationRepository->getByStatusPaginated($status, $perPage, $pageName);
     }
 
     public function getDonationsByVerificationStatusPaginated(string $status, int $perPage = 10, string $pageName = 'page')
     {
-        // Passes the custom page name to the repository
         return $this->donationRepository->getByVerificationStatusPaginated($status, $perPage, $pageName);
     }
 

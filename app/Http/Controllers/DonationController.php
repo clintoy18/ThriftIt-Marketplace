@@ -9,12 +9,10 @@ use App\Models\Barangay;
 use App\Models\Categories;
 use App\Models\Comment;
 use App\Models\Donation;
-use App\Models\DonationImage;
 use App\Services\DonationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class DonationController extends Controller
@@ -160,8 +158,6 @@ class DonationController extends Controller
         ];
 
         // 4️⃣ Call service to handle update including S3 uploads
-        $this->donationService->updateDonation($donation, $validated, $images);
-
         // 5️⃣ Handle deletion of gallery images if any
         $deleteIds = collect($request->input('deletedImages', []))
             ->map(fn ($id) => (int) $id)
@@ -170,15 +166,7 @@ class DonationController extends Controller
             ->values()
             ->all();
 
-        if (! empty($deleteIds)) {
-            $imagesToDelete = $donation->donationImages()->whereIn('id', $deleteIds)->get(['id', 'image']);
-            foreach ($imagesToDelete as $img) {
-                if ($img->image && Storage::disk('s3')->exists($img->image)) {
-                    Storage::disk('s3')->delete($img->image);
-                }
-            }
-            DonationImage::where('donation_id', $donation->id)->whereIn('id', $deleteIds)->delete();
-        }
+        $this->donationService->updateDonation($donation, $validated, $images, $deleteIds);
 
         // 6️⃣ Determine redirect message based on previous status
         $message = ($donation->approval_status === 'rejected')
@@ -197,7 +185,7 @@ class DonationController extends Controller
         $donation = $this->donationService->getDonationById($id);
         $this->authorize('delete', $donation);
 
-        $donation->delete();
+        $this->donationService->deleteDonation($donation);
 
         return redirect()->route('donations.index')->with('success', 'Donation deleted successfully!');
     }

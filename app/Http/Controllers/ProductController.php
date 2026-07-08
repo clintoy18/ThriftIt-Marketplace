@@ -5,18 +5,17 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Barangay;
-use App\Models\Image;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Segment;
 use App\Services\CategoriesService;
+use App\Services\FileStorageService;
 use App\Services\ProductService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -25,8 +24,11 @@ class ProductController extends Controller
 
     protected $categoryService;
 
-    public function __construct(ProductService $productService, CategoriesService $categoryService)
-    {
+    public function __construct(
+        ProductService $productService,
+        CategoriesService $categoryService,
+        private readonly FileStorageService $files
+    ) {
         $this->productService = $productService;
         $this->categoryService = $categoryService;
         $this->middleware('subscribed')->only(['create', 'store']);
@@ -53,13 +55,7 @@ class ProductController extends Controller
         // A. DELETE REMOVED IMAGES FROM S3
         if ($request->has('removed_images')) {
             $removedPaths = $request->input('removed_images');
-
-            foreach ($removedPaths as $path) {
-                // Delete from S3 if it exists
-                if (Storage::disk('s3')->exists($path)) {
-                    Storage::disk('s3')->delete($path);
-                }
-            }
+            $this->files->deleteManyIfExists($removedPaths);
 
             // Remove these paths from our PHP array so they don't get saved back to session
             $currentSessionImages = array_filter($currentSessionImages, function ($path) use ($removedPaths) {
@@ -69,11 +65,8 @@ class ProductController extends Controller
 
         // B. Add Newly Uploaded Images
         if ($request->hasFile('images')) {
-            $newImages = [];
-            foreach ($request->file('images') as $img) {
-                // Upload to S3 (Temp Folder) with public visibility
-                $newImages[] = $img->storePublicly('temp_products', 's3');
-            }
+            $newImages = $this->files->uploadPublicMany($request->file('images'), 'temp_products');
+
             // Merge kept old images + new images
             $currentSessionImages = array_merge($currentSessionImages, $newImages);
         }
@@ -108,10 +101,7 @@ class ProductController extends Controller
     {
         if ($request->hasFile('qr_code')) {
             // UPLOAD DIRECTLY TO FINAL FOLDER (Public)
-            $qrPath = $request->file('qr_code')->store('qr_codes', [
-                'disk' => 's3',
-                'visibility' => 'public',
-            ]);
+            $qrPath = $this->files->uploadPublic($request->file('qr_code'), 'qr_codes');
 
             session(['product_qr' => $qrPath]);
         }
@@ -171,13 +161,10 @@ class ProductController extends Controller
 
             // 3. Move IMAGES (Keep this! Images are still in temp)
             foreach ($images as $tempPath) {
-                if (Storage::disk('s3')->exists($tempPath)) {
-                    $fileName = basename($tempPath);
-                    $finalPath = 'products/'.$fileName;
+                $fileName = basename($tempPath);
+                $finalPath = 'products/'.$fileName;
 
-                    Storage::disk('s3')->move($tempPath, $finalPath);
-                    Storage::disk('s3')->setVisibility($finalPath, 'public');
-
+                if ($this->files->movePublicIfExists($tempPath, $finalPath)) {
                     $product->images()->create(['image' => $finalPath]);
                 }
             }
@@ -256,15 +243,7 @@ class ProductController extends Controller
 
         // 3. Handle QR code only for verified users
         if ($request->user()?->is_verified && $request->hasFile('qr_code')) {
-            // Delete old QR from S3 if exists
-            if ($product->qr_code && Storage::disk('s3')->exists($product->qr_code)) {
-                Storage::disk('s3')->delete($product->qr_code);
-            }
-            // Upload new QR
-            $validated['qr_code'] = $request->file('qr_code')->store('qr_codes', [
-                'disk' => 's3',
-                'visibility' => 'public',
-            ]);
+            $validated['qr_code'] = $this->files->replacePublic($product->qr_code, $request->file('qr_code'), 'qr_codes');
         } else {
             // Prevent users from tampering with QR code field if they didn't upload one
             unset($validated['qr_code']);
@@ -276,10 +255,7 @@ class ProductController extends Controller
             'gallery' => $request->file('images', []), // Gallery images
         ];
 
-        // 5. Call service to handle update including S3 uploads
-        $this->productService->updateProduct($product, $validated, $images);
-
-        // 6. Handle deletion of gallery images (User clicked 'X')
+        // 5. Call service to handle update including S3 uploads and gallery deletions
         $deleteIds = collect($request->input('deleted_images', []))
             ->map(fn ($id) => (int) $id)
             ->filter()
@@ -287,15 +263,7 @@ class ProductController extends Controller
             ->values()
             ->all();
 
-        if (! empty($deleteIds)) {
-            $imagesToDelete = $product->images()->whereIn('id', $deleteIds)->get(['id', 'image']);
-            foreach ($imagesToDelete as $img) {
-                if ($img->image && Storage::disk('s3')->exists($img->image)) {
-                    Storage::disk('s3')->delete($img->image);
-                }
-            }
-            Image::where('product_id', $product->id)->whereIn('id', $deleteIds)->delete();
-        }
+        $this->productService->updateProduct($product, $validated, $images, $deleteIds);
 
         // 7. Redirect with appropriate message
         $message = ($product->approval_status === 'rejected')

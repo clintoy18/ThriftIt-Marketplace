@@ -2,29 +2,28 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\WorkStatusNotification;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ApprovalStatusWorkUpdateRequest;
-use App\Models\Work;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
-use App\Services\WorkService;
-use Illuminate\Support\Facades\Mail;
+use App\Http\Requests\UpdateWorkRequest;
 use App\Mail\WorkApprovedMail;
 use App\Mail\WorkRejectedMail;
-use App\Events\WorkStatusNotification;
-use App\Http\Requests\UpdateWorkRequest;
 use App\Models\Notification;
+use App\Models\Work;
+use App\Services\WorkService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\View\View;
 
 class AdminWorkController extends Controller
 {
-
     protected $workService;
+
     public function __construct(WorkService $workService)
     {
         $this->workService = $workService;
     }
+
     public function index(): View
     {
         $approvedWorks = $this->workService->getWorksByStatusPaginated('approved');
@@ -37,9 +36,9 @@ class AdminWorkController extends Controller
     public function show(Work $work): View
     {
         $work->load(['user', 'images']);
+
         return view('admin.works.show', compact('work'));
     }
-
 
     public function update(UpdateWorkRequest $request, Work $work): RedirectResponse
     {
@@ -53,13 +52,13 @@ class AdminWorkController extends Controller
     public function edit(Work $work): View
     {
         $work->load(['user']);
+
         return view('admin.works.edit', compact('work'));
     }
 
-
     public function destroy(Work $work): RedirectResponse
     {
-        $work->delete();
+        $this->workService->deleteWork($work);
 
         return redirect()->route('admin.works.index')
             ->with('success', 'Work deleted successfully.');
@@ -68,12 +67,11 @@ class AdminWorkController extends Controller
     public function approve(Work $work): RedirectResponse
     {
         $this->workService->updateWork($work, ['approval_status' => 'approved']);
-        //email user once work is approved
+        // email user once work is approved
         // Mail::to($work->user->email)->send(new WorkApprovedMail($work));
 
-
         if ($work->user) {
-            $work->user->increment('points', 20); 
+            $work->user->increment('points', 20);
         }
 
         // Save notification in DB
@@ -83,7 +81,7 @@ class AdminWorkController extends Controller
             'data' => [
                 'status' => 'approved',
                 'work_id' => $work->id,
-                'message' => 'Your work has been approved!'
+                'message' => 'Your work has been approved!',
             ],
         ]);
 
@@ -100,7 +98,7 @@ class AdminWorkController extends Controller
 
         $this->workService->updateWork($work, [
             'approval_status' => 'rejected',
-            'admin_notes'     => $admin_notes,
+            'admin_notes' => $admin_notes,
         ]);
 
         // Mail::to($work->user->email)->send(new WorkRejectedMail($work));
@@ -111,7 +109,7 @@ class AdminWorkController extends Controller
             'data' => [
                 'status' => 'rejected',
                 'work_id' => $work->id,
-                'message' => 'Your work has been rejected. Note: ' . $admin_notes
+                'message' => 'Your work has been rejected. Note: '.$admin_notes,
             ],
         ]);
 

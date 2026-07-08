@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\DonationStatusNotification;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ApprovalStatusDonationUpdateRequest;
 use App\Models\Donation;
 use App\Models\Notification;
-use Illuminate\View\View;
+use App\Services\DonationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use App\Services\DonationService;
-use App\Events\DonationStatusNotification;
+use Illuminate\View\View;
 
 class AdminDonationController extends Controller
 {
@@ -27,11 +27,11 @@ class AdminDonationController extends Controller
         $approvedDonations = $this->donationService->getDonationsByStatusPaginated(
             'approved', 10, 'approved_page'
         );
-        
+
         $pendingDonations = $this->donationService->getDonationsByStatusPaginated(
             'pending', 10, 'pending_page'
         );
-        
+
         $rejectedDonations = $this->donationService->getDonationsByStatusPaginated(
             'rejected', 10, 'rejected_page'
         );
@@ -40,11 +40,11 @@ class AdminDonationController extends Controller
         $pendingVerifications = $this->donationService->getDonationsByVerificationStatusPaginated(
             'pending', 10, 'reward_pending_page'
         );
-        
+
         $verifiedDonations = $this->donationService->getDonationsByVerificationStatusPaginated(
             'approved', 10, 'reward_verified_page'
         );
-        
+
         $rejectedProofs = $this->donationService->getDonationsByVerificationStatusPaginated(
             'rejected', 10, 'reward_rejected_page'
         );
@@ -62,6 +62,7 @@ class AdminDonationController extends Controller
     public function show(Donation $donation): View
     {
         $donation->load(['user', 'category', 'comments.user']);
+
         return view('admin.donations.show', compact('donation'));
     }
 
@@ -69,7 +70,7 @@ class AdminDonationController extends Controller
     {
         $validated = $request->validated();
         $oldStatus = $donation->approval_status;
-        
+
         $donation->update($validated);
         $donation->refresh();
 
@@ -99,12 +100,13 @@ class AdminDonationController extends Controller
     public function edit(Donation $donation): View
     {
         $donation->load(['user', 'category']);
+
         return view('admin.donation.edit', compact('donation'));
     }
 
     public function destroy(Donation $donation): RedirectResponse
     {
-        $donation->delete();
+        $this->donationService->deleteDonation($donation);
 
         return redirect()->route('admin.donations.index')
             ->with('success', 'Donation deleted successfully.');
@@ -170,18 +172,18 @@ class AdminDonationController extends Controller
         $admin_notes = $request->input('admin_notes');
 
         $this->donationService->updateDonation($donation, [
-            'verification_status' => 'rejected', 
-            'admin_notes'  => $admin_notes
+            'verification_status' => 'rejected',
+            'admin_notes' => $admin_notes,
         ]);
 
         // Send Rejection Notification
         Notification::create([
             'user_id' => $donation->user_id,
-            'type' => 'donation_status', 
+            'type' => 'donation_status',
             'data' => [
                 'status' => 'rejected',
                 'donation_id' => $donation->id,
-                'message' => 'Your donation proof was rejected. Reason: ' . $admin_notes,
+                'message' => 'Your donation proof was rejected. Reason: '.$admin_notes,
                 'from_user' => 'System',
                 'profile_pic_url' => null,
             ],

@@ -2,21 +2,22 @@
 
 namespace App\Services;
 
-use App\Repositories\AppointmentRepository;
+use App\Events\AppointmentBookedNotification;
 use App\Models\Appointment;
 use App\Models\Notification;
-use App\Events\AppointmentBookedNotification;
+use App\Repositories\AppointmentRepository;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 
 class AppointmentService
 {
     protected $appointmentRepository;
 
-    public function __construct(AppointmentRepository $appointmentRepository)
-    {
+    public function __construct(
+        AppointmentRepository $appointmentRepository,
+        private readonly FileStorageService $files
+    ) {
         $this->appointmentRepository = $appointmentRepository;
     }
 
@@ -40,7 +41,7 @@ class AppointmentService
         )) {
             return [
                 'success' => false,
-                'message' => 'This time is already booked. Please choose another.'
+                'message' => 'This time is already booked. Please choose another.',
             ];
         }
 
@@ -48,34 +49,25 @@ class AppointmentService
         $appointment = $this->appointmentRepository->create($data);
 
         // Handle images (Multiple for Create)
-        if ($apptImages && count($apptImages) > 0) {
-            foreach ($apptImages as $image) {
-                if ($image instanceof UploadedFile) {
-                    $path = $image->store('appointment_images', [
-                        'disk' => 's3',
-                        'visibility' => 'public',
-                    ]);
-
-                    $appointment->apptImages()->create([
-                        'image_path' => $path,
-                    ]);
-                }
-            }
+        foreach ($this->files->uploadPublicMany($apptImages, 'appointment_images') as $path) {
+            $appointment->apptImages()->create([
+                'image_path' => $path,
+            ]);
         }
 
         // Notify upcycler
-        if (!empty($appointment->upcycler_id)) {
+        if (! empty($appointment->upcycler_id)) {
             Notification::create([
                 'user_id' => $appointment->upcycler_id,
-                'type'    => 'appointment_booked',
-                'data'    => [
+                'type' => 'appointment_booked',
+                'data' => [
                     'appointment_id' => $appointment->appointmentid,
-                    'from_user'      => Auth::user()->fname . ' ' . Auth::user()->lname,
-                    'apptype'        => $appointment->apptype,
-                    'appdate'        => $appointment->appdate,
-                    'app_time'       => $appointment->app_time,
-                    'link'           => route('upcycler'),
-                    'message'        => ' booked a new appointment with you.',
+                    'from_user' => Auth::user()->fname.' '.Auth::user()->lname,
+                    'apptype' => $appointment->apptype,
+                    'appdate' => $appointment->appdate,
+                    'app_time' => $appointment->app_time,
+                    'link' => route('upcycler'),
+                    'message' => ' booked a new appointment with you.',
                 ],
             ]);
 
@@ -85,7 +77,7 @@ class AppointmentService
         return [
             'success' => true,
             'message' => 'Appointment created successfully!',
-            'appointment' => $appointment
+            'appointment' => $appointment,
         ];
     }
 
@@ -99,14 +91,7 @@ class AppointmentService
 
         // 2. Handle Single Image Upload
         if ($image instanceof UploadedFile) {
-
-            // Upload new image to S3
-            $path = $image->store('appointment_images', [
-                'disk' => 's3',
-                'visibility' => 'public',
-            ]);
-
-            // Save to Relationship
+            $path = $this->files->uploadPublic($image, 'appointment_images');
             $appointment->apptImages()->create([
                 'image_path' => $path,
             ]);
@@ -117,7 +102,9 @@ class AppointmentService
 
     public function deleteAppointment(Appointment $appointment)
     {
-        // Optionally delete S3 images associated with this appointment here
+        $appointment->loadMissing('apptImages');
+        $this->files->deleteManyIfExists($appointment->apptImages->pluck('image_path'));
+
         return $this->appointmentRepository->delete($appointment);
     }
 
@@ -153,6 +140,7 @@ class AppointmentService
         }
 
         $this->appointmentRepository->update($appointment, ['appstatus' => 'cancelled']);
+
         return ['success' => 'Appointment cancelled successfully!'];
     }
 }

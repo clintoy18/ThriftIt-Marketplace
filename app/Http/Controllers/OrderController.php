@@ -6,13 +6,17 @@ use App\Events\OrderPlacedNotification;
 use App\Models\Notification;
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\FileStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
 {
+    public function __construct(
+        private readonly FileStorageService $files
+    ) {}
+
     public function store(Request $request, Product $product)
     {
         $request->validate([
@@ -37,11 +41,7 @@ class OrderController extends Controller
                 ->with('error', 'You already placed an order for this product.');
         }
 
-        // Store proof image on S3
-        $path = $request->file('proof')->store('proofs', 's3');
-
-        // Make it publicly accessible
-        Storage::disk('s3')->setVisibility($path, 'public');
+        $path = $this->files->uploadPublic($request->file('proof'), 'proofs');
 
         // Create order
         $order = Order::create([

@@ -2,28 +2,28 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\ProductStatusNotification;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ApprovalStatusProductUpdateRequest;
-use App\Models\Product;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
-use App\Services\ProductService;
-use Illuminate\Support\Facades\Mail;
 use App\Mail\ProductApprovedMail;
 use App\Mail\ProductRejectedMail;
-use App\Events\ProductStatusNotification;
 use App\Models\Notification;
+use App\Models\Product;
+use App\Services\ProductService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\View\View;
 
 class AdminProductController extends Controller
 {
-
     protected $productService;
+
     public function __construct(ProductService $productService)
     {
         $this->productService = $productService;
     }
+
     public function index(): View
     {
         $approvedProducts = $this->productService->getProductsByStatusPaginated('approved');
@@ -36,9 +36,9 @@ class AdminProductController extends Controller
     public function show(Product $product): View
     {
         $product->load(['user', 'category', 'comments.user', 'images']);
+
         return view('admin.products.show', compact('product'));
     }
-
 
     public function update(ApprovalStatusProductUpdateRequest $request, Product $product): RedirectResponse
     {
@@ -52,13 +52,13 @@ class AdminProductController extends Controller
     public function edit(Product $product): View
     {
         $product->load(['user', 'category']);
+
         return view('admin.products.edit', compact('product'));
     }
 
-
     public function destroy(Product $product): RedirectResponse
     {
-        $product->delete();
+        $this->productService->deleteProduct($product);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product deleted successfully.');
@@ -67,7 +67,7 @@ class AdminProductController extends Controller
     public function approve(Product $product): RedirectResponse
     {
         $this->productService->updateProduct($product, ['approval_status' => 'approved']);
-        //email user once product is approved
+        // email user once product is approved
         Mail::to($product->user->email)->send(new ProductApprovedMail($product));
 
         // Save notification in DB
@@ -77,7 +77,7 @@ class AdminProductController extends Controller
             'data' => [
                 'status' => 'approved',
                 'product_id' => $product->id,
-                'message' => 'Your product has been approved!'
+                'message' => 'Your product has been approved!',
             ],
         ]);
 
@@ -94,7 +94,7 @@ class AdminProductController extends Controller
 
         $this->productService->updateProduct($product, [
             'approval_status' => 'rejected',
-            'admin_notes'     => $admin_notes,
+            'admin_notes' => $admin_notes,
         ]);
 
         Mail::to($product->user->email)->send(new ProductRejectedMail($product));
@@ -105,7 +105,7 @@ class AdminProductController extends Controller
             'data' => [
                 'status' => 'rejected',
                 'product_id' => $product->id,
-                'message' => 'Your product has been rejected. Note: ' . $admin_notes
+                'message' => 'Your product has been rejected. Note: '.$admin_notes,
             ],
         ]);
 
