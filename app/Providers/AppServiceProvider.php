@@ -1,11 +1,14 @@
 <?php
 
 namespace App\Providers;
-use App\Models\Categories;
-use Illuminate\Support\Facades\View;
+
+use App\Models\Message;
+use App\Models\Order;
+use App\Policies\OrderPolicy;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
-use App\Services\MessageService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,28 +25,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Share categories across all views
-        // View::composer('*', function ($view) {
-        //     $view->with('categories', Categories::all());
-        // });
+        Gate::policy(Order::class, OrderPolicy::class);
 
-        // Share conversations with all views for authenticated users
+        // Keep the global navigation badge cheap; conversation lists are loaded by message pages only.
         View::composer('*', function ($view) {
             if (Auth::check()) {
-                $messageService = app(MessageService::class);
-                $conversations = $messageService->getUserConversations(Auth::id());
-                
-                // Calculate total unread count directly from conversations
-                $totalUnreadCount = $conversations->sum(function ($conversation) {
-                    return $conversation['unread_count'] ?? 0;
-                });
-                
-                $view->with('conversations', $conversations);
-                $view->with('totalUnreadCount', $totalUnreadCount);
-            } else {
-                $view->with('conversations', collect());
-                $view->with('totalUnreadCount', 0);
+                $view->with('totalUnreadCount', Message::where('receiver_id', Auth::id())
+                    ->where('is_read', false)
+                    ->count());
+
+                return;
             }
+
+            $view->with('totalUnreadCount', 0);
         });
     }
 }

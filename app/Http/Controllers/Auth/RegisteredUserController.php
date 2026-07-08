@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
@@ -33,12 +34,12 @@ class RegisteredUserController extends Controller
             'fname' => ['required', 'string', 'max:30'],
             'lname' => ['required', 'string', 'max:30'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'role' => ['required', 'int', 'min:0', 'max:2'],
+            'role' => ['required', 'integer', Rule::in([User::ROLE_USER, User::ROLE_UPCYCLER])],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user = User::create([
-            'fname' => $request->fname, 
+            'fname' => $request->fname,
             'lname' => $request->lname,
             'email' => $request->email,
             'role' => $request->role,

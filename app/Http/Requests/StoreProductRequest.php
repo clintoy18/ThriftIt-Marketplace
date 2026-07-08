@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StoreProductRequest extends FormRequest
 {
@@ -27,21 +27,18 @@ class StoreProductRequest extends FormRequest
             'name' => 'required|string|max:255',
             'description' => 'required|string|min:15',
             'price' => 'required|numeric|min:0',
-            'approval_status' => 'in:approved,pending,rejected',
             'size' => 'required|string',
 
             // --- CHANGED HERE ---
             // 1. Changed 'required' to 'nullable' (so it doesn't fail if you already have images in session)
             // 2. Removed 'min:2' (We check the total count in the Controller now)
-            'images'   => 'nullable|array|max:8', 
+            'images' => 'nullable|array|max:8',
             'images.*' => 'image|mimes:jpg,jpeg,png,webp,gif|max:5120',
 
             'qty' => 'integer',
-            'status' => 'required|in:available,sold',
             'segment_id' => 'required|exists:segments,id',
-            'barangay_id'   => 'required|exists:barangays,id',
+            'barangay_id' => 'required|exists:barangays,id',
             'qr_code' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif', 'max:2048'],
-            'admin_notes'=> 'nullable|string'
         ];
     }
 

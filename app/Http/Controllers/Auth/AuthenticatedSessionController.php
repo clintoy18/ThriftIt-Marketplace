@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,14 +31,14 @@ class AuthenticatedSessionController extends Controller
 
         $authUserRole = Auth::user()->role;
 
-        if ($authUserRole == 2) { // Admin
+        if ($authUserRole === User::ROLE_ADMIN) {
             return redirect()->route('admin.dashboard');
-        } elseif ($authUserRole == 1) { // Upcycler
+        } elseif ($authUserRole === User::ROLE_UPCYCLER) {
             return redirect()->route('upcycler');
-        } else { // Regular User
+        } else {
             return redirect()->route('dashboard');
         }
-        
+
     }
 
     /**

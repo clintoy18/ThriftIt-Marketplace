@@ -5,7 +5,6 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
-
 class StoreDonationRequest extends FormRequest
 {
     /**
@@ -24,20 +23,17 @@ class StoreDonationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id' => 'required|exists:categories,id', 
+            'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
             'description' => 'required|min:15|string',
-            'approval_status' => 'in:approved,pending,rejected',
             'size' => 'required|string',
-            'status' => 'in:available,unavailable|default:available',
             'barangay_id' => 'required|exists:barangays,id',
-             // Multi-image input from the form: images[]
-            'images'   => 'required|array|min:2|max:8',
+            // Multi-image input from the form: images[]
+            'images' => 'required|array|min:2|max:8',
             'images.*' => 'image|mimes:jpg,jpeg,png,webp,gif|max:5120',
         ];
     }
 
-    
     public function messages(): array
     {
         return [

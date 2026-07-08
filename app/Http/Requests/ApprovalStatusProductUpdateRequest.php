@@ -12,7 +12,7 @@ class ApprovalStatusProductUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->role === 2;
+        return Auth::check() && Auth::user()->isAdmin();
     }
 
     /**
@@ -23,7 +23,7 @@ class ApprovalStatusProductUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-               'approval_status' => 'required|in:approved,rejected',
+            'approval_status' => 'required|in:approved,rejected',
 
         ];
     }

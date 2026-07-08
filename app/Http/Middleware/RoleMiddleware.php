@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,42 +17,41 @@ class RoleMiddleware
      */
     public function handle(Request $request, Closure $next, $role): Response
     {
-        if(!Auth::check()){
-            return redirect()->route('login'); 
+        if (! Auth::check()) {
+            return redirect()->route('login');
         }
-        
+
         $authUserRole = Auth::user()->role;
 
-        switch($role){
+        switch ($role) {
             case 'admin':
-                if($authUserRole == 2){
+                if ($authUserRole === User::ROLE_ADMIN) {
                     return $next($request);
                 }
                 break;
             case 'upcycler':
-                if($authUserRole == 1){
+                if ($authUserRole === User::ROLE_UPCYCLER) {
                     return $next($request);
                 }
                 break;
             case 'user':
-                if($authUserRole == 0){
+                if ($authUserRole === User::ROLE_USER) {
                     return $next($request);
                 }
                 break;
-        
+
         }
 
-        switch($authUserRole){
-            case 2:
+        switch ($authUserRole) {
+            case User::ROLE_ADMIN:
                 return redirect()->route('admin.dashboard');
-            case 1:
+            case User::ROLE_UPCYCLER:
                 return redirect()->route('upcycler');
-               
-            case 0:
+
+            case User::ROLE_USER:
                 return redirect()->route('dashboard');
-            
+
         }
-       
 
         return redirect()->route('login');
     }

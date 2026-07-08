@@ -28,7 +28,6 @@ class UpdateDonationRequest extends FormRequest
             'description' => 'required|string|min:10',
             'status' => 'nullable|in:available,donated',
             'image' => 'nullable|image|max:2048',
-            'admin_notes' => 'nullable|string|max:1000',
         ];
     }
 }

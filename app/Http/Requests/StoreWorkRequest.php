@@ -20,7 +20,6 @@ class StoreWorkRequest extends FormRequest
             'description' => 'nullable|string',
             'images.*' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'upcycle_type' => 'required|string|max:255',
-            'approval_status' => "default"
         ];
     }
 

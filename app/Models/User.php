@@ -3,21 +3,23 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Models\Product;
-use App\Models\Barangay;
-use App\Models\Donation;
-use App\Models\Appointment;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Laravel\Cashier\Billable;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Cashier\Billable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, Billable;
+    use Billable, HasFactory, Notifiable;
+
+    public const ROLE_USER = 0;
+
+    public const ROLE_UPCYCLER = 1;
+
+    public const ROLE_ADMIN = 2;
 
     /**
      * The attributes that are mass assignable.
@@ -63,7 +65,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'role' => 'integer',
             'is_active' => 'boolean',
-            'suspended_until' => 'datetime', // 
+            'suspended_until' => 'datetime', //
         ];
     }
 
@@ -82,7 +84,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isAdmin(): bool
     {
-        return $this->role === 2;
+        return $this->role === self::ROLE_ADMIN;
     }
 
     /**
@@ -90,7 +92,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isUpcycler(): bool
     {
-        return $this->role === 1;
+        return $this->role === self::ROLE_UPCYCLER;
     }
 
     /**
@@ -98,7 +100,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isRegularUser(): bool
     {
-        return $this->role === 0;
+        return $this->role === self::ROLE_USER;
     }
 
     /**
@@ -107,9 +109,9 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getRoleNameAttribute(): string
     {
         return match ($this->role) {
-            2 => 'Admin',
-            1 => 'Upcycler',
-            0 => 'User',
+            self::ROLE_ADMIN => 'Admin',
+            self::ROLE_UPCYCLER => 'Upcycler',
+            self::ROLE_USER => 'User',
             default => 'Unknown'
         };
     }
@@ -144,6 +146,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getAverageRatingAttribute(): float
     {
         $average = $this->reviewsReceived()->avg('rating');
+
         return $average ? round($average, 1) : 0.0;
     }
 

@@ -1,41 +1,36 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\CategoriesController;
-use App\Http\Controllers\AppointmentController;
-use App\Http\Controllers\UserDashboardController;
-use App\Http\Controllers\UpcyclerController;
-use App\Http\Controllers\CommentController;
-use App\Http\Controllers\CommentLikeController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SearchController;
-use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminDonationController;
+use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminUserController;
-use App\Http\Controllers\Admin\AdminProductController;
-use App\Http\Controllers\Admin\AdminDonationController;
 use App\Http\Controllers\Admin\AdminWorkController;
-use App\Http\Controllers\LandingPageController;
-use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\PrivateChatController;
+use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\CommentLikeController;
 use App\Http\Controllers\DonationController;
-use App\Http\Controllers\LeaderboardController;
-use App\Http\Controllers\SegmentController;
-use App\Http\Controllers\PricingController;
 use App\Http\Controllers\EcoPostController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\WorkController;
-use App\Http\Controllers\GoogleController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\HelpController;
-use App\Models\Notification;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\FeaturedBuyerController;
-use Illuminate\Http\Request;
-
-
+use App\Http\Controllers\GoogleController;
+use App\Http\Controllers\HelpController;
+use App\Http\Controllers\LandingPageController;
+use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PricingController;
+use App\Http\Controllers\PrivateChatController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SegmentController;
+use App\Http\Controllers\UpcyclerController;
+use App\Http\Controllers\UserDashboardController;
+use App\Http\Controllers\WorkController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/', [LandingPageController::class, 'index'])->name('landing.index');
@@ -62,16 +57,15 @@ Route::get('upcycler/dashboard', function () {
     ->middleware(['auth', 'verified', 'rolemiddleware:upcycler'])
     ->name('upcycler');
 
-
 Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
 
-//to make sure only a verified user can access the user routes, 
+// to make sure only a verified user can access the user routes,
 Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function () {
 
     // --- START: Multi-Step Selling Flow ---
 
-    // Step 1: Form Submission 
+    // Step 1: Form Submission
     Route::post('/sell/step-1', [ProductController::class, 'storeStep1'])
         ->name('sell-item.store-step1');
 
@@ -138,10 +132,8 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:user'])->group(function (
 
     // Orders
     Route::post('/orders/{product}', [OrderController::class, 'store'])->name('orders.store');
-    Route::patch('/orders/{order}/{status}', [OrderController::class, 'updateStatus'])
-        ->name('orders.updateStatus');
 });
-//Upcycler Routes
+// Upcycler Routes
 Route::middleware(['auth', 'verified', 'rolemiddleware:upcycler'])->group(function () {
     Route::resource('upcycler', UpcyclerController::class);
     Route::resource('works', WorkController::class)->except(['show']);
@@ -162,31 +154,31 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:admin'])->prefix('admin')
     Route::get('/sales/monthly-export/{month}', [App\Http\Controllers\Admin\SalesReportController::class, 'exportMonthlyDataPdf'])->name('sales.monthly-export');
     Route::get('/sales/yearly-export/{year?}', [App\Http\Controllers\Admin\SalesReportController::class, 'exportYearlyDataPdf'])->name('sales.yearly-export');
 
-    //approve and reject product
+    // approve and reject product
     Route::put('/products/{product}/approve', [AdminProductController::class, 'approve'])
         ->name('products.approve');
     Route::put('/products/{product}/reject', [AdminProductController::class, 'reject'])
         ->name('products.reject');
 
-    //approve and reject donations
+    // approve and reject donations
     Route::put('/donations/{donation}/approve', [AdminDonationController::class, 'approve'])
         ->name('donations.approve');
     Route::put('/donations/{donation}/reject', [AdminDonationController::class, 'reject'])
         ->name('donations.reject');
 
-    //approve and reject work
+    // approve and reject work
     Route::put('/works/{work}/approve', [AdminWorkController::class, 'approve'])
         ->name('works.approve');
     Route::put('/works/{work}/reject', [AdminWorkController::class, 'reject'])
         ->name('works.reject');
 
-    //verify donations and add points to donor/user
+    // verify donations and add points to donor/user
     Route::get('/donations/reward-management', [AdminDonationController::class, 'rewardManagement'])->name('donations.rewardManagement');
     Route::put('/donations/{donation}/verify', [AdminDonationController::class, 'verifyProof'])
         ->name('donations.verifyProof');
     Route::put('/donations/{donation}/reject-proof', [AdminDonationController::class, 'rejectDonationProof'])->name('donations.rejectDonationProof');
 
-    //verify -reject user
+    // verify -reject user
     Route::put('/users/{user}/verify', [AdminUserController::class, 'verify'])->name('users.verify');
     Route::put('/users/{user}/reject', [AdminUserController::class, 'reject'])->name('users.reject');
 
@@ -195,7 +187,7 @@ Route::middleware(['auth', 'verified', 'rolemiddleware:admin'])->prefix('admin')
 
 });
 
-//Global Routes
+// Global Routes
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::get('/profile/password', [ProfileController::class, 'edit1'])->name('profile.edit1');
@@ -209,7 +201,7 @@ Route::middleware('auth')->group(function () {
 
     Route::resource(('eco-posts'), EcoPostController::class);
 
-    //routes to show
+    // routes to show
 
     Route::get('/messages', [PrivateChatController::class, 'index'])->name('messages.index');
     Route::get('/private-chat/{user}', [PrivateChatController::class, 'show'])->name('private.chat');
@@ -220,85 +212,47 @@ Route::middleware('auth')->group(function () {
     Route::post('/users/{user}/unblock', [PrivateChatController::class, 'unblock'])->name('users.unblock');
     Route::get('/proxy-image', [PrivateChatController::class, 'proxyImage'])->name('proxy.image');
 
-
-
-    //upload verification document user/upcycler 
+    // upload verification document user/upcycler
     Route::post('/profile/verification-document', [ProfileController::class, 'uploadVerificationDocument'])
         ->name('profile.verification.upload');
 
-    //show works globally
+    // show works globally
     Route::get('/works/{id}/view', [WorkController::class, 'show'])->name('works.show');
 
-    //mark item as sold
+    // mark item as sold
     Route::put('/products/{product}/mark-as-sold', [ProductController::class, 'markAsSold'])
         ->name('products.markAsSold')
         ->middleware('auth');
 
-
-    //mark item as sold
+    // mark item as sold
     Route::put('/donations/{donation}/mark-as-donated', [DonationController::class, 'markAsDonated'])
         ->name('donations.markAsDonated');
 
-    //route for pricing page
+    // route for pricing page
     Route::get('/pricing', [PricingController::class, 'index'])->name('pricing.index');
 
-    //route for cehckout
+    // route for cehckout
     Route::get('/checkout/{name}', [App\Http\Controllers\CheckoutController::class, 'checkout'])->name('checkout');
     Route::get('/checkout-success', [App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
 
+    Route::patch('/orders/{order}/{status}', [OrderController::class, 'updateStatus'])
+        ->name('orders.updateStatus');
 
     // Notification routes
     Route::post('/notifications/read', [NotificationController::class, 'markAllAsRead'])->name('notifications.read');
     Route::get('/notifications/load-more', [NotificationController::class, 'loadMore'])->name('notifications.load-more');
 });
-Route::post('/messages/mark-read', function () {
-    if (Auth::check()) {
-        $userId = Auth::id();
+Route::post('/messages/mark-read', [PrivateChatController::class, 'markAllMessagesAsRead'])
+    ->name('messages.mark-read')
+    ->middleware('auth');
 
-        // Mark all messages as read
-        \App\Models\Message::where('receiver_id', $userId)
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
+Route::get('/messages/unread-count', [PrivateChatController::class, 'unreadCount'])
+    ->name('messages.unread-count')
+    ->middleware('auth');
 
-        // Get updated count
-        $unreadCount = \App\Models\Message::where('receiver_id', $userId)
-            ->where('is_read', false)
-            ->count();
-
-        // Broadcast update if using real-time
-        // event(new MessagesRead($userId));
-    }
-
-    return response()->json(['success' => true, 'unread_count' => $unreadCount ?? 0]);
-})->name('messages.mark-read')->middleware('auth');
-
-// Route to get unread count without marking as read
-Route::get('/messages/unread-count', function () {
-    if (Auth::check()) {
-        $userId = Auth::id();
-        $unreadCount = \App\Models\Message::where('receiver_id', $userId)
-            ->where('is_read', false)
-            ->count();
-        return response()->json(['unread_count' => $unreadCount]);
-    }
-    return response()->json(['unread_count' => 0]);
-})->name('messages.unread-count')->middleware('auth');
-
-// Route to get unread count for a specific conversation
-
-Route::get('/messages/conversation-unread-count/{userId}', function ($userId) {
-    if (Auth::check()) {
-        $currentUserId = Auth::id();
-        $unreadCount = \App\Models\Message::where(function ($query) use ($currentUserId, $userId) {
-            $query->where('user_id', $userId)
-                ->where('receiver_id', $currentUserId);
-        })
-            ->where('is_read', false)
-            ->count();
-        return response()->json(['unread_count' => $unreadCount]);
-    }
-    return response()->json(['unread_count' => 0]);
-})->name('messages.conversation-unread-count')->middleware('auth');
+Route::get('/messages/conversation-unread-count/{userId}', [PrivateChatController::class, 'conversationUnreadCount'])
+    ->name('messages.conversation-unread-count')
+    ->middleware('auth');
 
 // Route::get('/sell-item/qr/{product}', [ProductController::class, 'qrStep'])->name('sell-item.qr');
 // Route::post('/sell-item/qr/{product}', [ProductController::class, 'storeQr'])->name('sell-item.qr.store');
@@ -308,5 +262,4 @@ Route::get('/messages/conversation-unread-count/{userId}', function ($userId) {
 // Route::get('/sell-item/final/{product}', [ProductController::class, 'finalStep'])->name('sell-item.final');
 // Route::post('/sell-item/final/{product}', [ProductController::class, 'finalize'])->name('sell-item.finalize');
 
-
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
