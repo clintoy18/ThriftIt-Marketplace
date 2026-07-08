@@ -64,6 +64,68 @@ This project is refactored to use the Service-Repository pattern:
    php artisan serve
    ```
 
+## Local Windows/XAMPP Setup
+These notes match the local setup used to run the project on Windows with XAMPP.
+
+### Requirements
+- PHP 8.2 or newer. This project was verified with PHP 8.2.12.
+- Composer.
+- Node.js and npm.
+- MySQL/MariaDB, for example XAMPP MySQL.
+
+### PHP dependency note
+Composer needs PHP's `zip` extension for reliable installs. In XAMPP, enable it in `C:\xampp\php\php.ini` by uncommenting:
+
+```ini
+extension=zip
+```
+
+If you do not want to edit `php.ini` yet, run Composer with zip enabled only for that command:
+
+```powershell
+php -d extension=zip C:\composer\composer.phar install
+```
+
+### Run locally
+From the project directory:
+
+```powershell
+cd C:\Users\Juliet\ThriftIt-Marketplace
+php -d extension=zip C:\composer\composer.phar install
+npm.cmd install
+php artisan key:generate
+```
+
+Set the local `.env` values:
+
+```env
+APP_URL=http://127.0.0.1:8000
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=ThriftIT
+DB_USERNAME=root
+FILESYSTEM_DISK=local
+AWS_BUCKET=local
+AWS_URL=http://127.0.0.1:8000
+```
+
+Start XAMPP MySQL, then create and migrate the database:
+
+```powershell
+C:\xampp\mysql\bin\mysql.exe -u root -e "CREATE DATABASE IF NOT EXISTS ThriftIT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+php artisan migrate
+php artisan storage:link
+npm.cmd run build
+php artisan serve --host=127.0.0.1 --port=8000
+```
+
+Open `http://127.0.0.1:8000`.
+
+PowerShell may block `npm.ps1` on some Windows installs. Use `npm.cmd` in PowerShell commands.
+
+`php artisan db:seed` may fail if `ProductSeeder` references a fixed `user_id` that was not created by `UserSeeder`. The app can still run after migrations without seeded products.
+
 ## Usage
 - Register as a user or upcycler
 - Book and manage appointments
